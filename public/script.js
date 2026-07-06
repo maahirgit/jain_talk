@@ -135,7 +135,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = 'Logging in...';
         
         try {
-            const response = await fetch('http://localhost:5000/api/login', {
+            const response = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email: emailInput, password: passwordInput })
@@ -169,7 +169,7 @@ document.addEventListener('DOMContentLoaded', () => {
         btn.innerHTML = 'Creating account...';
         
         try {
-            const response = await fetch('http://localhost:5000/api/signup', {
+            const response = await fetch('/api/signup', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ name, email, password, city, number, sangh })

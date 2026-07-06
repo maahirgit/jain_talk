@@ -13,7 +13,7 @@
     <script>
         async function verifyAuth() {
             try {
-                const response = await fetch('http://localhost:5000/api/me');
+                const response = await fetch('/api/me');
                 if (!response.ok) {
                     window.location.href = 'index.html';
                     return;
@@ -553,7 +553,7 @@
             // Logout logic
             document.getElementById('logout-btn').addEventListener('click', async () => {
                 try {
-                    await fetch('http://localhost:5000/api/logout', { method: 'POST' });
+                    await fetch('/api/logout', { method: 'POST' });
                     window.location.href = 'index.html';
                 } catch (err) {
                     console.error('Logout failed', err);
@@ -606,7 +606,7 @@
                 const formData = new FormData(form);
 
                 try {
-                    const response = await fetch('http://localhost:5000/api/register-course', {
+                    const response = await fetch('/api/register-course', {
                         method: 'POST',
                         body: formData
                     });
