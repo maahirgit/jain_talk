@@ -63,7 +63,9 @@ const CourseRegistration = mongoose.model('CourseRegistration', courseRegistrati
 // Setup multer for file uploads
 const storage = multer.diskStorage({
     destination: (req, file, cb) => {
-        cb(null, path.join(__dirname, 'public', 'uploads'));
+        // Use /tmp for serverless (Vercel), otherwise public/uploads
+        const dir = process.env.VERCEL ? '/tmp' : path.join(__dirname, 'public', 'uploads');
+        cb(null, dir);
     },
     filename: (req, file, cb) => {
         cb(null, Date.now() + '-' + file.originalname);
@@ -203,6 +205,11 @@ app.get('/home', (req, res) => {
 });
 
 // Start Server
-app.listen(PORT, () => {
-    console.log(`Server is running on http://localhost:${PORT}`);
-});
+if (!process.env.VERCEL) {
+    app.listen(PORT, () => {
+        console.log(`Server is running on http://localhost:${PORT}`);
+    });
+}
+
+// Export for Vercel serverless functions
+module.exports = app;
