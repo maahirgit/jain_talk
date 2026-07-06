@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jain Talk - Authentication</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="auth-container">
+        <!-- Background decorative elements -->
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+        
+        <div class="auth-card">
+            <!-- Header -->
+            <div class="auth-header">
+                <div class="logo">
+                    <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+                        <circle cx="20" cy="20" r="20" fill="url(#paint0_linear)"/>
+                        <path d="M20 10C14.4772 10 10 14.4772 10 20C10 25.5228 14.4772 30 20 30C25.5228 30 30 25.5228 30 20C30 14.4772 25.5228 10 20 10ZM20 28C15.5817 28 12 24.4183 12 20C12 15.5817 15.5817 12 20 12C24.4183 12 28 15.5817 28 20C28 24.4183 24.4183 28 20 28Z" fill="white" fill-opacity="0.9"/>
+                        <circle cx="20" cy="20" r="4" fill="white" fill-opacity="0.9"/>
+                        <defs>
+                            <linearGradient id="paint0_linear" x1="0" y1="0" x2="40" y2="40" gradientUnits="userSpaceOnUse">
+                                <stop stop-color="#FF9933"/>
+                                <stop offset="1" stop-color="#FF6600"/>
+                            </linearGradient>
+                        </defs>
+                    </svg>
+                    <h1>Jain Talk</h1>
+                </div>
+                <div class="toggle-container">
+                    <button class="toggle-btn active" id="login-toggle">Log In</button>
+                    <button class="toggle-btn" id="signup-toggle">Sign Up</button>
+                </div>
+            </div>
+
+            <div class="forms-wrapper">
+                <!-- Login Form -->
+                <form id="login-form" class="auth-form active-form">
+                    <div class="form-group">
+                        <label for="login-email">Email Address</label>
+                        <input type="email" id="login-email" placeholder="Enter your email" required>
+                    </div>
+                    <div class="form-group">
+                        <label for="login-password">Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="login-password" placeholder="Enter your password" required>
+                            <button type="button" class="toggle-password" tabindex="-1">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="forgot-password">
+                        <a href="#">Forgot Password?</a>
+                    </div>
+                    <button type="submit" class="submit-btn">Log In</button>
+                </form>
+
+                <!-- Signup Form -->
+                <form id="signup-form" class="auth-form">
+                    <div class="form-row">
+                        <div class="form-group half-width">
+                            <label for="signup-name">Full Name</label>
+                            <input type="text" id="signup-name" placeholder="John Doe" required>
+                        </div>
+                        <div class="form-group half-width">
+                            <label for="signup-number">Phone Number</label>
+                            <input type="tel" id="signup-number" placeholder="+91 00000 00000" required>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="signup-email">Email Address</label>
+                        <input type="email" id="signup-email" placeholder="john@example.com" required>
+                    </div>
+                    <div class="form-row">
+                        <div class="form-group half-width">
+                            <label for="signup-city">City</label>
+                            <input type="text" id="signup-city" placeholder="Mumbai" required>
+                        </div>
+                        <div class="form-group half-width">
+                            <label for="signup-sangh">Name Of Sangh</label>
+                            <input type="text" id="signup-sangh" placeholder="e.g. Jain Shwetambar..." required>
+                        </div>
+                    </div>
+                    
+                    <!-- Secure Password Section -->
+                    <div class="form-group">
+                        <label for="signup-password">Your Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="signup-password" placeholder="Create a strong password" required>
+                            <button type="button" class="toggle-password" tabindex="-1">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                        </div>
+                        <div class="password-strength">
+                            <div class="strength-bar-container">
+                                <div class="strength-bar" id="strength-bar"></div>
+                            </div>
+                            <span id="strength-text">Password strength</span>
+                        </div>
+                    </div>
+                    
+                    <div class="form-group">
+                        <label for="signup-confirm-password">Re-enter Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="signup-confirm-password" placeholder="Confirm your password" required>
+                            <button type="button" class="toggle-password" tabindex="-1">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                        </div>
+                        <span id="password-match-text" class="match-text"></span>
+                    </div>
+
+                    <div class="terms">
+                        <input type="checkbox" id="terms" required>
+                        <label for="terms">I agree to the <a href="#">Terms & Conditions</a></label>
+                    </div>
+
+                    <button type="submit" class="submit-btn" id="signup-submit" disabled>Create Account</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script src="script.js"></script>
+</body>
+</html>
