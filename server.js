@@ -31,10 +31,30 @@ const authLimiter = rateLimit({
     message: { error: 'Too many attempts from this IP, please try again after 15 minutes.' }
 });
 
-// MongoDB Connection
-mongoose.connect(process.env.MONGO_URI)
-.then(() => console.log('Connected to MongoDB successfully!'))
-.catch((err) => console.error('MongoDB connection error:', err));
+// Serverless-friendly MongoDB Connection
+let isConnected = false;
+const connectDB = async () => {
+    if (isConnected) {
+        return;
+    }
+    try {
+        const db = await mongoose.connect(process.env.MONGO_URI, {
+            serverSelectionTimeoutMS: 5000
+        });
+        isConnected = db.connections[0].readyState === 1;
+        console.log('Connected to MongoDB successfully!');
+    } catch (err) {
+        console.error('MongoDB connection error:', err);
+    }
+};
+
+// Middleware to ensure DB connection before handling API routes
+app.use(async (req, res, next) => {
+    if (req.path.startsWith('/api/')) {
+        await connectDB();
+    }
+    next();
+});
 
 // User Schema
 const userSchema = new mongoose.Schema({
