@@ -64,6 +64,7 @@ const userSchema = new mongoose.Schema({
     city: { type: String, required: true },
     sangh: { type: String, required: true },
     password: { type: String, required: true },
+    username: { type: String, unique: true }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
@@ -105,11 +106,17 @@ app.post('/api/signup', authLimiter, async (req, res) => {
             return res.status(400).json({ error: 'An account with this email already exists!' });
         }
 
+        // Generate unique username: JT_{id}_{firstName}
+        const userCount = await User.countDocuments();
+        const nextId = String(userCount + 1).padStart(2, '0');
+        const firstName = name.trim().split(' ')[0];
+        const username = `JT_${nextId}_${firstName}`;
+
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(password, salt);
 
         const newUser = new User({
-            name, number, email, city, sangh, password: hashedPassword
+            name, number, email, city, sangh, password: hashedPassword, username
         });
 
         await newUser.save();
