@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jain Talk - Admin Dashboard</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary-color: #FF8C00;
+            --primary-dark: #E67E00;
+            --secondary-color: #FFF3E0;
+            --text-dark: #2C3E50;
+            --text-light: #7F8C8D;
+            --bg-color: #F8F9FA;
+            --border-color: #EAECEE;
+            --success-color: #34C759;
+            --error-color: #FF3B30;
+        }
+
+        body {
+            font-family: 'Outfit', sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding: 0;
+            color: var(--text-dark);
+        }
+
+        .header {
+            background: white;
+            padding: 1.5rem 2rem;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .header h1 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: var(--primary-dark);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1.5rem;
+        }
+
+        .card {
+            background: white;
+            border-radius: 16px;
+            padding: 1.5rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            margin-bottom: 1.5rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .user-info h3 {
+            margin: 0 0 0.5rem 0;
+            font-size: 1.2rem;
+        }
+
+        .user-info p {
+            margin: 0 0 0.2rem 0;
+            color: var(--text-light);
+            font-size: 0.9rem;
+        }
+
+        .status-badge {
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            font-weight: 600;
+        }
+
+        .status-pending {
+            background: #FFF3E0;
+            color: #FF9800;
+        }
+
+        .status-verified {
+            background: #E8F5E9;
+            color: #4CAF50;
+        }
+
+        .approve-btn {
+            background: var(--primary-color);
+            color: white;
+            border: none;
+            padding: 0.6rem 1.2rem;
+            border-radius: 8px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .approve-btn:hover {
+            background: var(--primary-dark);
+        }
+
+        .approve-btn:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+        }
+
+        .actions {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+        
+        .screenshot-link {
+            color: var(--primary-color);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 0.9rem;
+        }
+        .screenshot-link:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>Jain Talk Admin</h1>
+        <a href="home.html" style="color: var(--text-light); text-decoration: none; font-weight: 500;">Back to Dashboard</a>
+    </div>
+
+    <div class="container">
+        <h2 style="margin-bottom: 1.5rem;">Course Registrations</h2>
+        <div id="registrations-list">
+            <p>Loading registrations...</p>
+        </div>
+    </div>
+
+    <script>
+        async function fetchRegistrations() {
+            try {
+                const response = await fetch('/api/admin/registrations');
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                renderRegistrations(data.registrations);
+            } catch (err) {
+                console.error(err);
+                document.getElementById('registrations-list').innerHTML = '<p style="color: red;">Failed to load data. Make sure you are logged in.</p>';
+            }
+        }
+
+        function renderRegistrations(registrations) {
+            const container = document.getElementById('registrations-list');
+            container.innerHTML = '';
+
+            if (registrations.length === 0) {
+                container.innerHTML = '<p>No registrations found.</p>';
+                return;
+            }
+
+            registrations.forEach(reg => {
+                const isVerified = reg.isPaymentVerified;
+                
+                const card = document.createElement('div');
+                card.className = 'card';
+                
+                card.innerHTML = \`
+                    <div class="user-info">
+                        <h3>\${reg.name}</h3>
+                        <p><strong>Email:</strong> \${reg.email}</p>
+                        <p><strong>Phone:</strong> \${reg.number}</p>
+                        <p><strong>City/Sangh:</strong> \${reg.city} / \${reg.userId ? reg.userId.sangh : 'Unknown'}</p>
+                    </div>
+                    <div class="actions">
+                        <a href="\${reg.screenshotPath}" target="_blank" class="screenshot-link">View Screenshot</a>
+                        <span class="status-badge \${isVerified ? 'status-verified' : 'status-pending'}">
+                            \${isVerified ? 'Verified' : 'Pending'}
+                        </span>
+                        \${!isVerified ? \`<button class="approve-btn" onclick="approveUser('\${reg.userId ? reg.userId._id : ''}')">Approve</button>\` : ''}
+                    </div>
+                \`;
+                container.appendChild(card);
+            });
+        }
+
+        async function approveUser(userId) {
+            if (!userId) return alert('Invalid User ID');
+            
+            try {
+                const response = await fetch('/api/admin/verify/' + userId, {
+                    method: 'PUT'
+                });
+                
+                if (response.ok) {
+                    fetchRegistrations(); // Refresh list
+                } else {
+                    alert('Failed to approve');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error approving user');
+            }
+        }
+
+        // Load initially
+        fetchRegistrations();
+    </script>
+</body>
+</html>

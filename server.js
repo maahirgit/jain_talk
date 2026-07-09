@@ -252,6 +252,17 @@ app.put('/api/admin/verify/:userId', async (req, res) => {
     }
 });
 
+// Admin Route: Get all registrations
+app.get('/api/admin/registrations', async (req, res) => {
+    try {
+        const registrations = await CourseRegistration.find().populate('userId', 'name email sangh').sort({ createdAt: -1 });
+        res.status(200).json({ registrations });
+    } catch (error) {
+        console.error('Error fetching registrations:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 // Mark Daily Task Endpoint
 app.put('/api/aaradhna/mark-day', async (req, res) => {
     try {
@@ -284,6 +295,11 @@ app.put('/api/aaradhna/mark-day', async (req, res) => {
 // Serve home.html manually to avoid bypassing static rules if needed
 app.get('/home', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'home.html'));
+});
+
+// Serve admin.html
+app.get('/admin', (req, res) => {
+    res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
 // Start Server
