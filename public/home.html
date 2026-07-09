@@ -648,6 +648,14 @@
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#34C759" stroke-width="2" style="margin-bottom: 1rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 <h3 style="color: var(--text-dark); margin-bottom: 0.5rem;">Registration Submitted!</h3>
                 <p style="color: var(--text-light); font-size: 0.95rem;">We will review back within 24hrs.</p>
+                
+                <div id="countdown-container" style="margin-top: 1.5rem; background: var(--secondary-color); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                    <h4 style="color: var(--primary-dark); margin-bottom: 0.5rem; font-size: 1.1rem;">Chaturmas Aradhna begin in</h4>
+                    <div id="countdown-timer" style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
+                        -- days -- hours -- mins -- secs
+                    </div>
+                </div>
+
                 <button id="close-success-btn" style="margin-top: 1.5rem; padding: 0.75rem 2rem; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Close</button>
             </div>
         </div>
@@ -762,6 +770,27 @@
             closeSuccessBtn.addEventListener('click', () => {
                 modal.classList.remove('active');
             });
+
+            // Countdown Logic
+            const targetDate = new Date('July 28, 2026 00:00:00').getTime();
+            setInterval(() => {
+                const now = new Date().getTime();
+                const distance = targetDate - now;
+                
+                const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+                
+                const timerEl = document.getElementById('countdown-timer');
+                if (timerEl) {
+                    if (distance < 0) {
+                        timerEl.innerHTML = "Started!";
+                    } else {
+                        timerEl.innerHTML = `${days}d ${hours}h ${minutes}m ${seconds}s`;
+                    }
+                }
+            }, 1000);
 
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
