@@ -76,7 +76,11 @@ const courseRegistrationSchema = new mongoose.Schema({
     name: { type: String, required: true },
     email: { type: String, required: true },
     number: { type: String, required: true },
-    screenshotPath: { type: String, required: true }
+    age: { type: Number, required: true },
+    city: { type: String, required: true },
+    screenshotPath: { type: String, required: true },
+    isPaymentVerified: { type: Boolean, default: false },
+    dailyTasks: { type: [Boolean], default: () => Array(60).fill(false) }
 }, { timestamps: true });
 
 const CourseRegistration = mongoose.model('CourseRegistration', courseRegistrationSchema);
@@ -176,7 +180,10 @@ app.get('/api/me', async (req, res) => {
         
         if (!user) return res.status(404).json({ error: 'User not found' });
 
-        res.status(200).json({ user });
+        // Fetch user's registration
+        const registration = await CourseRegistration.findOne({ userId: user._id, courseName: "चलो सब आराधना करें" });
+
+        res.status(200).json({ user, registration });
     } catch (error) {
         res.status(401).json({ error: 'Invalid or expired token' });
     }
@@ -196,7 +203,7 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        const { courseName, name, email, number } = req.body;
+        const { courseName, name, email, number, age, city } = req.body;
         if (!req.file) {
             return res.status(400).json({ error: 'Payment screenshot is required' });
         }
@@ -209,6 +216,8 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
             name,
             email,
             number,
+            age,
+            city,
             screenshotPath
         });
 
@@ -224,6 +233,52 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
 // Serve the index.html on root
 app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
+});
+
+// Admin Route: Verify Payment for testing
+app.put('/api/admin/verify/:userId', async (req, res) => {
+    try {
+        const registration = await CourseRegistration.findOneAndUpdate(
+            { userId: req.params.userId },
+            { isPaymentVerified: true },
+            { new: true }
+        );
+        if (!registration) {
+            return res.status(404).json({ error: 'Registration not found' });
+        }
+        res.status(200).json({ message: 'Payment verified successfully', registration });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+// Mark Daily Task Endpoint
+app.put('/api/aaradhna/mark-day', async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        if (!token) return res.status(401).json({ error: 'Not authenticated' });
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const { dayIndex } = req.body;
+
+        if (dayIndex === undefined || dayIndex < 0 || dayIndex >= 60) {
+            return res.status(400).json({ error: 'Invalid day index' });
+        }
+
+        const registration = await CourseRegistration.findOne({ userId: decoded.id, courseName: "चलो सब आराधना करें" });
+        if (!registration) {
+            return res.status(404).json({ error: 'Registration not found' });
+        }
+
+        registration.dailyTasks[dayIndex] = true;
+        registration.markModified('dailyTasks');
+        await registration.save();
+
+        res.status(200).json({ message: 'Day marked successfully', dailyTasks: registration.dailyTasks });
+    } catch (error) {
+        console.error('Mark day error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
 });
 
 // Serve home.html manually to avoid bypassing static rules if needed

@@ -19,7 +19,7 @@
                     return;
                 }
                 const data = await response.json();
-                populateUserData(data.user);
+                populateUserData(data.user, data.registration);
             } catch (error) {
                 console.error('Auth verification failed', error);
                 window.location.href = 'index.html';
@@ -30,11 +30,106 @@
         verifyAuth();
 
         let currentUser = null;
-        function populateUserData(user) {
+        let currentRegistration = null;
+        function populateUserData(user, registration) {
             currentUser = user;
+            currentRegistration = registration;
             document.getElementById('welcome-name').textContent = user.name;
             document.getElementById('user-sangh').textContent = user.sangh;
+            
+            const registerBtn = document.getElementById('open-register-btn');
+            if (registration) {
+                if (registration.isPaymentVerified) {
+                    registerBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#34C759" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+                        Unlocked: View Aaradhna Card
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: auto;"><path d="M9 18l6-6-6-6"></path></svg>
+                    `;
+                    registerBtn.style.color = 'var(--primary-dark)';
+                    registerBtn.style.background = 'white';
+                    registerBtn.style.cursor = 'pointer';
+                    registerBtn.style.opacity = '1';
+                } else {
+                    registerBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        Locked: Verification Pending...
+                    `;
+                    registerBtn.style.opacity = '0.7';
+                    registerBtn.style.cursor = 'not-allowed';
+                    registerBtn.style.background = '#f1f1f1';
+                    registerBtn.style.color = '#888';
+                }
+            }
+
             document.body.style.display = 'block'; // Unhide body once verified
+        }
+        
+        function openAaradhnaCard() {
+            document.getElementById('card-name').textContent = currentUser.name;
+            document.getElementById('card-sangh').textContent = currentUser.sangh;
+            document.getElementById('card-city').textContent = currentRegistration.city;
+            document.getElementById('card-age').textContent = currentRegistration.age;
+            renderAaradhnaGrid();
+            document.getElementById('aaradhna-card-modal').classList.add('active');
+        }
+
+        async function markDay(index) {
+            try {
+                const response = await fetch('/api/aaradhna/mark-day', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ dayIndex: index })
+                });
+                if (response.ok) {
+                    const data = await response.json();
+                    currentRegistration.dailyTasks = data.dailyTasks;
+                    renderAaradhnaGrid();
+                } else {
+                    alert('Error marking day');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Error connecting to server');
+            }
+        }
+
+        function renderAaradhnaGrid() {
+            const gridContainer = document.getElementById('aaradhna-grid');
+            if (!gridContainer) return;
+            
+            gridContainer.innerHTML = '';
+            const tasks = currentRegistration.dailyTasks || Array(60).fill(false);
+            
+            for (let i = 0; i < 60; i++) {
+                const dayDiv = document.createElement('div');
+                const isCompleted = tasks[i];
+                
+                dayDiv.style.width = '24px';
+                dayDiv.style.height = '24px';
+                dayDiv.style.borderRadius = '6px';
+                dayDiv.style.display = 'flex';
+                dayDiv.style.alignItems = 'center';
+                dayDiv.style.justifyContent = 'center';
+                dayDiv.style.fontSize = '0.7rem';
+                dayDiv.style.fontWeight = '700';
+                dayDiv.style.cursor = isCompleted ? 'default' : 'pointer';
+                dayDiv.style.transition = 'all 0.3s ease';
+                dayDiv.style.border = isCompleted ? 'none' : '1px solid var(--border-color)';
+                dayDiv.style.background = isCompleted ? '#34C759' : '#f8f9fa';
+                dayDiv.style.color = isCompleted ? 'white' : 'var(--text-light)';
+                dayDiv.title = `Day ${i + 1}`;
+                
+                if (isCompleted) {
+                    dayDiv.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                } else {
+                    dayDiv.textContent = i + 1;
+                    dayDiv.onclick = () => markDay(i);
+                    dayDiv.onmouseover = () => { dayDiv.style.borderColor = 'var(--primary-color)'; dayDiv.style.color = 'var(--primary-color)'; };
+                    dayDiv.onmouseout = () => { dayDiv.style.borderColor = 'var(--border-color)'; dayDiv.style.color = 'var(--text-light)'; };
+                }
+                
+                gridContainer.appendChild(dayDiv);
+            }
         }
     </script>
     <style>
@@ -521,6 +616,16 @@
                     <input type="text" id="reg-number" name="number" required style="width: 100%; padding: 0.85rem 1rem; border: 1px solid var(--border-color); border-radius: 10px; background: white; color: #333; font-family: 'Outfit', sans-serif;">
                 </div>
                 
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.4rem;">Age</label>
+                    <input type="number" id="reg-age" name="age" required style="width: 100%; padding: 0.85rem 1rem; border: 1px solid var(--border-color); border-radius: 10px; background: white; color: #333; font-family: 'Outfit', sans-serif;">
+                </div>
+                
+                <div style="margin-bottom: 1rem;">
+                    <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.4rem;">City</label>
+                    <input type="text" id="reg-city" name="city" required style="width: 100%; padding: 0.85rem 1rem; border: 1px solid var(--border-color); border-radius: 10px; background: white; color: #333; font-family: 'Outfit', sans-serif;">
+                </div>
+                
                 <div style="background: var(--secondary-color); padding: 1.5rem; border-radius: 12px; text-align: center; margin-bottom: 1.5rem;">
                     <h3 style="color: var(--primary-dark); margin-bottom: 0.5rem; font-size: 1.1rem;">Registration Fee: ₹99</h3>
                     <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 1rem;">Scan the QR code below to pay.</p>
@@ -544,6 +649,51 @@
                 <h3 style="color: var(--text-dark); margin-bottom: 0.5rem;">Registration Submitted!</h3>
                 <p style="color: var(--text-light); font-size: 0.95rem;">We will review back within 24hrs.</p>
                 <button id="close-success-btn" style="margin-top: 1.5rem; padding: 0.75rem 2rem; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Close</button>
+            </div>
+        </div>
+    <!-- Aaradhna Card Modal -->
+    <div class="modal-overlay" id="aaradhna-card-modal">
+        <div class="modal-content" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; text-align: center; border-radius: 24px; padding: 3rem 2rem;">
+            <button class="modal-close" id="close-card-modal" style="color: white;">&times;</button>
+            <div style="margin-bottom: 1.5rem;">
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="background: rgba(255,255,255,0.2); padding: 12px; border-radius: 50%;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
+            </div>
+            <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Aaradhna Card</h2>
+            <p style="color: rgba(255,255,255,0.9); margin-bottom: 2rem;">चलो सब आराधना करें</p>
+            
+            <div style="background: white; color: var(--text-dark); padding: 1.5rem; border-radius: 16px; text-align: left; margin-bottom: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                <div style="margin-bottom: 1rem;">
+                    <p style="font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Name</p>
+                    <p id="card-name" style="font-size: 1.2rem; font-weight: 600;">...</p>
+                </div>
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1rem;">
+                    <div>
+                        <p style="font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Age</p>
+                        <p id="card-age" style="font-size: 1.1rem; font-weight: 600;">...</p>
+                    </div>
+                    <div>
+                        <p style="font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">City</p>
+                        <p id="card-city" style="font-size: 1.1rem; font-weight: 600;">...</p>
+                    </div>
+                </div>
+                <div>
+                    <p style="font-size: 0.8rem; color: var(--text-light); text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Sangh</p>
+                    <p id="card-sangh" style="font-size: 1.1rem; font-weight: 600;">...</p>
+                </div>
+            </div>
+            
+            <div style="background: white; color: var(--text-dark); padding: 1.5rem; border-radius: 16px; text-align: left; margin-bottom: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary-dark); display: flex; align-items: center; gap: 0.5rem;">
+                    <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+                    60-Day Aaradhna Tracker
+                </h3>
+                <div id="aaradhna-grid" style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 0.4rem; justify-items: center;">
+                    <!-- Grid items will be injected by JS -->
+                </div>
+            </div>
+            
+            <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">
+                ID: <span style="font-family: monospace;">JTC-2023-XXXX</span>
             </div>
         </div>
     </div>
@@ -579,14 +729,30 @@
 
             openBtn.addEventListener('click', (e) => {
                 e.preventDefault(); // Prevent any link jumping if it was an <a>
+                
+                if (currentRegistration) {
+                    if (currentRegistration.isPaymentVerified) {
+                        openAaradhnaCard();
+                    }
+                    return;
+                }
+                
                 if(currentUser) {
                     document.getElementById('reg-name').value = currentUser.name;
                     document.getElementById('reg-email').value = currentUser.email;
                     document.getElementById('reg-number').value = currentUser.number;
+                    if (currentUser.city) document.getElementById('reg-city').value = currentUser.city;
                 }
                 form.style.display = 'block';
                 successMsg.style.display = 'none';
                 modal.classList.add('active');
+            });
+            
+            const closeCardBtn = document.getElementById('close-card-modal');
+            const cardModal = document.getElementById('aaradhna-card-modal');
+            
+            closeCardBtn.addEventListener('click', () => {
+                cardModal.classList.remove('active');
             });
 
             closeBtn.addEventListener('click', () => {
@@ -614,6 +780,7 @@
                     if (response.ok) {
                         form.style.display = 'none';
                         successMsg.style.display = 'block';
+                        verifyAuth(); // Update background button state immediately
                     } else {
                         const data = await response.json();
                         alert(data.error || 'Registration failed');
