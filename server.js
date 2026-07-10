@@ -13,6 +13,9 @@ const multer = require('multer');
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Trust the reverse proxy (Vercel) so rate limiter gets the real client IP, not the server's IP
+app.set('trust proxy', 1);
+
 // Security Middleware
 app.use(helmet({
     contentSecurityPolicy: false, // Disabling CSP for simplicity in this frontend setup
