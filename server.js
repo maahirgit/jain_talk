@@ -205,11 +205,24 @@ app.post('/api/logout', (req, res) => {
 app.post('/api/register-course', upload.single('screenshot'), async (req, res) => {
     try {
         const token = req.cookies.auth_token;
-        if (!token) return res.status(401).json({ error: 'Not authenticated' });
+        if (!token) {
+            if (req.file) await cloudinary.uploader.destroy(req.file.filename);
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
         const { courseName, name, email, number, age, city } = req.body;
+
+        // Prevent duplicate registrations
+        const existingRegistration = await CourseRegistration.findOne({ userId: decoded.id, courseName });
+        if (existingRegistration) {
+            if (req.file) {
+                await cloudinary.uploader.destroy(req.file.filename);
+            }
+            return res.status(400).json({ error: 'You have already registered for this course.' });
+        }
+
         if (!req.file) {
             return res.status(400).json({ error: 'Payment screenshot is required' });
         }
@@ -232,6 +245,13 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
 
     } catch (error) {
         console.error('Course Registration Error:', error);
+        if (req.file) {
+            try {
+                await cloudinary.uploader.destroy(req.file.filename);
+            } catch (cleanupError) {
+                console.error('Failed to clean up image on error:', cleanupError);
+            }
+        }
         res.status(500).json({ error: 'Server error during registration.' });
     }
 });
