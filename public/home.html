@@ -39,8 +39,10 @@
             
             const registerBtn = document.getElementById('open-register-btn');
             const eventCountdown = document.getElementById('event-countdown-container');
+            const whatsappGroup = document.getElementById('whatsapp-group-container');
             if (registration) {
                 if (eventCountdown) eventCountdown.style.display = 'block';
+                if (whatsappGroup) whatsappGroup.style.display = 'block';
                 if (registration.isPaymentVerified) {
                     registerBtn.innerHTML = `
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#34C759" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
@@ -536,6 +538,10 @@
                             <div style="font-size: 0.85rem; color: var(--primary-dark); font-weight: 600; margin-bottom: 0.3rem;">Chaturmas Aradhna begin in</div>
                             <div id="event-countdown-timer" style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">--d --h --m --s</div>
                         </div>
+                        <div id="whatsapp-group-container" style="display: none; background: #e8f5e9; padding: 1rem; border-radius: 8px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
+                            <div style="font-size: 0.85rem; color: #2e7d32; font-weight: 600; margin-bottom: 0.5rem;">Join WhatsApp group for more updates</div>
+                            <a href="https://chat.whatsapp.com/E4bLHGR82wh5hGfHIe1vte" target="_blank" style="display: inline-block; background: #25D366; color: white; padding: 0.5rem 1rem; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.9rem; box-shadow: 0 2px 5px rgba(37, 211, 102, 0.4);">Join Group</a>
+                        </div>
                     </div>
                 </div>
 
@@ -662,6 +668,11 @@
                     <div id="countdown-timer" style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
                         -- days -- hours -- mins -- secs
                     </div>
+                </div>
+
+                <div id="success-whatsapp-container" style="margin-top: 1.5rem; background: #e8f5e9; padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                    <h4 style="color: #2e7d32; margin-bottom: 0.5rem; font-size: 1.1rem;">Join WhatsApp group for more updates</h4>
+                    <a href="https://chat.whatsapp.com/E4bLHGR82wh5hGfHIe1vte" target="_blank" style="display: inline-block; background: #25D366; color: white; padding: 0.75rem 1.5rem; border-radius: 24px; text-decoration: none; font-weight: bold; font-size: 1rem; box-shadow: 0 4px 10px rgba(37, 211, 102, 0.4); margin-top: 0.5rem;">Join Group</a>
                 </div>
 
                 <button id="close-success-btn" style="margin-top: 1.5rem; padding: 0.75rem 2rem; background: var(--primary-color); color: white; border: none; border-radius: 8px; font-weight: 600; cursor: pointer;">Close</button>
