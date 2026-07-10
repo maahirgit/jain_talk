@@ -85,16 +85,22 @@ const courseRegistrationSchema = new mongoose.Schema({
 
 const CourseRegistration = mongoose.model('CourseRegistration', courseRegistrationSchema);
 
-// Setup multer for file uploads
-const storage = multer.diskStorage({
-    destination: (req, file, cb) => {
-        // Use /tmp for serverless (Vercel), otherwise public/uploads
-        const dir = process.env.VERCEL ? '/tmp' : path.join(__dirname, 'public', 'uploads');
-        cb(null, dir);
+// Setup multer for file uploads with Cloudinary
+const { v2: cloudinary } = require('cloudinary');
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
+
+cloudinary.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+    api_key: process.env.CLOUDINARY_API_KEY,
+    api_secret: process.env.CLOUDINARY_API_SECRET
+});
+
+const storage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'jain_talks_uploads',
+        allowed_formats: ['jpg', 'png', 'jpeg', 'webp']
     },
-    filename: (req, file, cb) => {
-        cb(null, Date.now() + '-' + file.originalname);
-    }
 });
 const upload = multer({ storage: storage });
 
@@ -208,7 +214,7 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
             return res.status(400).json({ error: 'Payment screenshot is required' });
         }
 
-        const screenshotPath = '/uploads/' + req.file.filename;
+        const screenshotPath = req.file.path;
 
         const registration = new CourseRegistration({
             userId: decoded.id,
