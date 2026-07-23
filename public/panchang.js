@@ -35,8 +35,61 @@ function formatTime(date) {
     return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
 }
 
+// Global cache for timings
+const timingsCache = {};
+
+// Default coordinates (Ahmedabad)
+let userLat = 23.0225;
+let userLng = 72.5714;
+
+// Try to get user location
+if (navigator.geolocation) {
+    navigator.geolocation.getCurrentPosition(
+        (pos) => {
+            userLat = pos.coords.latitude;
+            userLng = pos.coords.longitude;
+        },
+        (err) => console.log("Geolocation denied, using default.")
+    );
+}
+
 // Generate Jain Timings based on a generic Sunrise/Sunset
-function generateTimings(date) {
+async function fetchTimings(date) {
+    const dateStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
+    
+    if (timingsCache[dateStr]) {
+        return timingsCache[dateStr];
+    }
+    
+    try {
+        const res = await fetch(`https://api.sunrise-sunset.org/json?lat=${userLat}&lng=${userLng}&date=${dateStr}&formatted=0`);
+        const data = await res.json();
+        
+        if (data.status === "OK") {
+            const sunrise = new Date(data.results.sunrise);
+            const sunset = new Date(data.results.sunset);
+            
+            const navkarsi = new Date(sunrise.getTime() + 48 * 60000);
+            const porshi = new Date(sunrise.getTime() + 180 * 60000);
+            const sadhPorshi = new Date(sunrise.getTime() + 270 * 60000);
+            const purimaddh = new Date(sunrise.getTime() + 360 * 60000);
+            
+            const timings = {
+                sunrise: sunrise,
+                sunset: sunset,
+                navkarsi: formatTime(navkarsi),
+                porshi: formatTime(porshi),
+                sadhPorshi: formatTime(sadhPorshi),
+                purimaddh: formatTime(purimaddh)
+            };
+            timingsCache[dateStr] = timings;
+            return timings;
+        }
+    } catch(e) {
+        console.error("Failed to fetch timings", e);
+    }
+    
+    // Fallback if API fails
     const sunrise = new Date(date);
     sunrise.setHours(6, 15, 0);
     const sunset = new Date(date);
@@ -85,11 +138,17 @@ function getGoodDayChoghadiyas(date, sunrise, sunset) {
     return goodOnes;
 }
 
+let currentYear = new Date().getFullYear();
+let currentMonth = new Date().getMonth();
 let selectedDate = new Date();
 
-function renderCalendar(year, month) {
+async function renderCalendar(year, month) {
     const container = document.getElementById('panchang-content-container');
-    if(!container) return;
+    if (!container) return;
+    
+    // Show loading state briefly
+    const previousHtml = container.innerHTML;
+    container.innerHTML = `<div style="text-align:center; padding:3rem; color:var(--text-light);"><span style="display:inline-block; animation: pulse 1.5s infinite;">Fetching exact astronomical timings...</span></div>`;
 
     const firstDay = new Date(year, month, 1);
     const lastDay = new Date(year, month + 1, 0);
@@ -145,7 +204,7 @@ function renderCalendar(year, month) {
     // Day Details Section
     let sDate = selectedDate;
     let sTithi = calculateTithi(sDate);
-    let sTimings = generateTimings(sDate);
+    let sTimings = await fetchTimings(sDate);
     const dateString = sDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     
     html += `
@@ -220,7 +279,7 @@ function renderCalendar(year, month) {
 }
 
 // Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', () => {
+document.addEventListener('DOMContentLoaded', async () => {
     
     // Update card display
     const cardTithiDisplay = document.getElementById('card-tithi-display');
@@ -228,12 +287,12 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cardTithiDisplay && cardDateDisplay) {
         const today = new Date();
         const tithi = calculateTithi(today);
-        const timings = generateTimings(today);
         
         cardTithiDisplay.textContent = tithi.fullName;
         cardDateDisplay.textContent = today.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
         
         if (document.getElementById('card-sunrise')) {
+            const timings = await fetchTimings(today);
             document.getElementById('card-sunrise').textContent = formatTime(timings.sunrise);
             document.getElementById('card-sunset').textContent = formatTime(timings.sunset);
             document.getElementById('card-navkarsi').textContent = timings.navkarsi;
