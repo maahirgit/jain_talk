@@ -556,7 +556,7 @@
                 </a>
 
                 <!-- 3. Panchang -->
-                <a href="#" class="feature-card" onclick="openPanchangModal(event)">
+                <a href="#" id="open-panchang-btn" class="feature-card">
                     <div class="card-icon" style="background: #FFF8E1; color: #FFC107;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     </div>
@@ -839,29 +839,12 @@
             });
             // Removed Panchang event listeners here to use inline functions instead
         });
-        
-        // Panchang Modal Functions
-        function openPanchangModal(e) {
-            if(e) e.preventDefault();
-            const panchangModal = document.getElementById('panchang-modal');
-            if(panchangModal) {
-                panchangModal.classList.add('active');
-                panchangModal.style.display = 'flex';
-            }
-        }
-        function closePanchangModal() {
-            const panchangModal = document.getElementById('panchang-modal');
-            if(panchangModal) {
-                panchangModal.classList.remove('active');
-                panchangModal.style.display = 'none';
-            }
-        }
     </script>
     
     <!-- Built-in Panchang Modal -->
     <div id="panchang-modal" class="modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 2000;">
         <div class="modal-content" style="width: 95%; max-width: 600px; height: auto; max-height: 90vh; display: flex; flex-direction: column; padding: 1.5rem; background: white; overflow-y: auto;">
-            <span class="close-modal" style="top: 10px; right: 15px; font-size: 32px; z-index: 10;" onclick="closePanchangModal()">&times;</span>
+            <span class="close-modal" id="close-panchang-modal" style="top: 10px; right: 15px; font-size: 32px; z-index: 10;">&times;</span>
             <div id="panchang-content-container" style="flex-grow: 1; border-radius: 12px; margin-top: 10px;">
                 <!-- Content will be injected by panchang.js -->
             </div>

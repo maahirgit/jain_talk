@@ -139,5 +139,25 @@ document.addEventListener('DOMContentLoaded', () => {
     // Only render if the container exists (so we don't error on other pages)
     if(document.getElementById('panchang-content-container')) {
         renderPanchang();
+        
+        // Add robust event listeners for opening and closing the modal
+        const openBtn = document.getElementById('open-panchang-btn');
+        const modal = document.getElementById('panchang-modal');
+        const closeBtn = document.getElementById('close-panchang-modal');
+        
+        if (openBtn && modal) {
+            openBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                modal.classList.add('active');
+                modal.style.display = 'flex';
+            });
+        }
+        
+        if (closeBtn && modal) {
+            closeBtn.addEventListener('click', () => {
+                modal.classList.remove('active');
+                modal.style.display = 'none';
+            });
+        }
     }
 });
