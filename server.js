@@ -100,6 +100,15 @@ const courseRegistrationSchema = new mongoose.Schema({
 
 const CourseRegistration = mongoose.model('CourseRegistration', courseRegistrationSchema);
 
+// Reel / Post Schema
+const reelSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    videoUrl: { type: String, required: true },
+    caption: { type: String, default: '' },
+    likes: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }]
+}, { timestamps: true });
+
+const Reel = mongoose.model('Reel', reelSchema);
 // Setup multer for file uploads with Cloudinary
 const { v2: cloudinary } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
@@ -118,6 +127,16 @@ const storage = new CloudinaryStorage({
     },
 });
 const upload = multer({ storage: storage });
+
+const videoStorage = new CloudinaryStorage({
+    cloudinary: cloudinary,
+    params: {
+        folder: 'jain_talks_reels',
+        resource_type: 'video',
+        allowed_formats: ['mp4', 'mov', 'avi', 'webm']
+    },
+});
+const uploadVideo = multer({ storage: videoStorage });
 
 // API Routes
 
