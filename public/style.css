@@ -439,3 +439,98 @@ input::placeholder {
     margin-bottom: 1.5rem;
     font-size: 0.95rem;
 }
+
+/* Built-in Panchang UI Styles */
+.panchang-header {
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+.panchang-header h3 {
+    color: var(--primary-dark);
+    margin: 0 0 0.2rem 0;
+}
+.panchang-header p {
+    color: var(--text-light);
+    margin: 0;
+    font-size: 0.95rem;
+}
+
+.panchang-tithi-card {
+    display: flex;
+    align-items: center;
+    background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+    padding: 1.2rem;
+    border-radius: 12px;
+    margin-bottom: 1.5rem;
+    position: relative;
+    box-shadow: 0 4px 10px rgba(255, 152, 0, 0.15);
+}
+.tithi-icon {
+    font-size: 2rem;
+    margin-right: 1rem;
+}
+.tithi-info h4 {
+    margin: 0 0 0.2rem 0;
+    color: #e65100;
+    font-size: 1.3rem;
+}
+.tithi-info p {
+    margin: 0;
+    color: #e65100;
+    opacity: 0.8;
+    font-weight: 500;
+}
+.tithi-badge {
+    position: absolute;
+    top: -10px;
+    right: -10px;
+    background: var(--primary-color);
+    color: white;
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: bold;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+}
+
+.panchang-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+.panchang-item {
+    background: #f5f7fa;
+    padding: 1rem;
+    border-radius: 10px;
+    text-align: center;
+    border: 1px solid #eef2f7;
+}
+.p-label {
+    display: block;
+    font-size: 0.8rem;
+    color: var(--text-light);
+    text-transform: uppercase;
+    font-weight: 700;
+    margin-bottom: 0.3rem;
+}
+.p-value {
+    display: block;
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: var(--text-dark);
+}
+.highlight-sun {
+    color: #f57c00;
+}
+
+.panchang-footer {
+    text-align: center;
+    border-top: 1px solid #eee;
+    padding-top: 1rem;
+}
+.panchang-footer p {
+    font-size: 0.8rem;
+    color: #999;
+    margin: 0;
+}
