@@ -590,6 +590,15 @@ app.get('/api/aradhana/status', async (req, res) => {
         
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
+        // Ensure user is registered and verified for the course
+        const registration = await CourseRegistration.findOne({ userId: decoded.id, courseName: "चलो सब आराधना करें" });
+        const user = await User.findById(decoded.id);
+        const isTestingBypass = user && user.email === 'maahirmshah4252@gmail.com';
+        
+        if (!isTestingBypass && (!registration || !registration.isPaymentVerified)) {
+            return res.status(403).json({ error: 'You are not verified for this course.' });
+        }
+        
         const submissions = await AradhanaSubmission.find({ userId: decoded.id }).sort({ dateString: 1 });
         
         let totalPoints = 0;
@@ -661,6 +670,14 @@ app.post('/api/aradhana/submit', async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(decoded.id);
         
+        // Ensure user is registered and verified for the course
+        const registration = await CourseRegistration.findOne({ userId: decoded.id, courseName: "चलो सब आराधना करें" });
+        const isTestingBypass = user && user.email === 'maahirmshah4252@gmail.com';
+        
+        if (!isTestingBypass && (!registration || !registration.isPaymentVerified)) {
+            return res.status(403).json({ error: 'You are not verified for this course.' });
+        }
+        
         const { answers } = req.body;
         if (!answers || answers.length !== 20) {
             return res.status(400).json({ error: 'Invalid answers submitted' });
@@ -669,7 +686,6 @@ app.post('/api/aradhana/submit', async (req, res) => {
         const todayStr = getLocalDateString(new Date());
         
         // Validate dates
-        const isTestingBypass = user.email === 'maahirmshah4252@gmail.com';
         if (!isTestingBypass && (todayStr < '2026-07-28' || todayStr > '2026-09-15')) {
             return res.status(400).json({ error: 'Aradhana can only be submitted between July 28 and Sept 15' });
         }
