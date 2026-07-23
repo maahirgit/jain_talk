@@ -1068,7 +1068,22 @@
     <div id="panchang-modal" class="modal-overlay" style="display: none; align-items: center; justify-content: center; z-index: 2000;">
         <div class="modal-content" style="width: 95%; max-width: 600px; height: auto; max-height: 90vh; display: flex; flex-direction: column; padding: 1.5rem; background: white; overflow-y: auto;">
             <span class="close-modal" id="close-panchang-modal" style="top: 10px; right: 15px; font-size: 32px; z-index: 10;">&times;</span>
-            <div id="panchang-content-container" style="flex-grow: 1; border-radius: 12px; margin-top: 10px;">
+            <h2 style="margin-bottom: 0.5rem; color: var(--primary-dark); font-size: 1.5rem; text-align: center; margin-top: 0.5rem;">Jain Panchang</h2>
+            <div style="margin-bottom: 0.5rem; text-align: center;">
+                <label for="panchang-city-select" style="font-size: 0.85rem; color: var(--text-light); margin-right: 0.5rem;">Location:</label>
+                <select id="panchang-city-select" style="padding: 0.4rem 0.8rem; border-radius: 8px; border: 1px solid var(--border-color); outline: none; font-family: inherit; font-size: 0.85rem; color: var(--text-dark); background: #f9f9f9;">
+                    <option value="23.0225,72.5714">Ahmedabad</option>
+                    <option value="18.9750,72.8258">Mumbai</option>
+                    <option value="28.6139,77.2090">Delhi</option>
+                    <option value="21.1702,72.8311">Surat</option>
+                    <option value="22.3039,70.8022">Rajkot</option>
+                    <option value="12.9716,77.5946">Bangalore</option>
+                    <option value="13.0827,80.2707">Chennai</option>
+                    <option value="22.5726,88.3639">Kolkata</option>
+                    <option value="auto">Use My Location (GPS)</option>
+                </select>
+            </div>
+            <div id="panchang-content-container" style="flex-grow: 1; border-radius: 12px; margin-top: 5px;">
                 <!-- Content will be injected by panchang.js -->
             </div>
         </div>

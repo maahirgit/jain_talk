@@ -42,18 +42,50 @@ const timingsCache = {};
 let userLat = 23.0225;
 let userLng = 72.5714;
 
-// Try to get user location
+// Try to get user location initially if not set
 if (navigator.geolocation) {
     navigator.geolocation.getCurrentPosition(
         (pos) => {
-            userLat = pos.coords.latitude;
-            userLng = pos.coords.longitude;
+            // Only use if they selected "auto" or if we want to default to auto
+            // For now, Ahmedabad is default in HTML dropdown, so we don't forcefully overwrite
         },
-        (err) => console.log("Geolocation denied, using default.")
+        (err) => console.log("Geolocation denied or unavailable.")
     );
 }
 
-// Generate Jain Timings based on a generic Sunrise/Sunset
+document.addEventListener('DOMContentLoaded', () => {
+    const citySelect = document.getElementById('panchang-city-select');
+    if (citySelect) {
+        citySelect.addEventListener('change', (e) => {
+            const val = e.target.value;
+            if (val === 'auto') {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                        userLat = pos.coords.latitude;
+                        userLng = pos.coords.longitude;
+                        Object.keys(timingsCache).forEach(k => delete timingsCache[k]);
+                        renderCalendar(currentYear, currentMonth);
+                    }, () => {
+                        alert("Geolocation access denied or unavailable.");
+                        citySelect.value = "23.0225,72.5714"; // Revert to Ahmedabad
+                    });
+                } else {
+                    alert("Geolocation is not supported by this browser.");
+                    citySelect.value = "23.0225,72.5714";
+                }
+            } else {
+                const parts = val.split(',');
+                userLat = parseFloat(parts[0]);
+                userLng = parseFloat(parts[1]);
+                // Clear cache so it fetches new times
+                Object.keys(timingsCache).forEach(k => delete timingsCache[k]);
+                renderCalendar(currentYear, currentMonth);
+            }
+        });
+    }
+});
+
+// Generate Jain Timings based on API
 async function fetchTimings(date) {
     const dateStr = date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0');
     
