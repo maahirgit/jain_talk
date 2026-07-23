@@ -1249,7 +1249,7 @@
                 reelsFeedModal.classList.add('active');
                 
                 try {
-                    const fetchUrl = userId ? \`/api/users/\${userId}/reels\` : '/api/reels';
+                    const fetchUrl = userId ? `/api/users/${userId}/reels` : '/api/reels';
                     const response = await fetch(fetchUrl);
                     if (response.ok) {
                         const reels = await response.json();
