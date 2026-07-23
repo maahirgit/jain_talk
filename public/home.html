@@ -555,8 +555,8 @@
                     <p class="card-desc">Discover upcoming spiritual gatherings, discourses, and community events near you.</p>
                 </a>
 
-                <!-- 3. Panchang Placeholder -->
-                <a href="https://www.jainpanchang.com" target="_blank" rel="noopener noreferrer" class="feature-card">
+                <!-- 3. Panchang -->
+                <a href="#" id="open-panchang-btn" class="feature-card">
                     <div class="card-icon" style="background: #FFF8E1; color: #FFC107;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
                     </div>
@@ -837,7 +837,35 @@
                     submitBtn.disabled = false;
                 }
             });
+            // Panchang Modal Logic
+            const openPanchangBtn = document.getElementById('open-panchang-btn');
+            const panchangModal = document.getElementById('panchang-modal');
+            const closePanchangModal = document.getElementById('close-panchang-modal');
+
+            if(openPanchangBtn && panchangModal) {
+                openPanchangBtn.addEventListener('click', (e) => {
+                    e.preventDefault();
+                    panchangModal.classList.add('active');
+                    panchangModal.style.display = 'flex';
+                });
+                closePanchangModal.addEventListener('click', () => {
+                    panchangModal.classList.remove('active');
+                    panchangModal.style.display = 'none';
+                });
+            }
         });
     </script>
+    
+    <!-- Panchang Iframe Modal -->
+    <div id="panchang-modal" class="modal" style="display: none; align-items: center; justify-content: center; z-index: 2000;">
+        <div class="modal-content" style="width: 95%; max-width: 1000px; height: 85vh; display: flex; flex-direction: column; padding: 1.5rem;">
+            <span class="close-modal" id="close-panchang-modal" style="top: 10px; right: 15px; font-size: 32px; z-index: 10;">&times;</span>
+            <h2 style="margin-top: 0; color: var(--primary-dark);">Jain Panchang</h2>
+            <div style="flex-grow: 1; border-radius: 12px; overflow: hidden; margin-top: 10px; background: #fafafa; border: 1px solid #eee;">
+                <!-- Trying multiple sources if one blocks iframes -->
+                <iframe src="https://jainpanchang.app/" title="Jain Panchang" style="width: 100%; height: 100%; border: none;"></iframe>
+            </div>
+        </div>
+    </div>
 </body>
 </html>
