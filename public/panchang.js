@@ -187,8 +187,17 @@ document.addEventListener('DOMContentLoaded', () => {
     if (cardTithiDisplay && cardDateDisplay) {
         const today = new Date();
         const tithi = calculateTithi(today);
+        const timings = generateTimings(today);
+        
         cardTithiDisplay.textContent = tithi.fullName;
         cardDateDisplay.textContent = today.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
+        
+        if (document.getElementById('card-sunrise')) {
+            document.getElementById('card-sunrise').textContent = timings.sunrise;
+            document.getElementById('card-sunset').textContent = timings.sunset;
+            document.getElementById('card-navkarsi').textContent = timings.navkarsi;
+            document.getElementById('card-porshi').textContent = timings.porshi;
+        }
     }
 
     if(document.getElementById('panchang-content-container')) {
