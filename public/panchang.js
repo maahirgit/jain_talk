@@ -387,10 +387,7 @@ async function renderCalendar(year, month) {
     });
 }
 
-// Initialize when DOM is ready
-document.addEventListener('DOMContentLoaded', async () => {
-    
-    // Update card display
+window.initPanchangCards = async function() {
     const cardTithiDisplay = document.getElementById('card-tithi-display');
     const cardDateDisplay = document.getElementById('card-date-display');
     if (cardTithiDisplay && cardDateDisplay) {
@@ -409,13 +406,23 @@ document.addEventListener('DOMContentLoaded', async () => {
         }
 
         // Show Parva Banner if today is a Parva Tithi
-        const isParva = ["Pancham", "Aatham", "Chaudas"].includes(tithi.name);
+        const isParva = ["Pancham", "Aatham", "Chaudas", "Poonam", "Amas"].includes(tithi.name);
         const parvaBanner = document.getElementById('parva-tithi-banner');
-        if (parvaBanner && isParva) {
-            document.getElementById('parva-tithi-name').textContent = tithi.fullName;
-            parvaBanner.style.display = 'flex';
+        if (parvaBanner) {
+            if (isParva) {
+                document.getElementById('parva-tithi-name').textContent = tithi.fullName;
+                parvaBanner.style.display = 'flex';
+            } else {
+                parvaBanner.style.display = 'none';
+            }
         }
     }
+};
+
+// Initialize when DOM is ready
+document.addEventListener('DOMContentLoaded', async () => {
+    
+    await window.initPanchangCards();
 
     if(document.getElementById('panchang-content-container')) {
         renderCalendar(selectedDate.getFullYear(), selectedDate.getMonth());
@@ -624,8 +631,27 @@ window.generateAlerts = async function() {
     }
 };
 
+let lastPanchangUpdateDate = new Date().toDateString();
+
 // Periodically update alerts so that countdowns (like Chauvihar) decrease automatically
 setInterval(() => {
+    // Check if the day has changed (midnight passed)
+    const currentDateString = new Date().toDateString();
+    if (currentDateString !== lastPanchangUpdateDate) {
+        lastPanchangUpdateDate = currentDateString;
+        
+        // Refresh everything for the new day
+        if (window.initPanchangCards) window.initPanchangCards();
+        
+        // Only re-render calendar if it's currently showing the current month
+        if (document.getElementById('panchang-content-container') && selectedDate) {
+            const today = new Date();
+            if (selectedDate.getMonth() === today.getMonth() && selectedDate.getFullYear() === today.getFullYear()) {
+                renderCalendar(selectedDate.getFullYear(), selectedDate.getMonth());
+            }
+        }
+    }
+
     if (window.updateAlertsBadge) window.updateAlertsBadge();
     if (window.generateAlerts) window.generateAlerts();
 }, 60000);
