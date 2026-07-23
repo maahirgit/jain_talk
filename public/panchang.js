@@ -111,7 +111,7 @@ async function fetchTimings(date) {
 
 function getGoodDayChoghadiyas(date, sunrise, sunset) {
     const day = date.getDay(); // 0-6
-    const sequences = [
+    const daySequences = [
         ["Udveg", "Chal", "Labh", "Amrit", "Kal", "Shubh", "Rog", "Udveg"], // Sun
         ["Amrit", "Kal", "Shubh", "Rog", "Udveg", "Chal", "Labh", "Amrit"], // Mon
         ["Rog", "Udveg", "Chal", "Labh", "Amrit", "Kal", "Shubh", "Rog"], // Tue
@@ -121,20 +121,48 @@ function getGoodDayChoghadiyas(date, sunrise, sunset) {
         ["Kal", "Shubh", "Rog", "Udveg", "Chal", "Labh", "Amrit", "Kal"] // Sat
     ];
     
-    const seq = sequences[day];
-    const durationMs = (sunset.getTime() - sunrise.getTime()) / 8;
+    const nightSequences = [
+        ["Shubh", "Amrit", "Chal", "Rog", "Kal", "Labh", "Udveg", "Shubh"], // Sun
+        ["Rog", "Kal", "Labh", "Udveg", "Shubh", "Amrit", "Chal", "Rog"], // Mon
+        ["Kal", "Labh", "Udveg", "Shubh", "Amrit", "Chal", "Rog", "Kal"], // Tue
+        ["Udveg", "Shubh", "Amrit", "Chal", "Rog", "Kal", "Labh", "Udveg"], // Wed
+        ["Amrit", "Chal", "Rog", "Kal", "Labh", "Udveg", "Shubh", "Amrit"], // Thu
+        ["Rog", "Kal", "Labh", "Udveg", "Shubh", "Amrit", "Chal", "Rog"], // Fri
+        ["Labh", "Udveg", "Shubh", "Amrit", "Chal", "Rog", "Kal", "Labh"] // Sat
+    ];
+    
+    const daySeq = daySequences[day];
+    const nightSeq = nightSequences[day];
+    
+    const dayDurationMs = (sunset.getTime() - sunrise.getTime()) / 8;
+    const nightDurationMs = ((24 * 60 * 60 * 1000) - (sunset.getTime() - sunrise.getTime())) / 8;
     
     let goodOnes = [];
+    
+    // Day Choghadiyas
     for(let i = 0; i < 8; i++) {
-        if(["Amrit", "Shubh", "Labh"].includes(seq[i])) {
-            let start = new Date(sunrise.getTime() + i * durationMs);
-            let end = new Date(sunrise.getTime() + (i + 1) * durationMs);
+        if(["Amrit", "Shubh", "Labh"].includes(daySeq[i])) {
+            let start = new Date(sunrise.getTime() + i * dayDurationMs);
+            let end = new Date(sunrise.getTime() + (i + 1) * dayDurationMs);
             goodOnes.push({
-                name: seq[i],
+                name: daySeq[i] + " (Day)",
                 time: formatTime(start) + " - " + formatTime(end)
             });
         }
     }
+    
+    // Night Choghadiyas
+    for(let i = 0; i < 8; i++) {
+        if(["Amrit", "Shubh", "Labh"].includes(nightSeq[i])) {
+            let start = new Date(sunset.getTime() + i * nightDurationMs);
+            let end = new Date(sunset.getTime() + (i + 1) * nightDurationMs);
+            goodOnes.push({
+                name: nightSeq[i] + " (Night)",
+                time: formatTime(start) + " - " + formatTime(end)
+            });
+        }
+    }
+    
     return goodOnes;
 }
 
