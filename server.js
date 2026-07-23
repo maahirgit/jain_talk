@@ -78,6 +78,8 @@ const userSchema = new mongoose.Schema({
     sangh: { type: String, required: true },
     password: { type: String, required: true },
     username: { type: String, unique: true },
+    followers: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
+    following: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
     resetOtp: { type: String },
     resetOtpExpires: { type: Date }
 }, { timestamps: true });
@@ -465,12 +467,68 @@ app.get('/admin', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'admin.html'));
 });
 
+// Follow/Profile APIs
+app.get('/api/users/:id/profile', async (req, res) => {
+    try {
+        const user = await User.findById(req.params.id).select('-password -resetOtp -resetOtpExpires');
+        if (!user) return res.status(404).json({ error: 'User not found' });
+        res.status(200).json(user);
+    } catch (error) {
+        console.error('Fetch User Profile Error:', error);
+        res.status(500).json({ error: 'Failed to fetch user profile' });
+    }
+});
+
+app.post('/api/users/:id/follow', async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        if (!token) return res.status(401).json({ error: 'Not authenticated' });
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const currentUserId = decoded.id;
+        const targetUserId = req.params.id;
+        
+        if (currentUserId === targetUserId) {
+            return res.status(400).json({ error: 'You cannot follow yourself' });
+        }
+        
+        const currentUser = await User.findById(currentUserId);
+        const targetUser = await User.findById(targetUserId);
+        
+        if (!targetUser || !currentUser) return res.status(404).json({ error: 'User not found' });
+        
+        const followingIndex = currentUser.following.indexOf(targetUserId);
+        
+        if (followingIndex === -1) {
+            // Follow
+            currentUser.following.push(targetUserId);
+            targetUser.followers.push(currentUserId);
+        } else {
+            // Unfollow
+            currentUser.following.splice(followingIndex, 1);
+            targetUser.followers.splice(targetUser.followers.indexOf(currentUserId), 1);
+        }
+        
+        await currentUser.save();
+        await targetUser.save();
+        
+        res.status(200).json({ 
+            isFollowing: followingIndex === -1, 
+            followersCount: targetUser.followers.length 
+        });
+    } catch (error) {
+        console.error('Follow User Error:', error);
+        res.status(500).json({ error: 'Failed to follow user' });
+    }
+});
+
 // Start Server
 if (!process.env.VERCEL) {
     app.listen(PORT, () => {
         console.log(`Server is running on http://localhost:${PORT}`);
     });
 }
+
 
 // Export for Vercel serverless functions
 module.exports = app;

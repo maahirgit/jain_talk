@@ -738,79 +738,72 @@
         </ul>
     </nav>
     
-    <!-- Profile Modal -->
-    <!-- Profile Modal (Instagram Style) -->
-    <div class="modal-overlay" id="profile-modal">
-        <div class="modal-content" style="background: white; border-radius: 24px; padding: 0; max-width: 500px; max-height: 90vh; overflow: hidden; display: flex; flex-direction: column;">
-            
-            <!-- Top Nav Bar -->
-            <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: white; z-index: 10;">
-                <div style="font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
-                    <span id="profile-username">...</span>
-                </div>
-                <div style="display: flex; gap: 1rem; align-items: center;">
-                    <button id="profile-logout-btn" style="background: none; border: none; color: #D32F2F; font-weight: 700; cursor: pointer;">Log Out</button>
-                    <button class="modal-close" id="close-profile-modal" style="position: static; font-size: 2rem;">&times;</button>
-                </div>
+    <!-- Profile Page View (Instagram Style) -->
+    <section id="profile-page-view" style="display: none; flex-direction: column; height: 100vh; overflow-y: auto; padding-bottom: 5rem; background: white; z-index: 20; position: fixed; top: 0; left: 0; right: 0; bottom: 0;">
+        <!-- Top Nav Bar -->
+        <div style="display: flex; justify-content: space-between; align-items: center; padding: 1rem 1.5rem; border-bottom: 1px solid var(--border-color); position: sticky; top: 0; background: white; z-index: 10;">
+            <div style="font-weight: 700; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem;">
+                <button id="close-profile-view" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; margin-right: 0.5rem; display: none;">&larr;</button>
+                <span id="profile-username">...</span>
             </div>
-
-            <div style="padding: 1.5rem; overflow-y: auto; flex-grow: 1;" id="profile-scroll-area">
-                <!-- Header: Pic and Stats -->
-                <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
-                    <div style="width: 80px; height: 80px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); border-radius: 50%; padding: 3px; flex-shrink: 0;">
-                        <div style="width: 100%; height: 100%; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; color: var(--text-dark);">
-                            <span id="profile-initial">...</span>
-                        </div>
-                    </div>
-                    
-                    <div style="display: flex; gap: 1.5rem; flex-grow: 1; justify-content: center;">
-                        <div style="text-align: center;">
-                            <div style="font-weight: 700; font-size: 1.1rem;" id="profile-post-count">0</div>
-                            <div style="font-size: 0.8rem; color: var(--text-light);">Reels</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-weight: 700; font-size: 1.1rem;">1.2M</div>
-                            <div style="font-size: 0.8rem; color: var(--text-light);">Followers</div>
-                        </div>
-                        <div style="text-align: center;">
-                            <div style="font-weight: 700; font-size: 1.1rem;">0</div>
-                            <div style="font-size: 0.8rem; color: var(--text-light);">Following</div>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Bio Section -->
-                <div style="margin-bottom: 1.5rem;">
-                    <div id="profile-name" style="font-weight: 700; font-size: 1rem; color: var(--text-dark);">...</div>
-                    <div style="font-size: 0.9rem; color: var(--text-light); margin-top: 2px;">Jain Talk Creator</div>
-                    <div id="profile-sangh" style="font-size: 0.9rem; margin-top: 4px; font-weight: 500;">...</div>
-                    <div id="profile-city" style="font-size: 0.9rem; margin-top: 2px;">...</div>
-                </div>
-
-                <!-- Edit Profile Button -->
-                <div style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
-                    <button style="flex: 1; background: #efefef; color: var(--text-dark); border: none; padding: 0.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;">Edit profile</button>
-                    <button style="flex: 1; background: #efefef; color: var(--text-dark); border: none; padding: 0.5rem; border-radius: 8px; font-weight: 600; cursor: pointer;">Share profile</button>
-                </div>
-
-                <!-- Tabs -->
-                <div style="display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 1px;">
-                    <div style="flex: 1; text-align: center; padding: 0.75rem 0; border-bottom: 2px solid var(--text-dark); font-weight: 600; color: var(--text-dark); display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
-                        Reels
-                    </div>
-                    <div style="flex: 1; text-align: center; padding: 0.75rem 0; color: var(--text-light); display: flex; justify-content: center; align-items: center;">
-                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"></path><circle cx="12" cy="7" r="4"></circle></svg>
-                    </div>
-                </div>
-
-                <!-- Grid -->
-                <div id="profile-reels-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;">
-                    <!-- Reels injected here -->
-                </div>
+            <div style="display: flex; gap: 1rem; align-items: center;">
+                <button id="profile-logout-btn" style="background: none; border: none; color: #D32F2F; font-weight: 700; cursor: pointer;">Log Out</button>
             </div>
         </div>
-    </div>
+
+        <div style="padding: 1.5rem; overflow-y: auto; flex-grow: 1;" id="profile-scroll-area">
+            <!-- Header: Pic and Stats -->
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem;">
+                <div style="width: 80px; height: 80px; background: linear-gradient(45deg, #f09433 0%, #e6683c 25%, #dc2743 50%, #cc2366 75%, #bc1888 100%); border-radius: 50%; padding: 3px; flex-shrink: 0;">
+                    <div style="width: 100%; height: 100%; background: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 2rem; font-weight: 700; color: var(--text-dark);">
+                        <span id="profile-initial">...</span>
+                    </div>
+                </div>
+                
+                <div style="display: flex; gap: 1.5rem; flex-grow: 1; justify-content: center;">
+                    <div style="text-align: center;">
+                        <div style="font-weight: 700; font-size: 1.1rem;" id="profile-post-count">0</div>
+                        <div style="font-size: 0.8rem; color: var(--text-light);">Reels</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-weight: 700; font-size: 1.1rem;" id="profile-followers-count">0</div>
+                        <div style="font-size: 0.8rem; color: var(--text-light);">Followers</div>
+                    </div>
+                    <div style="text-align: center;">
+                        <div style="font-weight: 700; font-size: 1.1rem;" id="profile-following-count">0</div>
+                        <div style="font-size: 0.8rem; color: var(--text-light);">Following</div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Bio Section -->
+            <div style="margin-bottom: 1.5rem;">
+                <div id="profile-name" style="font-weight: 700; font-size: 1rem; color: var(--text-dark);">...</div>
+                <div style="font-size: 0.9rem; color: var(--text-light); margin-top: 2px;">Jain Talk Creator</div>
+                <div id="profile-sangh" style="font-size: 0.9rem; margin-top: 4px; font-weight: 500;">...</div>
+                <div id="profile-city" style="font-size: 0.9rem; margin-top: 2px;">...</div>
+            </div>
+
+            <!-- Action Buttons -->
+            <div id="profile-actions-container" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
+                <button id="profile-edit-btn" style="flex: 1; background: #efefef; color: var(--text-dark); border: none; padding: 0.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: none;">Edit profile</button>
+                <button id="profile-follow-btn" style="flex: 1; background: var(--primary-color); color: white; border: none; padding: 0.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: none;">Follow</button>
+            </div>
+
+            <!-- Tabs -->
+            <div style="display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 1px;">
+                <div style="flex: 1; text-align: center; padding: 0.75rem 0; border-bottom: 2px solid var(--text-dark); font-weight: 600; color: var(--text-dark); display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"></rect><circle cx="8.5" cy="8.5" r="1.5"></circle><polyline points="21 15 16 10 5 21"></polyline></svg>
+                    Reels
+                </div>
+            </div>
+
+            <!-- Grid -->
+            <div id="profile-reels-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;">
+                <!-- Reels injected here -->
+            </div>
+        </div>
+    </section>
 
     <!-- Upload Reel Modal -->
     <div class="modal-overlay" id="upload-reel-modal">
@@ -993,10 +986,8 @@
             const successMsg = document.getElementById('reg-success-msg');
 
             // Profile Modal Logic
-            const profileModal = document.getElementById('profile-modal');
             const desktopProfileBtn = document.getElementById('desktop-profile-btn');
             const mobileProfileBtn = document.getElementById('mobile-profile-btn');
-            const closeProfileBtn = document.getElementById('close-profile-modal');
             const profileLogoutBtn = document.getElementById('profile-logout-btn');
 
             // Alerts Modal Logic
@@ -1025,21 +1016,90 @@
                 });
             }
 
+            const profilePageView = document.getElementById('profile-page-view');
+            const mainContentChildren = Array.from(document.querySelector('.main-content').children).filter(el => el.id !== 'profile-page-view');
+            
+            async function openProfileView(userId) {
+                if (!userId) return;
+                
+                // Hide home content, show profile view
+                mainContentChildren.forEach(el => el.style.display = 'none');
+                profilePageView.style.display = 'flex';
+                document.getElementById('close-profile-view').style.display = 'block';
+                
+                // Reset UI
+                document.getElementById('profile-reels-grid').innerHTML = '<div style="grid-column: 1 / -1; padding: 2rem; text-align: center; color: var(--text-light);">Loading...</div>';
+                
+                try {
+                    // Fetch Profile Data
+                    const res = await fetch(`/api/users/${userId}/profile`);
+                    if (res.ok) {
+                        const user = await res.json();
+                        document.getElementById('profile-username').textContent = user.username || user.name;
+                        document.getElementById('profile-initial').textContent = user.name ? user.name.charAt(0).toUpperCase() : 'U';
+                        document.getElementById('profile-name').textContent = user.name;
+                        document.getElementById('profile-sangh').textContent = user.sangh || '';
+                        document.getElementById('profile-city').textContent = user.city || '';
+                        document.getElementById('profile-followers-count').textContent = user.followers ? user.followers.length : 0;
+                        document.getElementById('profile-following-count').textContent = user.following ? user.following.length : 0;
+                        
+                        // Toggle Edit vs Follow buttons
+                        const isSelf = currentUser && currentUser._id === userId;
+                        const editBtn = document.getElementById('profile-edit-btn');
+                        const followBtn = document.getElementById('profile-follow-btn');
+                        const logoutBtn = document.getElementById('profile-logout-btn');
+                        
+                        if (isSelf) {
+                            editBtn.style.display = 'block';
+                            followBtn.style.display = 'none';
+                            logoutBtn.style.display = 'block';
+                        } else {
+                            editBtn.style.display = 'none';
+                            logoutBtn.style.display = 'none';
+                            followBtn.style.display = 'block';
+                            
+                            // Check if current user follows them
+                            const isFollowing = user.followers && currentUser && user.followers.includes(currentUser._id);
+                            followBtn.textContent = isFollowing ? 'Following' : 'Follow';
+                            followBtn.style.background = isFollowing ? '#efefef' : 'var(--primary-color)';
+                            followBtn.style.color = isFollowing ? 'var(--text-dark)' : 'white';
+                            
+                            followBtn.onclick = async () => {
+                                if (!currentUser) return alert("Log in to follow");
+                                try {
+                                    const followRes = await fetch(`/api/users/${userId}/follow`, { method: 'POST' });
+                                    if (followRes.ok) {
+                                        const followData = await followRes.json();
+                                        followBtn.textContent = followData.isFollowing ? 'Following' : 'Follow';
+                                        followBtn.style.background = followData.isFollowing ? '#efefef' : 'var(--primary-color)';
+                                        followBtn.style.color = followData.isFollowing ? 'var(--text-dark)' : 'white';
+                                        document.getElementById('profile-followers-count').textContent = followData.followersCount;
+                                    }
+                                } catch (e) { console.error(e); }
+                            };
+                        }
+                        
+                        // Fetch Reels
+                        fetchUserReels(userId);
+                    }
+                } catch (e) { console.error('Failed to load profile', e); }
+            }
+            
+            document.getElementById('close-profile-view').addEventListener('click', () => {
+                profilePageView.style.display = 'none';
+                mainContentChildren.forEach(el => el.style.display = '');
+            });
+
             if (desktopProfileBtn) {
                 desktopProfileBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    profileModal.classList.add('active');
+                    if (currentUser) openProfileView(currentUser._id);
                 });
             }
             if (mobileProfileBtn) {
                 mobileProfileBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    profileModal.classList.add('active');
-                });
-            }
-            if (closeProfileBtn) {
-                closeProfileBtn.addEventListener('click', () => {
-                    profileModal.classList.remove('active');
+                    if (currentUser) openProfileView(currentUser._id);
                 });
             }
             if (profileLogoutBtn) {
@@ -1183,7 +1243,7 @@
                             slide.innerHTML = `
                                 <video src="${reel.videoUrl}" loop style="width: 100%; height: 100%; object-fit: cover;" onclick="this.paused ? this.play() : this.pause()"></video>
                                 <div style="position: absolute; bottom: 2rem; left: 1rem; right: 4rem; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">
-                                    <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem;">
+                                    <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" onclick="document.getElementById('reels-feed-modal').classList.remove('active'); document.querySelectorAll('#reels-feed-container video').forEach(v => v.pause()); openProfileView('${reel.userId._id}');">
                                         <div style="width: 32px; height: 32px; background: white; color: black; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
                                             ${reel.userId.name ? reel.userId.name.charAt(0).toUpperCase() : 'U'}
                                         </div>
