@@ -1022,7 +1022,17 @@
                 document.querySelector('.main-content').style.display = 'block';
                 document.getElementById('profile-page-view').style.display = 'none';
                 Array.from(document.querySelector('.main-content').children).forEach(el => {
-                    if (el.id !== 'profile-page-view') el.style.display = '';
+                    if (el.id !== 'profile-page-view') {
+                        if (el.id === 'parva-tithi-banner') {
+                            try {
+                                const tithi = calculateTithi(new Date());
+                                const isParva = ["Pancham", "Aatham", "Chaudas", "Amas", "Poonam"].includes(tithi.name);
+                                el.style.display = isParva ? 'flex' : 'none';
+                            } catch(e) { el.style.display = 'none'; }
+                        } else {
+                            el.style.display = '';
+                        }
+                    }
                 });
                 
                 // Hide alerts modal if open
@@ -1137,7 +1147,17 @@
             
             document.getElementById('close-profile-view').addEventListener('click', () => {
                 profilePageView.style.display = 'none';
-                mainContentChildren.forEach(el => el.style.display = '');
+                mainContentChildren.forEach(el => {
+                    if (el.id === 'parva-tithi-banner') {
+                        try {
+                            const tithi = calculateTithi(new Date());
+                            const isParva = ["Pancham", "Aatham", "Chaudas", "Amas", "Poonam"].includes(tithi.name);
+                            el.style.display = isParva ? 'flex' : 'none';
+                        } catch(e) { el.style.display = 'none'; }
+                    } else {
+                        el.style.display = '';
+                    }
+                });
             });
 
             if (desktopProfileBtn) {
