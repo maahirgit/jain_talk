@@ -478,6 +478,16 @@
             .user-profile-badge {
                 display: none; /* Hide on mobile to save space */
             }
+            #reels-feed-modal {
+                align-items: flex-start !important;
+                padding: 0 !important;
+            }
+            #reels-feed-container {
+                height: calc(100vh - 65px) !important;
+            }
+            .reel-slide {
+                height: calc(100vh - 65px) !important;
+            }
             .main-content {
                 padding: 1rem;
             }
@@ -806,9 +816,9 @@
     </section>
 
     <!-- Reels Feed Modal -->
-    <div class="modal-overlay" id="reels-feed-modal" style="background: black; z-index: 999;">
+    <div class="modal-overlay" id="reels-feed-modal" style="background: black; z-index: 999; padding: 0;">
         <button class="modal-close" id="close-reels-feed" style="position: absolute; top: 1rem; right: 1rem; color: white; font-size: 2.5rem; z-index: 1000; text-shadow: 0 2px 4px rgba(0,0,0,0.5);">&times;</button>
-        <div id="reels-feed-container" style="width: 100%; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch;">
+        <div id="reels-feed-container" style="width: 100%; height: 100vh; overflow-y: scroll; scroll-snap-type: y mandatory; -webkit-overflow-scrolling: touch; scroll-behavior: smooth;">
             <!-- Videos injected here -->
         </div>
     </div>
@@ -1262,6 +1272,7 @@
                         reels.forEach(reel => {
                             const isLiked = currentUser ? (reel.likes || []).includes(currentUser._id) : false;
                             const slide = document.createElement('div');
+                            slide.className = 'reel-slide';
                             slide.style.height = '100vh';
                             slide.style.width = '100%';
                             slide.style.scrollSnapAlign = 'start';
@@ -1269,7 +1280,7 @@
                             slide.style.backgroundColor = 'black';
                             
                             slide.innerHTML = `
-                                <video src="${reel.videoUrl}" loop playsinline webkit-playsinline style="width: 100%; height: 100%; object-fit: cover;" onclick="this.paused ? this.play() : this.pause()"></video>
+                                <video src="${reel.videoUrl}" loop autoplay playsinline webkit-playsinline style="width: 100%; height: 100%; object-fit: cover;" onclick="this.paused ? this.play() : this.pause()"></video>
                                 <div style="position: absolute; bottom: 2rem; left: 1rem; right: 4rem; color: white; text-shadow: 0 1px 3px rgba(0,0,0,0.8);">
                                     <div style="font-weight: 700; font-size: 1.1rem; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.5rem; cursor: pointer;" onclick="document.getElementById('reels-feed-modal').classList.remove('active'); document.querySelectorAll('#reels-feed-container video').forEach(v => v.pause()); openProfileView('${reel.userId._id}');">
                                         <div style="width: 32px; height: 32px; background: white; color: black; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem;">
