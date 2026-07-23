@@ -47,13 +47,42 @@ function generateTimings(date) {
     const purimaddh = new Date(sunrise.getTime() + 360 * 60000);
 
     return {
-        sunrise: formatTime(sunrise),
-        sunset: formatTime(sunset),
+        sunrise: sunrise,
+        sunset: sunset,
         navkarsi: formatTime(navkarsi),
         porshi: formatTime(porshi),
         sadhPorshi: formatTime(sadhPorshi),
         purimaddh: formatTime(purimaddh)
     };
+}
+
+function getGoodDayChoghadiyas(date, sunrise, sunset) {
+    const day = date.getDay(); // 0-6
+    const sequences = [
+        ["Udveg", "Chal", "Labh", "Amrit", "Kal", "Shubh", "Rog", "Udveg"], // Sun
+        ["Amrit", "Kal", "Shubh", "Rog", "Udveg", "Chal", "Labh", "Amrit"], // Mon
+        ["Rog", "Udveg", "Chal", "Labh", "Amrit", "Kal", "Shubh", "Rog"], // Tue
+        ["Labh", "Amrit", "Kal", "Shubh", "Rog", "Udveg", "Chal", "Labh"], // Wed
+        ["Shubh", "Rog", "Udveg", "Chal", "Labh", "Amrit", "Kal", "Shubh"], // Thu
+        ["Chal", "Labh", "Amrit", "Kal", "Shubh", "Rog", "Udveg", "Chal"], // Fri
+        ["Kal", "Shubh", "Rog", "Udveg", "Chal", "Labh", "Amrit", "Kal"] // Sat
+    ];
+    
+    const seq = sequences[day];
+    const durationMs = (sunset.getTime() - sunrise.getTime()) / 8;
+    
+    let goodOnes = [];
+    for(let i = 0; i < 8; i++) {
+        if(["Amrit", "Shubh", "Labh"].includes(seq[i])) {
+            let start = new Date(sunrise.getTime() + i * durationMs);
+            let end = new Date(sunrise.getTime() + (i + 1) * durationMs);
+            goodOnes.push({
+                name: seq[i],
+                time: formatTime(start) + " - " + formatTime(end)
+            });
+        }
+    }
+    return goodOnes;
 }
 
 let selectedDate = new Date();
@@ -129,11 +158,11 @@ function renderCalendar(year, month) {
             <div class="panchang-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                 <div class="panchang-item" style="background: white; padding: 0.8rem; border-radius: 8px; display: flex; justify-content: space-between;">
                     <span class="p-label" style="font-weight: 500; font-size: 0.85rem; color: var(--text-light);">Sunrise</span>
-                    <span class="p-value highlight-sun" style="font-weight: 700; color: #E65100;">${sTimings.sunrise}</span>
+                    <span class="p-value highlight-sun" style="font-weight: 700; color: #E65100;">${formatTime(sTimings.sunrise)}</span>
                 </div>
                 <div class="panchang-item" style="background: white; padding: 0.8rem; border-radius: 8px; display: flex; justify-content: space-between;">
                     <span class="p-label" style="font-weight: 500; font-size: 0.85rem; color: var(--text-light);">Sunset</span>
-                    <span class="p-value highlight-sun" style="font-weight: 700; color: #E65100;">${sTimings.sunset}</span>
+                    <span class="p-value highlight-sun" style="font-weight: 700; color: #E65100;">${formatTime(sTimings.sunset)}</span>
                 </div>
                 <div class="panchang-item" style="background: white; padding: 0.8rem; border-radius: 8px; display: flex; justify-content: space-between;">
                     <span class="p-label" style="font-weight: 500; font-size: 0.85rem; color: var(--text-light);">Navkarsi</span>
@@ -151,6 +180,16 @@ function renderCalendar(year, month) {
                     <span class="p-label" style="font-weight: 500; font-size: 0.85rem; color: var(--text-light);">Purimaddh</span>
                     <span class="p-value" style="font-weight: 700;">${sTimings.purimaddh}</span>
                 </div>
+            </div>
+            
+            <h5 style="margin: 1.5rem 0 0.5rem 0; color: var(--primary-dark); font-size: 1rem;">Auspicious Timings (Choghadiya)</h5>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                ${getGoodDayChoghadiyas(sDate, sTimings.sunrise, sTimings.sunset).map(c => `
+                    <div style="background: white; padding: 0.6rem 1rem; border-radius: 8px; display: flex; justify-content: space-between; align-items: center; border-left: 4px solid var(--primary-color);">
+                        <span style="font-weight: 600; color: var(--primary-dark);">${c.name}</span>
+                        <span style="font-size: 0.85rem; color: var(--text-dark);">${c.time}</span>
+                    </div>
+                `).join('')}
             </div>
             <p style="font-size: 0.75rem; text-align: center; color: var(--text-light); margin-top: 1rem; margin-bottom: 0;"><strong>Note:</strong> Timings are approximate standard calculations.</p>
         </div>
@@ -193,8 +232,8 @@ document.addEventListener('DOMContentLoaded', () => {
         cardDateDisplay.textContent = today.toLocaleDateString('en-IN', { weekday: 'short', month: 'short', day: 'numeric' });
         
         if (document.getElementById('card-sunrise')) {
-            document.getElementById('card-sunrise').textContent = timings.sunrise;
-            document.getElementById('card-sunset').textContent = timings.sunset;
+            document.getElementById('card-sunrise').textContent = formatTime(timings.sunrise);
+            document.getElementById('card-sunset').textContent = formatTime(timings.sunset);
             document.getElementById('card-navkarsi').textContent = timings.navkarsi;
             document.getElementById('card-porshi').textContent = timings.porshi;
         }
