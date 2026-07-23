@@ -463,6 +463,12 @@
             color: var(--text-light);
             line-height: 1;
         }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.5); opacity: 0.5; }
+            100% { transform: scale(1); opacity: 1; }
+        }
     </style>
 </head>
 <body>
@@ -556,14 +562,17 @@
                     </div>
                 </div>
 
-                <!-- 2. Events Placeholder -->
-                <a href="#" class="feature-card" style="opacity: 0.8; cursor: default; transform: none; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                <!-- 2. Events -->
+                <a href="#" class="feature-card" onclick="document.getElementById('aaradhna-card-modal').classList.add('active'); document.getElementById('aaradhna-card-modal').style.display='flex';">
                     <div class="card-icon" style="background: #E8F5E9; color: #4CAF50;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                     </div>
-                    <span class="card-tag" style="background: #E8F5E9; color: #4CAF50;">Coming Soon</span>
+                    <span class="card-tag" style="background: #FFEBEE; color: #F44336; display: flex; align-items: center; gap: 4px;">
+                        <span style="display: inline-block; width: 6px; height: 6px; background: #F44336; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+                        Ongoing
+                    </span>
                     <div class="card-title">Events</div>
-                    <p class="card-desc">Discover upcoming spiritual gatherings, discourses, and community events near you.</p>
+                    <p class="card-desc"><strong>Current:</strong> चलो सब आराधना करें<br>Join the ongoing spiritual gatherings and daily insights.</p>
                 </a>
 
                 <!-- 3. Panchang -->
