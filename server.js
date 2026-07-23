@@ -419,38 +419,53 @@ app.get('/api/reels', async (req, res) => {
     }
 });
 
-app.post('/api/reels', async (req, res) => {
-    uploadVideo.single('video')(req, res, async (err) => {
-        if (err) {
-            console.error('Multer/Cloudinary Upload Error:', err);
-            return res.status(400).json({ error: err.message || 'Error uploading video to Cloudinary' });
+app.get('/api/cloudinary-signature', (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        if (!token) return res.status(401).json({ error: 'Not authenticated' });
+        
+        const timestamp = Math.round((new Date).getTime() / 1000);
+        const config = cloudinary.config();
+        
+        if (!config.api_secret) {
+            return res.status(500).json({ error: 'Cloudinary is not configured on the server.' });
         }
-        try {
-            const token = req.cookies.auth_token;
-            if (!token) return res.status(401).json({ error: 'Not authenticated' });
-            
-            const decoded = jwt.verify(token, process.env.JWT_SECRET);
-            
-            if (!req.file) {
-                return res.status(400).json({ error: 'Video file is required or invalid format' });
-            }
-            
-            // multer-storage-cloudinary automatically uploads the file.
-            // req.file.path contains the uploaded Cloudinary URL.
-            const reel = new Reel({
-                userId: decoded.id,
-                videoUrl: req.file.path,
+        
+        const signature = cloudinary.utils.api_sign_request({
+            timestamp: timestamp,
+            folder: 'jain_talks_reels'
+        }, config.api_secret);
+        
+        res.json({ timestamp, signature, apiKey: config.api_key, cloudName: config.cloud_name });
+    } catch (error) {
+        res.status(500).json({ error: 'Failed to generate signature' });
+    }
+});
+
+app.post('/api/reels', express.json(), async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        if (!token) return res.status(401).json({ error: 'Not authenticated' });
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const { videoUrl } = req.body;
+        
+        if (!videoUrl) {
+            return res.status(400).json({ error: 'Video URL is required' });
+        }
+        
+        const reel = new Reel({
+            userId: decoded.id,
+            videoUrl: videoUrl,
             likes: []
         });
         
         await reel.save();
-        
         res.status(201).json({ message: 'Reel posted successfully', reel });
     } catch (error) {
         console.error('Post Reel Error:', error);
         res.status(500).json({ error: 'Server error' });
     }
-    });
 });
 
 app.post('/api/reels/:id/like', async (req, res) => {

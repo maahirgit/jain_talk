@@ -1246,7 +1246,40 @@
                 statusDiv.style.color = 'var(--text-light)';
                 
                 try {
-                    const response = await fetch('/api/reels', { method: 'POST', body: formData });
+                    // 1. Get Cloudinary Signature
+                    const sigRes = await fetch('/api/cloudinary-signature');
+                    const sigData = await sigRes.json();
+                    
+                    if (!sigRes.ok) {
+                        throw new Error(sigData.error || 'Failed to get upload signature');
+                    }
+                    
+                    // 2. Upload directly to Cloudinary
+                    const cloudData = new FormData();
+                    cloudData.append('file', fileInput.files[0]);
+                    cloudData.append('api_key', sigData.apiKey);
+                    cloudData.append('timestamp', sigData.timestamp);
+                    cloudData.append('signature', sigData.signature);
+                    cloudData.append('folder', 'jain_talks_reels');
+                    
+                    const uploadRes = await fetch(`https://api.cloudinary.com/v1_1/${sigData.cloudName}/video/upload`, {
+                        method: 'POST',
+                        body: cloudData
+                    });
+                    
+                    const uploadResult = await uploadRes.json();
+                    
+                    if (!uploadRes.ok) {
+                        throw new Error(uploadResult.error?.message || 'Cloudinary upload failed');
+                    }
+                    
+                    // 3. Save the video URL to the backend
+                    const response = await fetch('/api/reels', { 
+                        method: 'POST', 
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ videoUrl: uploadResult.secure_url }) 
+                    });
+                    
                     if (response.ok) {
                         statusDiv.textContent = 'Reel posted successfully!';
                         statusDiv.style.color = '#4CAF50';
@@ -1260,7 +1293,7 @@
                         }, 2000);
                     } else {
                         const data = await response.json().catch(() => ({}));
-                        throw new Error(data.error || 'Upload failed (Network or Server Error)');
+                        throw new Error(data.error || 'Failed to save reel to database');
                     }
                 } catch (err) {
                     statusDiv.textContent = 'Error: ' + err.message;
