@@ -588,6 +588,100 @@ app.post('/api/users/:id/follow', async (req, res) => {
     }
 });
 
+const Astronomy = require('astronomy-engine');
+const cron = require('node-cron');
+
+function getExactTithi(date) {
+    const time = new Astronomy.AstroTime(date);
+    const moonPhase = Astronomy.MoonPhase(time); // Returns 0 to 360 degrees
+    
+    // Tithi is exactly 12 degrees of moon phase
+    let tithiIndex = Math.floor(moonPhase / 12);
+    if (tithiIndex < 0) tithiIndex = 0;
+    if (tithiIndex > 29) tithiIndex = 29;
+    
+    const tithiNames = [
+        "Ekam", "Beej", "Trij", "Choth", "Pancham", 
+        "Chhath", "Saatam", "Aatham", "Nom", "Dasham", 
+        "Agyaras", "Baras", "Teras", "Chaudas", "Poonam",
+        "Ekam", "Beej", "Trij", "Choth", "Pancham", 
+        "Chhath", "Saatam", "Aatham", "Nom", "Dasham", 
+        "Agyaras", "Baras", "Teras", "Chaudas", "Amas"
+    ];
+    
+    const isShukla = tithiIndex < 15;
+    const paksha = isShukla ? "Sud" : "Vad";
+    
+    return {
+        name: tithiNames[tithiIndex],
+        fullName: tithiNames[tithiIndex] + " (" + paksha + ")",
+        paksha: paksha,
+        index: tithiIndex
+    };
+}
+
+// Panchang API Endpoint
+app.get('/api/panchang', (req, res) => {
+    try {
+        const dateParam = req.query.date ? new Date(req.query.date) : new Date();
+        const tithi = getExactTithi(dateParam);
+        res.status(200).json(tithi);
+    } catch (error) {
+        console.error('Panchang API Error:', error);
+        res.status(500).json({ error: 'Failed to calculate exact Tithi' });
+    }
+});
+
+// Daily Cron Job (Runs every day at 08:00 AM) for Email Reminders
+cron.schedule('0 8 * * *', async () => {
+    try {
+        console.log('Running daily Panchang cron job for reminders...');
+        
+        // Check tomorrow's Tithi
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const tomorrowTithi = getExactTithi(tomorrow);
+        
+        const parvaTithis = ["Pancham", "Aatham", "Chaudas", "Amas", "Poonam"];
+        
+        if (parvaTithis.includes(tomorrowTithi.name)) {
+            console.log(`Tomorrow is a Parva Tithi: ${tomorrowTithi.fullName}. Sending reminders...`);
+            
+            // Fetch all users with email
+            const users = await User.find({ email: { $exists: true, $ne: "" } });
+            
+            for (const user of users) {
+                const mailOptions = {
+                    from: process.env.EMAIL_USER,
+                    to: user.email,
+                    subject: '🌟 Reminder: Auspicious Day Tomorrow!',
+                    html: `
+                        <div style="font-family: Arial, sans-serif; text-align: center; color: #333;">
+                            <h2 style="color: #FF9800;">Jai Jinendra, ${user.name}!</h2>
+                            <p>This is a gentle reminder that tomorrow is an auspicious Parva Tithi:</p>
+                            <h3 style="color: #D84315; font-size: 24px; margin: 10px 0;">${tomorrowTithi.fullName}</h3>
+                            <p>It is a great day for Aradhana, fasting, or spiritual activities.</p>
+                            <br/>
+                            <p>Warm regards,<br/><strong>Jain Talks Team</strong></p>
+                        </div>
+                    `
+                };
+                
+                try {
+                    await transporter.sendMail(mailOptions);
+                } catch (mailErr) {
+                    console.error(`Failed to send email to ${user.email}:`, mailErr.message);
+                }
+            }
+            console.log('Finished sending Parva Tithi reminders.');
+        } else {
+            console.log(`Tomorrow is ${tomorrowTithi.fullName}. No reminder needed.`);
+        }
+    } catch (error) {
+        console.error('Cron Job Error:', error);
+    }
+});
+
 // Start Server
 if (!process.env.VERCEL) {
     app.listen(PORT, () => {

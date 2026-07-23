@@ -9,15 +9,18 @@ const tithiNames = [
     "Agyaras", "Baras", "Teras", "Chaudas", "Amas"
 ];
 
-// Helper to calculate approximate Tithi based on Moon Phase
+// Helper to calculate exact Tithi based on Moon Phase using Astronomy Engine
 function calculateTithi(date) {
-    const knownNewMoon = new Date(Date.UTC(2026, 5, 14, 12, 44, 0));
-    const synodicMonth = 29.530588 * 24 * 60 * 60 * 1000;
-    const diff = date.getTime() - knownNewMoon.getTime();
-    const phase = (diff % synodicMonth) / synodicMonth;
-    let tithiIndex = Math.floor(phase * 30);
-    if(tithiIndex < 0) tithiIndex += 30;
-    if(tithiIndex > 29) tithiIndex = 29;
+    if (typeof Astronomy === 'undefined') {
+        return { name: "Loading", fullName: "Loading...", paksha: "", index: 0 };
+    }
+    
+    const time = new Astronomy.AstroTime(date);
+    const moonPhase = Astronomy.MoonPhase(time); // Returns 0 to 360 degrees
+    
+    let tithiIndex = Math.floor(moonPhase / 12);
+    if (tithiIndex < 0) tithiIndex = 0;
+    if (tithiIndex > 29) tithiIndex = 29;
     
     const isShukla = tithiIndex < 15;
     const paksha = isShukla ? "Sud" : "Vad";
