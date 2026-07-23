@@ -47,6 +47,12 @@
             const profileEmail = document.getElementById('profile-email');
             if (profileEmail) profileEmail.textContent = user.email || 'No email provided';
             
+            const profileUsername = document.getElementById('profile-username');
+            if (profileUsername) profileUsername.textContent = user.username || 'JT_Unknown';
+            
+            const cardUsername = document.getElementById('card-username-display');
+            if (cardUsername) cardUsername.textContent = user.username || 'JTC-2023-XXXX';
+            
             const profilePhone = document.getElementById('profile-phone');
             if (profilePhone) profilePhone.textContent = user.number;
             
@@ -684,7 +690,10 @@
                     <span id="profile-initial">...</span>
                 </div>
                 <h2 id="profile-name" style="margin: 0; color: var(--text-dark); font-size: 1.5rem;">...</h2>
-                <p id="profile-email" style="margin: 0.2rem 0 0 0; color: var(--text-light); font-size: 0.9rem;">...</p>
+                <p id="profile-email" style="margin: 0.2rem 0 0.5rem 0; color: var(--text-light); font-size: 0.9rem;">...</p>
+                <div style="display: inline-block; background: #E3F2FD; color: #1976D2; padding: 0.3rem 1rem; border-radius: 16px; font-weight: 700; font-size: 0.9rem; font-family: monospace; letter-spacing: 0.5px;">
+                    <span id="profile-username">...</span>
+                </div>
             </div>
             
             <div style="background: #fafafa; border: 1px solid var(--border-color); border-radius: 16px; padding: 1.5rem; margin-bottom: 1.5rem;">
@@ -834,7 +843,7 @@
             </div>
             
             <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">
-                ID: <span style="font-family: monospace;">JTC-2023-XXXX</span>
+                ID: <span id="card-username-display" style="font-family: monospace;">JTC-2023-XXXX</span>
             </div>
         </div>
     </div>
