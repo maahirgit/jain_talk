@@ -281,11 +281,11 @@
                 container.appendChild(qDiv);
             });
             
-            document.getElementById('aradhana-form-modal').style.display = 'flex';
+            document.getElementById('aradhana-form-modal').classList.add('active');
         }
 
         document.getElementById('close-aradhana-form-modal').addEventListener('click', () => {
-            document.getElementById('aradhana-form-modal').style.display = 'none';
+            document.getElementById('aradhana-form-modal').classList.remove('active');
         });
 
         document.getElementById('aradhana-form').addEventListener('submit', async (e) => {
@@ -312,7 +312,7 @@
                 
                 if (response.ok) {
                     alert('Submission successful! You earned ' + data.points + ' points.');
-                    document.getElementById('aradhana-form-modal').style.display = 'none';
+                    document.getElementById('aradhana-form-modal').classList.remove('active');
                     fetchAradhanaStatus(); // Refresh dashboard
                 } else {
                     alert(data.error || 'Submission failed');
@@ -1106,7 +1106,7 @@
         </div>
     </div>
 
-    <div id="aradhana-form-modal" class="modal">
+    <div id="aradhana-form-modal" class="modal" style="z-index: 2500;">
         <div class="modal-content" style="max-height: 90vh; overflow-y: auto; background: white; padding: 2rem;">
             <span class="close-modal" id="close-aradhana-form-modal">&times;</span>
             <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--primary-dark);">Today's Aradhana</h2>
