@@ -124,7 +124,7 @@ function renderCalendar(year, month) {
             let tithi = calculateTithi(currentDate);
             let isSelected = currentDate.toDateString() === selectedDate.toDateString();
             
-            let isParva = ["Pancham", "Aatham", "Chaudas", "Poonam", "Amas"].includes(tithi.name);
+            let isParva = ["Pancham", "Aatham", "Chaudas"].includes(tithi.name);
             let bg = isSelected ? 'var(--primary-color)' : (isParva ? '#FFF3E0' : 'white');
             let color = isSelected ? 'white' : (isParva ? '#E65100' : 'var(--text-dark)');
             let border = isSelected ? 'none' : (isParva ? '1px solid #FFCC80' : '1px solid var(--border-color)');
