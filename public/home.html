@@ -1020,7 +1020,14 @@
                 e.preventDefault();
                 closeReelsModal();
                 document.querySelector('.main-content').style.display = 'block';
-                document.getElementById('profile-page-view').classList.remove('active');
+                document.getElementById('profile-page-view').style.display = 'none';
+                Array.from(document.querySelector('.main-content').children).forEach(el => {
+                    if (el.id !== 'profile-page-view') el.style.display = '';
+                });
+                
+                // Hide alerts modal if open
+                const alertsModal = document.getElementById('alerts-modal');
+                if (alertsModal) alertsModal.classList.remove('active');
                 
                 // Update nav classes
                 document.querySelectorAll('.desktop-nav-item, .nav-item').forEach(nav => nav.classList.remove('active'));
