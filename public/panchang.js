@@ -620,3 +620,9 @@ window.generateAlerts = async function() {
         container.innerHTML = '<div style="color: var(--text-light); text-align: center; padding: 2rem;">No new alerts at this time.</div>';
     }
 };
+
+// Periodically update alerts so that countdowns (like Chauvihar) decrease automatically
+setInterval(() => {
+    if (window.updateAlertsBadge) window.updateAlertsBadge();
+    if (window.generateAlerts) window.generateAlerts();
+}, 60000);
