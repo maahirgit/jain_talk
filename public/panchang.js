@@ -446,7 +446,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 });
 
 // Alerts Modal Logic
-window.updateAlertsBadge = function() {
+window.updateAlertsBadge = async function() {
     let count = 0;
     const today = new Date();
     const eventEndDate = new Date('September 26, 2026 23:59:59');
@@ -461,6 +461,19 @@ window.updateAlertsBadge = function() {
     const tomorrowTithi = calculateTithi(tomorrow);
     if (parvaTithis.includes(tomorrowTithi.name)) count++;
     
+    // Check Timing Alerts (Navkarsi & Sunset)
+    const timings = await fetchTimings(today);
+    if (timings && timings.sunrise && timings.sunset) {
+        const navkarsiTime = new Date(timings.sunrise.getTime() + 48 * 60000);
+        const sunsetTime = timings.sunset;
+        
+        const navDiff = (navkarsiTime - today) / 60000;
+        if (navDiff > 0 && navDiff <= 30) count++;
+        
+        const sunsetDiff = (sunsetTime - today) / 60000;
+        if (sunsetDiff > 0 && sunsetDiff <= 30) count++;
+    }
+    
     const dBadge = document.getElementById('desktop-alerts-badge');
     const mBadge = document.getElementById('mobile-alerts-badge');
     if (dBadge) {
@@ -474,7 +487,7 @@ window.updateAlertsBadge = function() {
     return count;
 };
 
-window.generateAlerts = function() {
+window.generateAlerts = async function() {
     const container = document.getElementById('alerts-container');
     if (!container) return;
     
@@ -498,6 +511,43 @@ window.generateAlerts = function() {
             <div style="font-size: 0.95rem;"><strong>चलो सब आराधना करें</strong> is currently active. Join the daily tracker!</div>
         `;
         container.appendChild(eventAlert);
+    }
+    
+    // Add Timing Alerts (Navkarsi & Sunset)
+    const timings = await fetchTimings(today);
+    if (timings && timings.sunrise && timings.sunset) {
+        const navkarsiTime = new Date(timings.sunrise.getTime() + 48 * 60000);
+        const sunsetTime = timings.sunset;
+        
+        const navDiff = (navkarsiTime - today) / 60000;
+        if (navDiff > 0 && navDiff <= 30) {
+            const navAlert = document.createElement('div');
+            navAlert.style.padding = '1rem';
+            navAlert.style.background = '#E8F5E9';
+            navAlert.style.border = '1px solid #A5D6A7';
+            navAlert.style.borderRadius = '12px';
+            navAlert.style.color = '#2E7D32';
+            navAlert.innerHTML = `
+                <div style="font-weight: 700; margin-bottom: 0.2rem;">Navkarsi Approaching!</div>
+                <div style="font-size: 0.95rem;">It's just <strong>${Math.ceil(navDiff)} minutes</strong> for Navkarsi. Stay motivated, you're almost there!</div>
+            `;
+            container.appendChild(navAlert);
+        }
+        
+        const sunsetDiff = (sunsetTime - today) / 60000;
+        if (sunsetDiff > 0 && sunsetDiff <= 30) {
+            const sunsetAlert = document.createElement('div');
+            sunsetAlert.style.padding = '1rem';
+            sunsetAlert.style.background = '#FFEBEE';
+            sunsetAlert.style.border = '1px solid #FFCDD2';
+            sunsetAlert.style.borderRadius = '12px';
+            sunsetAlert.style.color = '#C62828';
+            sunsetAlert.innerHTML = `
+                <div style="font-weight: 700; margin-bottom: 0.2rem;">Chouvihar Alert</div>
+                <div style="font-size: 0.95rem;">Only <strong>${Math.ceil(sunsetDiff)} minutes</strong> left until Sunset. Please finish your dinner before Chouvihar.</div>
+            `;
+            container.appendChild(sunsetAlert);
+        }
     }
 
     // Calculate Tithi Alerts
@@ -534,5 +584,9 @@ window.generateAlerts = function() {
             <div style="font-size: 0.95rem;">Tomorrow is <strong>${tomorrowTithi.fullName}</strong>. Make your spiritual plans in advance!</div>
         `;
         container.appendChild(tomorrowAlert);
+    }
+    
+    if (container.children.length === 0) {
+        container.innerHTML = '<div style="color: var(--text-light); text-align: center; padding: 2rem;">No new alerts at this time.</div>';
     }
 };
