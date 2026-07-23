@@ -9,6 +9,16 @@ const helmet = require('helmet');
 const rateLimit = require('express-rate-limit');
 const path = require('path');
 const multer = require('multer');
+const nodemailer = require('nodemailer');
+
+// Set up email transporter
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS
+    }
+});
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -67,7 +77,9 @@ const userSchema = new mongoose.Schema({
     city: { type: String, required: true },
     sangh: { type: String, required: true },
     password: { type: String, required: true },
-    username: { type: String, unique: true }
+    username: { type: String, unique: true },
+    resetOtp: { type: String },
+    resetOtpExpires: { type: Date }
 }, { timestamps: true });
 
 const User = mongoose.model('User', userSchema);
@@ -175,6 +187,73 @@ app.post('/api/login', authLimiter, async (req, res) => {
     } catch (error) {
         console.error('Login Error:', error);
         res.status(500).json({ error: 'Server error during login.' });
+    }
+});
+
+// Forgot Password Route
+app.post('/api/forgot-password', authLimiter, async (req, res) => {
+    try {
+        const { number } = req.body;
+        const user = await User.findOne({ number });
+        if (!user) {
+            return res.status(404).json({ error: 'User with this phone number not found.' });
+        }
+        
+        // Generate 6-digit OTP
+        const otp = Math.floor(100000 + Math.random() * 900000).toString();
+        user.resetOtp = otp;
+        user.resetOtpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
+        await user.save();
+        
+        // Send OTP via Email
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: user.email,
+            subject: 'Password Reset OTP - Jain Talk',
+            text: `Your OTP for password reset is: ${otp}. It is valid for 10 minutes.`
+        };
+
+        if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
+            await transporter.sendMail(mailOptions);
+            console.log(`[EMAIL] OTP sent to ${user.email}`);
+        } else {
+            // Fallback for development if credentials are not set
+            console.log(`[MOCK EMAIL] Missing email credentials in .env. OTP for ${user.email} is ${otp}`);
+        }
+        
+        res.status(200).json({ message: 'OTP sent to your registered email address.' });
+    } catch (error) {
+        console.error('Forgot Password Error:', error);
+        res.status(500).json({ error: 'Server error during forgot password.' });
+    }
+});
+
+// Reset Password Route
+app.post('/api/reset-password', authLimiter, async (req, res) => {
+    try {
+        const { number, otp, newPassword } = req.body;
+        const user = await User.findOne({ 
+            number,
+            resetOtp: otp,
+            resetOtpExpires: { $gt: Date.now() }
+        });
+        
+        if (!user) {
+            return res.status(400).json({ error: 'Invalid or expired OTP.' });
+        }
+        
+        const salt = await bcrypt.genSalt(10);
+        const hashedPassword = await bcrypt.hash(newPassword, salt);
+        
+        user.password = hashedPassword;
+        user.resetOtp = undefined;
+        user.resetOtpExpires = undefined;
+        await user.save();
+        
+        res.status(200).json({ message: 'Password reset successful! You can now log in.' });
+    } catch (error) {
+        console.error('Reset Password Error:', error);
+        res.status(500).json({ error: 'Server error during password reset.' });
     }
 });
 

@@ -45,7 +45,7 @@
                         </div>
                     </div>
                     <div class="forgot-password">
-                        <a href="#">Forgot Password?</a>
+                        <a href="#" id="forgot-password-link">Forgot Password?</a>
                     </div>
                     <button type="submit" class="submit-btn">Log In</button>
                 </form>
@@ -115,6 +115,45 @@
             </div>
         </div>
     </div>
+
+    <!-- Forgot Password Modal -->
+    <div id="forgot-password-modal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal" id="close-forgot-modal">&times;</span>
+            <div id="forgot-step-1">
+                <h2>Reset Password</h2>
+                <p>Enter your registered phone number. An OTP will be sent to your registered email address.</p>
+                <form id="forgot-password-form">
+                    <div class="form-group">
+                        <label for="forgot-number">Phone Number</label>
+                        <input type="tel" id="forgot-number" placeholder="+91 00000 00000" required>
+                    </div>
+                    <button type="submit" class="submit-btn" id="send-otp-btn">Send OTP</button>
+                </form>
+            </div>
+            <div id="forgot-step-2" style="display: none;">
+                <h2>Verify & Reset</h2>
+                <p>Enter the 6-digit OTP sent to your phone and your new password.</p>
+                <form id="reset-password-form">
+                    <div class="form-group">
+                        <label for="reset-otp">OTP</label>
+                        <input type="text" id="reset-otp" placeholder="123456" required maxlength="6">
+                    </div>
+                    <div class="form-group">
+                        <label for="reset-new-password">New Password</label>
+                        <div class="password-input-wrapper">
+                            <input type="password" id="reset-new-password" placeholder="Enter new password" required>
+                            <button type="button" class="toggle-password" tabindex="-1">
+                                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" class="eye-icon"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path><circle cx="12" cy="12" r="3"></circle></svg>
+                            </button>
+                        </div>
+                    </div>
+                    <button type="submit" class="submit-btn" id="reset-password-btn">Reset Password</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
     <script src="script.js"></script>
 </body>
 </html>

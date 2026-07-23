@@ -195,4 +195,102 @@ document.addEventListener('DOMContentLoaded', () => {
             btn.innerHTML = 'Create Account';
         }
     });
+
+    // --- Forgot Password Logic ---
+    const forgotPasswordLink = document.getElementById('forgot-password-link');
+    const forgotPasswordModal = document.getElementById('forgot-password-modal');
+    const closeForgotModal = document.getElementById('close-forgot-modal');
+    const forgotStep1 = document.getElementById('forgot-step-1');
+    const forgotStep2 = document.getElementById('forgot-step-2');
+    const forgotPasswordForm = document.getElementById('forgot-password-form');
+    const resetPasswordForm = document.getElementById('reset-password-form');
+    let resetPhoneNumber = '';
+
+    if (forgotPasswordLink && forgotPasswordModal) {
+        forgotPasswordLink.addEventListener('click', (e) => {
+            e.preventDefault();
+            forgotPasswordModal.classList.add('active');
+            forgotStep1.style.display = 'block';
+            forgotStep2.style.display = 'none';
+            forgotPasswordForm.reset();
+            resetPasswordForm.reset();
+        });
+
+        closeForgotModal.addEventListener('click', () => {
+            forgotPasswordModal.classList.remove('active');
+        });
+
+        // Step 1: Request OTP
+        forgotPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const numberInput = document.getElementById('forgot-number');
+            resetPhoneNumber = numberInput.value;
+            const btn = document.getElementById('send-otp-btn');
+            
+            btn.innerHTML = 'Sending...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/forgot-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number: resetPhoneNumber })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('OTP has been sent to your registered email address (check console if running locally without credentials).');
+                    forgotStep1.style.display = 'none';
+                    forgotStep2.style.display = 'block';
+                } else {
+                    alert(data.error || 'Failed to send OTP.');
+                }
+            } catch (error) {
+                console.error('Forgot password error:', error);
+                alert('Something went wrong. Please try again.');
+            } finally {
+                btn.innerHTML = 'Send OTP';
+                btn.disabled = false;
+            }
+        });
+
+        // Step 2: Verify OTP & Reset Password
+        resetPasswordForm.addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const otp = document.getElementById('reset-otp').value;
+            const newPassword = document.getElementById('reset-new-password').value;
+            const btn = document.getElementById('reset-password-btn');
+
+            if (newPassword.length < 6) {
+                alert('Password must be at least 6 characters long.');
+                return;
+            }
+
+            btn.innerHTML = 'Resetting...';
+            btn.disabled = true;
+
+            try {
+                const response = await fetch('/api/reset-password', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ number: resetPhoneNumber, otp, newPassword })
+                });
+                const data = await response.json();
+
+                if (response.ok) {
+                    alert('Password reset successful! You can now log in.');
+                    forgotPasswordModal.classList.remove('active');
+                    resetPasswordForm.reset();
+                } else {
+                    alert(data.error || 'Failed to reset password.');
+                }
+            } catch (error) {
+                console.error('Reset password error:', error);
+                alert('Something went wrong. Please try again.');
+            } finally {
+                btn.innerHTML = 'Reset Password';
+                btn.disabled = false;
+            }
+        });
+    }
 });
