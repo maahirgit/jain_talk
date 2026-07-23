@@ -463,15 +463,44 @@ window.updateAlertsBadge = async function() {
     
     // Check Timing Alerts (Navkarsi & Sunset)
     const timings = await fetchTimings(today);
+    const homeAlertsContainer = document.getElementById('home-timing-alerts');
+    if (homeAlertsContainer) homeAlertsContainer.innerHTML = '';
+    
     if (timings && timings.sunrise && timings.sunset) {
         const navkarsiTime = new Date(timings.sunrise.getTime() + 48 * 60000);
         const sunsetTime = timings.sunset;
         
         const navDiff = (navkarsiTime - today) / 60000;
-        if (navDiff > 0 && navDiff <= 30) count++;
+        if (navDiff > 0 && navDiff <= 30) {
+            count++;
+            if (homeAlertsContainer) {
+                homeAlertsContainer.innerHTML += `
+                    <div style="background: linear-gradient(135deg, #4CAF50, #2E7D32); color: white; padding: 1rem 1.5rem; border-radius: 16px; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 12px rgba(76,175,80,0.25);">
+                        <span style="font-size: 2rem;">🌅</span>
+                        <div>
+                            <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Navkarsi Approaching</h4>
+                            <p style="margin: 0.2rem 0 0 0; font-size: 0.9rem; opacity: 0.95;">Just <strong>${Math.ceil(navDiff)} mins</strong> for Navkarsi. Stay motivated!</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
         
         const sunsetDiff = (sunsetTime - today) / 60000;
-        if (sunsetDiff > 0 && sunsetDiff <= 30) count++;
+        if (sunsetDiff > 0 && sunsetDiff <= 30) {
+            count++;
+            if (homeAlertsContainer) {
+                homeAlertsContainer.innerHTML += `
+                    <div style="background: linear-gradient(135deg, #F44336, #C62828); color: white; padding: 1rem 1.5rem; border-radius: 16px; display: flex; align-items: center; gap: 1rem; box-shadow: 0 4px 12px rgba(244,67,54,0.25);">
+                        <span style="font-size: 2rem;">🌇</span>
+                        <div>
+                            <h4 style="margin: 0; font-size: 1.1rem; font-weight: 700;">Chouvihar Alert</h4>
+                            <p style="margin: 0.2rem 0 0 0; font-size: 0.9rem; opacity: 0.95;">Only <strong>${Math.ceil(sunsetDiff)} mins</strong> left until Sunset. Please finish your dinner!</p>
+                        </div>
+                    </div>
+                `;
+            }
+        }
     }
     
     const dBadge = document.getElementById('desktop-alerts-badge');
