@@ -619,10 +619,15 @@ app.get('/api/aradhana/status', async (req, res) => {
             if (sub.dateString === yesterdayStr) yesterdaysPoints = sub.points;
         });
         
-        // Generate calendar from July 28 to Sept 15 (50 days)
+        // Generate calendar
         const calendar = [];
-        const startDate = new Date('2026-07-28T00:00:00Z');
+        let startDate = new Date('2026-07-28T00:00:00Z');
         const endDate = new Date('2026-09-15T00:00:00Z');
+        
+        // If testing before July 28, start the calendar from today so it's visible
+        if (todayStr < '2026-07-28') {
+            startDate = new Date(todayStr + 'T00:00:00Z');
+        }
         
         let currentDate = new Date(startDate);
         const now = new Date();
