@@ -124,14 +124,16 @@ function renderCalendar(year, month) {
             let tithi = calculateTithi(currentDate);
             let isSelected = currentDate.toDateString() === selectedDate.toDateString();
             
-            let bg = isSelected ? 'var(--primary-color)' : (tithi.index === 14 || tithi.index === 29 ? '#FFF3E0' : 'white');
-            let color = isSelected ? 'white' : 'var(--text-dark)';
-            let border = isSelected ? 'none' : '1px solid var(--border-color)';
+            let isParva = ["Pancham", "Aatham", "Chaudas", "Poonam", "Amas"].includes(tithi.name);
+            let bg = isSelected ? 'var(--primary-color)' : (isParva ? '#FFF3E0' : 'white');
+            let color = isSelected ? 'white' : (isParva ? '#E65100' : 'var(--text-dark)');
+            let border = isSelected ? 'none' : (isParva ? '1px solid #FFCC80' : '1px solid var(--border-color)');
+            let fontWeight = isParva ? '700' : '600';
             
             html += `
                 <div class="cal-day" data-date="${date}" style="padding: 0.5rem; background: ${bg}; color: ${color}; border: ${border}; border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 0.2s;">
                     <div style="font-weight: 700; font-size: 1rem;">${date}</div>
-                    <div style="font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">${tithi.name}</div>
+                    <div style="font-weight: ${fontWeight}; font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">${tithi.name}</div>
                 </div>
             `;
             date++;
