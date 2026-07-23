@@ -334,6 +334,110 @@ input::placeholder {
     box-shadow: 0 4px 14px rgba(255, 140, 0, 0.3);
 }
 
+.card-btn:hover {
+    background: var(--primary-dark);
+}
+
+/* Panchang Calendar Grid Styles */
+.calendar-grid {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 0.5rem;
+    text-align: center;
+    margin-bottom: 1.5rem;
+}
+
+.cal-day-header {
+    font-weight: 600;
+    font-size: 0.8rem;
+    color: var(--text-light);
+}
+
+.cal-day {
+    padding: 0.5rem;
+    border-radius: 8px;
+    cursor: pointer;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+}
+
+.cal-day.empty {
+    background: #f9f9f9;
+    border: none;
+    cursor: default;
+}
+
+.cal-date-num {
+    font-size: 1rem;
+}
+
+.cal-tithi-name {
+    font-size: 0.65rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 100%;
+}
+
+.panchang-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.panchang-item {
+    background: white;
+    padding: 0.8rem;
+    border-radius: 8px;
+    display: flex;
+    justify-content: space-between;
+}
+
+.panchang-item .p-label {
+    font-weight: 500;
+    font-size: 0.85rem;
+    color: var(--text-light);
+}
+
+.panchang-item .p-value {
+    font-weight: 700;
+}
+
+.panchang-item .p-value.highlight-sun {
+    color: #E65100;
+}
+
+/* Mobile specific overrides */
+@media (max-width: 600px) {
+    .calendar-grid {
+        gap: 0.25rem;
+    }
+    
+    .cal-day {
+        padding: 0.35rem 0.15rem;
+    }
+    
+    .cal-date-num {
+        font-size: 0.9rem;
+    }
+    
+    .cal-tithi-name {
+        font-size: 0.55rem;
+    }
+    
+    .panchang-grid {
+        grid-template-columns: 1fr;
+        gap: 0.5rem;
+    }
+    
+    .panchang-details-container {
+        padding: 1rem !important;
+    }
+}
+
 .submit-btn:hover:not(:disabled) {
     background: var(--primary-dark);
     transform: translateY(-2px);

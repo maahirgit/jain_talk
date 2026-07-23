@@ -105,20 +105,20 @@ function renderCalendar(year, month) {
             <h3 style="margin: 0; color: var(--primary-dark);">${monthName} ${year}</h3>
             <button id="next-month" style="background: none; border: none; cursor: pointer; color: var(--primary-color); font-size: 1.2rem;">Next &raquo;</button>
         </div>
-        <div class="calendar-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.5rem; text-align: center; margin-bottom: 1.5rem;">
-            <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-light);">Sun</div>
-            <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-light);">Mon</div>
-            <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-light);">Tue</div>
-            <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-light);">Wed</div>
-            <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-light);">Thu</div>
-            <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-light);">Fri</div>
-            <div style="font-weight: 600; font-size: 0.8rem; color: var(--text-light);">Sat</div>
+        <div class="calendar-grid">
+            <div class="cal-day-header">Sun</div>
+            <div class="cal-day-header">Mon</div>
+            <div class="cal-day-header">Tue</div>
+            <div class="cal-day-header">Wed</div>
+            <div class="cal-day-header">Thu</div>
+            <div class="cal-day-header">Fri</div>
+            <div class="cal-day-header">Sat</div>
     `;
 
     let date = 1;
     for (let i = 0; i < 42; i++) {
         if (i < startingDay || date > totalDays) {
-            html += `<div style="padding: 0.5rem; background: #f9f9f9; border-radius: 8px;"></div>`;
+            html += `<div class="cal-day empty"></div>`;
         } else {
             let currentDate = new Date(year, month, date);
             let tithi = calculateTithi(currentDate);
@@ -131,9 +131,9 @@ function renderCalendar(year, month) {
             let fontWeight = isParva ? '700' : '600';
             
             html += `
-                <div class="cal-day" data-date="${date}" style="padding: 0.5rem; background: ${bg}; color: ${color}; border: ${border}; border-radius: 8px; cursor: pointer; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: transform 0.2s;">
-                    <div style="font-weight: 700; font-size: 1rem;">${date}</div>
-                    <div style="font-weight: ${fontWeight}; font-size: 0.65rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 100%;">${tithi.name}</div>
+                <div class="cal-day" data-date="${date}" style="background: ${bg}; color: ${color}; border: ${border}; font-weight: ${fontWeight};">
+                    <div class="cal-date-num">${date}</div>
+                    <div class="cal-tithi-name">${tithi.name}</div>
                 </div>
             `;
             date++;
@@ -149,7 +149,7 @@ function renderCalendar(year, month) {
     const dateString = sDate.toLocaleDateString('en-IN', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' });
     
     html += `
-        <div style="background: #FFF8E1; padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,193,7,0.3);">
+        <div class="panchang-details-container" style="background: #FFF8E1; padding: 1.5rem; border-radius: 12px; border: 1px solid rgba(255,193,7,0.3);">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                 <div>
                     <h4 style="margin: 0; color: var(--primary-dark); font-size: 1.2rem;">${dateString}</h4>
@@ -157,30 +157,30 @@ function renderCalendar(year, month) {
                 </div>
             </div>
             
-            <div class="panchang-grid" style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
-                <div class="panchang-item" style="background: white; padding: 0.8rem; border-radius: 8px; display: flex; justify-content: space-between;">
-                    <span class="p-label" style="font-weight: 500; font-size: 0.85rem; color: var(--text-light);">Sunrise</span>
-                    <span class="p-value highlight-sun" style="font-weight: 700; color: #E65100;">${formatTime(sTimings.sunrise)}</span>
+            <div class="panchang-grid">
+                <div class="panchang-item">
+                    <span class="p-label">Sunrise</span>
+                    <span class="p-value highlight-sun">${formatTime(sTimings.sunrise)}</span>
                 </div>
-                <div class="panchang-item" style="background: white; padding: 0.8rem; border-radius: 8px; display: flex; justify-content: space-between;">
-                    <span class="p-label" style="font-weight: 500; font-size: 0.85rem; color: var(--text-light);">Sunset</span>
-                    <span class="p-value highlight-sun" style="font-weight: 700; color: #E65100;">${formatTime(sTimings.sunset)}</span>
+                <div class="panchang-item">
+                    <span class="p-label">Sunset</span>
+                    <span class="p-value highlight-sun">${formatTime(sTimings.sunset)}</span>
                 </div>
-                <div class="panchang-item" style="background: white; padding: 0.8rem; border-radius: 8px; display: flex; justify-content: space-between;">
-                    <span class="p-label" style="font-weight: 500; font-size: 0.85rem; color: var(--text-light);">Navkarsi</span>
-                    <span class="p-value" style="font-weight: 700;">${sTimings.navkarsi}</span>
+                <div class="panchang-item">
+                    <span class="p-label">Navkarsi</span>
+                    <span class="p-value">${sTimings.navkarsi}</span>
                 </div>
-                <div class="panchang-item" style="background: white; padding: 0.8rem; border-radius: 8px; display: flex; justify-content: space-between;">
-                    <span class="p-label" style="font-weight: 500; font-size: 0.85rem; color: var(--text-light);">Porshi</span>
-                    <span class="p-value" style="font-weight: 700;">${sTimings.porshi}</span>
+                <div class="panchang-item">
+                    <span class="p-label">Porshi</span>
+                    <span class="p-value">${sTimings.porshi}</span>
                 </div>
-                <div class="panchang-item" style="background: white; padding: 0.8rem; border-radius: 8px; display: flex; justify-content: space-between;">
-                    <span class="p-label" style="font-weight: 500; font-size: 0.85rem; color: var(--text-light);">Sadh-Porshi</span>
-                    <span class="p-value" style="font-weight: 700;">${sTimings.sadhPorshi}</span>
+                <div class="panchang-item">
+                    <span class="p-label">Sadh-Porshi</span>
+                    <span class="p-value">${sTimings.sadhPorshi}</span>
                 </div>
-                <div class="panchang-item" style="background: white; padding: 0.8rem; border-radius: 8px; display: flex; justify-content: space-between;">
-                    <span class="p-label" style="font-weight: 500; font-size: 0.85rem; color: var(--text-light);">Purimaddh</span>
-                    <span class="p-value" style="font-weight: 700;">${sTimings.purimaddh}</span>
+                <div class="panchang-item">
+                    <span class="p-label">Purimaddh</span>
+                    <span class="p-value">${sTimings.purimaddh}</span>
                 </div>
             </div>
             
