@@ -47,14 +47,20 @@
             const profileEmail = document.getElementById('profile-email');
             if (profileEmail) profileEmail.textContent = user.email || 'No email provided';
             
+            const fallbackUsername = 'JT_' + (user._id ? user._id.toString().slice(-4).toUpperCase() : 'XXXX') + '_' + (user.name ? user.name.split(' ')[0] : 'User');
+            const displayUsername = user.username || fallbackUsername;
+
             const profileUsername = document.getElementById('profile-username');
-            if (profileUsername) profileUsername.textContent = user.username || 'JT_Unknown';
+            if (profileUsername) profileUsername.textContent = displayUsername;
             
             const cardUsername = document.getElementById('card-username-display');
-            if (cardUsername) cardUsername.textContent = user.username || 'JTC-2023-XXXX';
+            if (cardUsername) cardUsername.textContent = displayUsername;
             
             const profilePhone = document.getElementById('profile-phone');
             if (profilePhone) profilePhone.textContent = user.number;
+            
+            const profileCity = document.getElementById('profile-city');
+            if (profileCity) profileCity.textContent = user.city || 'Not provided';
             
             const profileSangh = document.getElementById('profile-sangh');
             if (profileSangh) profileSangh.textContent = user.sangh;
@@ -702,6 +708,11 @@
                 <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
                     <span style="color: var(--text-light); font-weight: 500;">Phone Number</span>
                     <strong id="profile-phone" style="color: var(--text-dark);">...</strong>
+                </div>
+                
+                <div style="display: flex; justify-content: space-between; margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--border-color);">
+                    <span style="color: var(--text-light); font-weight: 500;">City/Address</span>
+                    <strong id="profile-city" style="color: var(--text-dark);">...</strong>
                 </div>
                 
                 <div style="display: flex; justify-content: space-between;">
