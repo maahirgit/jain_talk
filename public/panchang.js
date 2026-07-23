@@ -275,33 +275,68 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         }
     }
+    
+    if (window.updateAlertsBadge) {
+        window.updateAlertsBadge();
+    }
 });
 
 // Alerts Modal Logic
+window.updateAlertsBadge = function() {
+    let count = 0;
+    const today = new Date();
+    const eventEndDate = new Date('September 26, 2026 23:59:59');
+    if (today <= eventEndDate) count++;
+    
+    const todayTithi = calculateTithi(today);
+    const parvaTithis = ["Pancham", "Aatham", "Chaudas", "Amas", "Poonam"];
+    if (parvaTithis.includes(todayTithi.name)) count++;
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowTithi = calculateTithi(tomorrow);
+    if (parvaTithis.includes(tomorrowTithi.name)) count++;
+    
+    const dBadge = document.getElementById('desktop-alerts-badge');
+    const mBadge = document.getElementById('mobile-alerts-badge');
+    if (dBadge) {
+        dBadge.textContent = count;
+        dBadge.style.display = count > 0 ? 'flex' : 'none';
+    }
+    if (mBadge) {
+        mBadge.textContent = count;
+        mBadge.style.display = count > 0 ? 'flex' : 'none';
+    }
+    return count;
+};
+
 window.generateAlerts = function() {
     const container = document.getElementById('alerts-container');
     if (!container) return;
     
     container.innerHTML = '';
+    const today = new Date();
     
-    // Add Ongoing Event Alert
-    const eventAlert = document.createElement('div');
-    eventAlert.style.padding = '1rem';
-    eventAlert.style.background = '#FFF3E0';
-    eventAlert.style.border = '1px solid #FFCC80';
-    eventAlert.style.borderRadius = '12px';
-    eventAlert.style.color = '#E65100';
-    eventAlert.innerHTML = `
-        <div style="font-weight: 700; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem;">
-            <span style="display: inline-block; width: 8px; height: 8px; background: #E65100; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
-            Ongoing Event
-        </div>
-        <div style="font-size: 0.95rem;"><strong>चलो सब आराधना करें</strong> is currently active. Join the daily tracker!</div>
-    `;
-    container.appendChild(eventAlert);
+    // Add Ongoing Event Alert (Auto clears after Sept 26)
+    const eventEndDate = new Date('September 26, 2026 23:59:59');
+    if (today <= eventEndDate) {
+        const eventAlert = document.createElement('div');
+        eventAlert.style.padding = '1rem';
+        eventAlert.style.background = '#FFF3E0';
+        eventAlert.style.border = '1px solid #FFCC80';
+        eventAlert.style.borderRadius = '12px';
+        eventAlert.style.color = '#E65100';
+        eventAlert.innerHTML = `
+            <div style="font-weight: 700; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem;">
+                <span style="display: inline-block; width: 8px; height: 8px; background: #E65100; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+                Ongoing Event
+            </div>
+            <div style="font-size: 0.95rem;"><strong>चलो सब आराधना करें</strong> is currently active. Join the daily tracker!</div>
+        `;
+        container.appendChild(eventAlert);
+    }
 
     // Calculate Tithi Alerts
-    const today = new Date();
     const todayTithi = calculateTithi(today);
     const parvaTithis = ["Pancham", "Aatham", "Chaudas", "Amas", "Poonam"];
     
