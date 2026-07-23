@@ -626,6 +626,10 @@
                     </span>
                     <div class="card-title">Events</div>
                     <p class="card-desc"><strong>Current:</strong> चलो सब आराधना करें<br>Join the ongoing spiritual gatherings and daily insights.</p>
+                    <div style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--primary-color); font-weight: 700; display: flex; align-items: center; gap: 0.25rem;">
+                        Tap to open Aaradhna Card
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
+                    </div>
                 </a>
 
                 <!-- 3. Panchang -->
@@ -988,6 +992,8 @@
                 if (currentRegistration) {
                     if (currentRegistration.isPaymentVerified) {
                         openAaradhnaCard();
+                    } else {
+                        alert("Your registration is pending admin verification. Please check back later!");
                     }
                     return;
                 }
