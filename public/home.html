@@ -1010,8 +1010,15 @@
             const mobileHomeBtn = document.getElementById('mobile-home-btn');
             const profileLogoutBtn = document.getElementById('profile-logout-btn');
             
+            const closeReelsModal = () => {
+                const reelsModal = document.getElementById('reels-feed-modal');
+                if (reelsModal) reelsModal.classList.remove('active');
+                document.querySelectorAll('#reels-feed-container video').forEach(v => v.pause());
+            };
+            
             const goHome = (e) => {
                 e.preventDefault();
+                closeReelsModal();
                 document.querySelector('.main-content').style.display = 'block';
                 document.getElementById('profile-page-view').classList.remove('active');
                 
@@ -1033,6 +1040,7 @@
             if (desktopAlertsBtn) {
                 desktopAlertsBtn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    closeReelsModal();
                     if(window.generateAlerts) window.generateAlerts();
                     alertsModal.classList.add('active');
                 });
@@ -1040,6 +1048,7 @@
             if (mobileAlertsBtn) {
                 mobileAlertsBtn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    closeReelsModal();
                     if(window.generateAlerts) window.generateAlerts();
                     alertsModal.classList.add('active');
                 });
@@ -1127,13 +1136,17 @@
             if (desktopProfileBtn) {
                 desktopProfileBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    if (currentUser) openProfileView(currentUser._id);
+                    closeReelsModal();
+                    if (!currentUser) return alert('Please log in first!');
+                    openProfileView(currentUser._id);
                 });
             }
             if (mobileProfileBtn) {
                 mobileProfileBtn.addEventListener('click', (e) => {
                     e.preventDefault();
-                    if (currentUser) openProfileView(currentUser._id);
+                    closeReelsModal();
+                    if (!currentUser) return alert('Please log in first!');
+                    openProfileView(currentUser._id);
                 });
             }
             if (profileLogoutBtn) {
@@ -1202,6 +1215,9 @@
             openReelsBtns.forEach(btn => {
                 if (btn) btn.addEventListener('click', (e) => {
                     e.preventDefault();
+                    document.querySelectorAll('.modal-overlay').forEach(m => {
+                        if(m.id !== 'reels-feed-modal') m.classList.remove('active');
+                    });
                     openReelsFeed();
                 });
             });
