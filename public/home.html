@@ -1259,10 +1259,11 @@
                             if (currentUser) fetchUserReels(currentUser._id);
                         }, 2000);
                     } else {
-                        throw new Error('Upload failed');
+                        const data = await response.json().catch(() => ({}));
+                        throw new Error(data.error || 'Upload failed (Network or Server Error)');
                     }
                 } catch (err) {
-                    statusDiv.textContent = 'Error uploading reel. Make sure it is a valid video under 10MB.';
+                    statusDiv.textContent = 'Error: ' + err.message;
                     statusDiv.style.color = '#F44336';
                     submitBtn.disabled = false;
                     submitBtn.textContent = 'Post Reel';

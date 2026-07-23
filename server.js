@@ -417,22 +417,27 @@ app.get('/api/reels', async (req, res) => {
     }
 });
 
-app.post('/api/reels', uploadVideo.single('video'), async (req, res) => {
-    try {
-        const token = req.cookies.auth_token;
-        if (!token) return res.status(401).json({ error: 'Not authenticated' });
-        
-        const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        if (!req.file) {
-            return res.status(400).json({ error: 'Video file is required or invalid format' });
+app.post('/api/reels', async (req, res) => {
+    uploadVideo.single('video')(req, res, async (err) => {
+        if (err) {
+            console.error('Multer/Cloudinary Upload Error:', err);
+            return res.status(400).json({ error: err.message || 'Error uploading video to Cloudinary' });
         }
-        
-        // multer-storage-cloudinary automatically uploads the file.
-        // req.file.path contains the uploaded Cloudinary URL.
-        const reel = new Reel({
-            userId: decoded.id,
-            videoUrl: req.file.path,
+        try {
+            const token = req.cookies.auth_token;
+            if (!token) return res.status(401).json({ error: 'Not authenticated' });
+            
+            const decoded = jwt.verify(token, process.env.JWT_SECRET);
+            
+            if (!req.file) {
+                return res.status(400).json({ error: 'Video file is required or invalid format' });
+            }
+            
+            // multer-storage-cloudinary automatically uploads the file.
+            // req.file.path contains the uploaded Cloudinary URL.
+            const reel = new Reel({
+                userId: decoded.id,
+                videoUrl: req.file.path,
             likes: []
         });
         
@@ -443,6 +448,7 @@ app.post('/api/reels', uploadVideo.single('video'), async (req, res) => {
         console.error('Post Reel Error:', error);
         res.status(500).json({ error: 'Server error' });
     }
+    });
 });
 
 app.post('/api/reels/:id/like', async (req, res) => {
