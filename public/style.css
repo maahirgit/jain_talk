@@ -345,12 +345,16 @@ input::placeholder {
     gap: 0.5rem;
     text-align: center;
     margin-bottom: 1.5rem;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .cal-day-header {
     font-weight: 600;
     font-size: 0.8rem;
     color: var(--text-light);
+    min-width: 0;
+    box-sizing: border-box;
 }
 
 .cal-day {
@@ -362,6 +366,9 @@ input::placeholder {
     align-items: center;
     justify-content: center;
     transition: transform 0.2s;
+    min-width: 0;
+    box-sizing: border-box;
+    overflow: hidden;
 }
 
 .cal-day.empty {

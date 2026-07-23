@@ -373,10 +373,11 @@ async function renderCalendar(year, month) {
         renderCalendar(currentMonthDate.getFullYear(), currentMonthDate.getMonth());
     };
 
-    const days = document.querySelectorAll('.cal-day');
+    const days = document.querySelectorAll('.cal-day:not(.empty)');
     days.forEach(day => {
         day.onclick = (e) => {
             const dateNum = parseInt(e.currentTarget.getAttribute('data-date'));
+            if (isNaN(dateNum)) return;
             selectedDate = new Date(year, month, dateNum);
             renderCalendar(year, month);
         };
