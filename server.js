@@ -394,7 +394,7 @@ app.get('/api/admin/registrations', async (req, res) => {
 
 app.get('/api/users/:id/reels', async (req, res) => {
     try {
-        const reels = await Reel.find({ userId: req.params.id }).sort({ createdAt: -1 });
+        const reels = await Reel.find({ userId: req.params.id }).populate('userId', 'name username').sort({ createdAt: -1 });
         res.status(200).json(reels);
     } catch (error) {
         console.error('Fetch User Reels Error:', error);
