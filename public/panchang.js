@@ -55,9 +55,50 @@ if (navigator.geolocation) {
 
 document.addEventListener('DOMContentLoaded', () => {
     const citySelect = document.getElementById('panchang-city-select');
+    
+    // Helper to refresh dashboard card
+    const refreshDashboardCard = async () => {
+        const today = new Date();
+        const cardSunrise = document.getElementById('card-sunrise');
+        if (cardSunrise) {
+            const timings = await fetchTimings(today);
+            cardSunrise.textContent = formatTime(timings.sunrise);
+            document.getElementById('card-sunset').textContent = formatTime(timings.sunset);
+            document.getElementById('card-navkarsi').textContent = timings.navkarsi;
+            document.getElementById('card-porshi').textContent = timings.porshi;
+        }
+    };
+
     if (citySelect) {
+        // Load saved location
+        const savedLocation = localStorage.getItem('panchang-location');
+        if (savedLocation) {
+            citySelect.value = savedLocation;
+            if (savedLocation === 'auto') {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition((pos) => {
+                        userLat = pos.coords.latitude;
+                        userLng = pos.coords.longitude;
+                        Object.keys(timingsCache).forEach(k => delete timingsCache[k]);
+                        refreshDashboardCard();
+                    }, () => {
+                        citySelect.value = "23.0225,72.5714";
+                        localStorage.setItem('panchang-location', citySelect.value);
+                    });
+                }
+            } else {
+                const parts = savedLocation.split(',');
+                if (parts.length === 2) {
+                    userLat = parseFloat(parts[0]);
+                    userLng = parseFloat(parts[1]);
+                }
+            }
+        }
+    
         citySelect.addEventListener('change', (e) => {
             const val = e.target.value;
+            localStorage.setItem('panchang-location', val);
+            
             if (val === 'auto') {
                 if (navigator.geolocation) {
                     navigator.geolocation.getCurrentPosition((pos) => {
@@ -65,13 +106,16 @@ document.addEventListener('DOMContentLoaded', () => {
                         userLng = pos.coords.longitude;
                         Object.keys(timingsCache).forEach(k => delete timingsCache[k]);
                         renderCalendar(currentYear, currentMonth);
+                        refreshDashboardCard();
                     }, () => {
                         alert("Geolocation access denied or unavailable.");
                         citySelect.value = "23.0225,72.5714"; // Revert to Ahmedabad
+                        localStorage.setItem('panchang-location', "23.0225,72.5714");
                     });
                 } else {
                     alert("Geolocation is not supported by this browser.");
                     citySelect.value = "23.0225,72.5714";
+                    localStorage.setItem('panchang-location', "23.0225,72.5714");
                 }
             } else {
                 const parts = val.split(',');
@@ -80,6 +124,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 // Clear cache so it fetches new times
                 Object.keys(timingsCache).forEach(k => delete timingsCache[k]);
                 renderCalendar(currentYear, currentMonth);
+                refreshDashboardCard();
             }
         });
     }
