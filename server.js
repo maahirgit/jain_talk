@@ -402,6 +402,59 @@ app.get('/api/users/:id/reels', async (req, res) => {
     }
 });
 
+app.get('/api/reels', async (req, res) => {
+    try {
+        // Fetch randomly using $sample aggregation
+        const reels = await Reel.aggregate([
+            { $sample: { size: 50 } },
+            { $lookup: { from: 'users', localField: 'userId', foreignField: '_id', as: 'userId' } },
+            { $unwind: '$userId' }
+        ]);
+        res.status(200).json(reels);
+    } catch (error) {
+        console.error('Fetch Reels Error:', error);
+        res.status(500).json({ error: 'Failed to fetch reels' });
+    }
+});
+
+app.post('/api/reels', upload.single('video'), async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        if (!token) return res.status(401).json({ error: 'Not authenticated' });
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        if (!req.file) {
+            return res.status(400).json({ error: 'Video file is required' });
+        }
+        
+        const result = await cloudinary.uploader.upload(req.file.path, {
+            resource_type: "video",
+            folder: "jain_talk/reels"
+        });
+        
+        const reel = new Reel({
+            userId: decoded.id,
+            videoUrl: result.secure_url,
+            likes: []
+        });
+        
+        await reel.save();
+        
+        // Clean up temp file
+        try {
+            require('fs').unlinkSync(req.file.path);
+        } catch (e) {
+            console.error('Failed to delete temp video file', e);
+        }
+        
+        res.status(201).json({ message: 'Reel posted successfully', reel });
+    } catch (error) {
+        console.error('Post Reel Error:', error);
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
 app.post('/api/reels/:id/like', async (req, res) => {
     try {
         const token = req.cookies.auth_token;
