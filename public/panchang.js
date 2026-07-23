@@ -239,6 +239,14 @@ document.addEventListener('DOMContentLoaded', () => {
             document.getElementById('card-navkarsi').textContent = timings.navkarsi;
             document.getElementById('card-porshi').textContent = timings.porshi;
         }
+
+        // Show Parva Banner if today is a Parva Tithi
+        const isParva = ["Pancham", "Aatham", "Chaudas"].includes(tithi.name);
+        const parvaBanner = document.getElementById('parva-tithi-banner');
+        if (parvaBanner && isParva) {
+            document.getElementById('parva-tithi-name').textContent = tithi.fullName;
+            parvaBanner.style.display = 'flex';
+        }
     }
 
     if(document.getElementById('panchang-content-container')) {
