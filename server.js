@@ -100,6 +100,16 @@ const courseRegistrationSchema = new mongoose.Schema({
 
 const CourseRegistration = mongoose.model('CourseRegistration', courseRegistrationSchema);
 
+// Daily Aradhana Submission Schema
+const aradhanaSubmissionSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    dateString: { type: String, required: true }, // Format: "YYYY-MM-DD"
+    points: { type: Number, required: true },
+    answers: { type: [Number], required: true } // Stores the index of the selected option for each of the 20 questions
+}, { timestamps: true });
+
+const AradhanaSubmission = mongoose.model('AradhanaSubmission', aradhanaSubmissionSchema);
+
 // Reel / Post Schema
 const reelSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
@@ -544,6 +554,158 @@ app.get('/api/users/:id/profile', async (req, res) => {
 });
 
 
+
+const ARADHANA_SCORING = [
+    [50, 250, 400, 500, 700, 0], // Q1
+    [50, 0], // Q2
+    [50, 50, 100, 0], // Q3
+    [200, 100, 0], // Q4
+    [100, 100, 200, 0], // Q5
+    [50, 50, 100, 0], // Q6
+    [50, 50, 100, 0], // Q7
+    [50, 0], // Q8
+    [100, 0], // Q9
+    [50, 100, 150, 0], // Q10
+    [100, 0], // Q11
+    [0, 150, 300, 450], // Q12
+    [0, 100, 200, 300], // Q13
+    [100, 200, 0], // Q14
+    [50, 50, 100, 0], // Q15
+    [100, 150, 0], // Q16
+    [200, 200, 400, 0], // Q17
+    [1500, 500, 2000, 0], // Q18
+    [300, 200, 100, 0], // Q19
+    [100, 100, 200, 0] // Q20
+];
+
+function getLocalDateString(date) {
+    const tzOffset = 330 * 60000; // IST is UTC+5:30
+    return new Date(date.getTime() + tzOffset).toISOString().split('T')[0];
+}
+
+app.get('/api/aradhana/status', async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        if (!token) return res.status(401).json({ error: 'Not authenticated' });
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        
+        const submissions = await AradhanaSubmission.find({ userId: decoded.id }).sort({ dateString: 1 });
+        
+        let totalPoints = 0;
+        let todaysPoints = 0;
+        let yesterdaysPoints = 0;
+        
+        const todayStr = getLocalDateString(new Date());
+        const yesterdayDate = new Date();
+        yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+        const yesterdayStr = getLocalDateString(yesterdayDate);
+        
+        const submissionMap = {};
+        
+        submissions.forEach(sub => {
+            totalPoints += sub.points;
+            submissionMap[sub.dateString] = sub.points;
+            if (sub.dateString === todayStr) todaysPoints = sub.points;
+            if (sub.dateString === yesterdayStr) yesterdaysPoints = sub.points;
+        });
+        
+        // Generate calendar from July 28 to Sept 15 (50 days)
+        const calendar = [];
+        const startDate = new Date('2026-07-28T00:00:00Z');
+        const endDate = new Date('2026-09-15T00:00:00Z');
+        
+        let currentDate = new Date(startDate);
+        const now = new Date();
+        
+        while (currentDate <= endDate) {
+            const dateStr = currentDate.toISOString().split('T')[0];
+            
+            let status = 'UPCOMING';
+            if (submissionMap[dateStr] !== undefined) {
+                status = 'FILLED';
+            } else if (dateStr < todayStr) {
+                status = 'MISSED';
+            } else if (dateStr === todayStr) {
+                status = 'UPCOMING';
+            }
+            
+            calendar.push({
+                date: dateStr,
+                status: status,
+                points: submissionMap[dateStr] || 0
+            });
+            
+            currentDate.setDate(currentDate.getDate() + 1);
+        }
+        
+        res.status(200).json({
+            totalPoints,
+            todaysPoints,
+            yesterdaysPoints,
+            calendar,
+            todayStr,
+            hasSubmittedToday: submissionMap[todayStr] !== undefined
+        });
+    } catch (error) {
+        console.error('Fetch Aradhana Status Error:', error);
+        res.status(500).json({ error: 'Failed to fetch status' });
+    }
+});
+
+app.post('/api/aradhana/submit', async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        if (!token) return res.status(401).json({ error: 'Not authenticated' });
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const user = await User.findById(decoded.id);
+        
+        const { answers } = req.body;
+        if (!answers || answers.length !== 20) {
+            return res.status(400).json({ error: 'Invalid answers submitted' });
+        }
+        
+        const todayStr = getLocalDateString(new Date());
+        
+        // Validate dates
+        const isTestingBypass = user.email === 'maahirmshah4252@gmail.com';
+        if (!isTestingBypass && (todayStr < '2026-07-28' || todayStr > '2026-09-15')) {
+            return res.status(400).json({ error: 'Aradhana can only be submitted between July 28 and Sept 15' });
+        }
+        
+        // Check if already submitted
+        const existing = await AradhanaSubmission.findOne({ userId: decoded.id, dateString: todayStr });
+        if (existing) {
+            return res.status(400).json({ error: 'You have already submitted today\'s Aradhana' });
+        }
+        
+        // Calculate exact points
+        let totalPoints = 0;
+        for (let i = 0; i < 20; i++) {
+            const optionIndex = answers[i];
+            const maxOptions = ARADHANA_SCORING[i].length;
+            if (optionIndex < 0 || optionIndex >= maxOptions) {
+                return res.status(400).json({ error: `Invalid option for question ${i + 1}` });
+            }
+            totalPoints += ARADHANA_SCORING[i][optionIndex];
+        }
+        
+        const submission = new AradhanaSubmission({
+            userId: decoded.id,
+            dateString: todayStr,
+            points: totalPoints,
+            answers: answers
+        });
+        
+        await submission.save();
+        
+        res.status(200).json({ message: 'Submission successful', points: totalPoints });
+    } catch (error) {
+        console.error('Submit Aradhana Error:', error);
+        res.status(500).json({ error: 'Failed to submit' });
+    }
+});
 
 const Astronomy = require('astronomy-engine');
 const cron = require('node-cron');

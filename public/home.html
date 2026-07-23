@@ -143,68 +143,189 @@
             document.getElementById('card-city').textContent = currentRegistration.city || currentUser.city || 'Not Provided';
             document.getElementById('card-age').textContent = currentRegistration.age || 'Not Provided';
             
-            renderAaradhnaGrid();
+            fetchAradhanaStatus();
             document.getElementById('aaradhna-card-modal').classList.add('active');
         }
 
-        async function markDay(index) {
+        async function fetchAradhanaStatus() {
             try {
-                const response = await fetch('/api/aaradhna/mark-day', {
-                    method: 'PUT',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ dayIndex: index })
-                });
+                const response = await fetch('/api/aradhana/status');
                 if (response.ok) {
                     const data = await response.json();
-                    currentRegistration.dailyTasks = data.dailyTasks;
-                    renderAaradhnaGrid();
-                } else {
-                    alert('Error marking day');
+                    renderAradhanaDashboard(data);
                 }
             } catch (err) {
-                console.error(err);
-                alert('Error connecting to server');
+                console.error('Failed to fetch Aradhana status', err);
             }
         }
 
-        function renderAaradhnaGrid() {
+        function renderAradhanaDashboard(data) {
+            document.getElementById('aradhana-today-points').textContent = data.todaysPoints;
+            document.getElementById('aradhana-total-points').textContent = data.totalPoints;
+            
+            const motiBox = document.getElementById('aradhana-motivation-box');
+            if (data.yesterdaysPoints > 0 || data.todaysPoints > 0) {
+                motiBox.style.display = 'block';
+                if (data.todaysPoints > data.yesterdaysPoints) {
+                    motiBox.innerHTML = `🌟 <strong>Great job!</strong> You earned ${data.todaysPoints} points today, beating yesterday's score of ${data.yesterdaysPoints}. Keep it up!`;
+                } else if (data.todaysPoints < data.yesterdaysPoints && data.hasSubmittedToday) {
+                    motiBox.innerHTML = `💪 <strong>Well done!</strong> You scored ${data.todaysPoints} today. Yesterday you scored ${data.yesterdaysPoints}—let's aim higher tomorrow!`;
+                } else if (!data.hasSubmittedToday) {
+                    motiBox.innerHTML = `✨ <strong>Ready for today?</strong> You scored ${data.yesterdaysPoints} yesterday. Let's see if you can beat it!`;
+                } else {
+                    motiBox.innerHTML = `🔥 <strong>Consistent!</strong> You maintained your score of ${data.todaysPoints} from yesterday.`;
+                }
+            } else {
+                motiBox.style.display = 'none';
+            }
+            
+            const formBtn = document.getElementById('open-aradhana-form-btn');
+            if (data.hasSubmittedToday) {
+                formBtn.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> Today's Aradhana Completed`;
+                formBtn.style.background = '#4CAF50';
+                formBtn.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.4)';
+                formBtn.style.cursor = 'default';
+                formBtn.onclick = null;
+            } else {
+                formBtn.innerHTML = `<i class="fas fa-pencil-alt" style="margin-right: 8px;"></i> Fill Today's Aradhana`;
+                formBtn.style.background = 'linear-gradient(135deg, #FF9800, #F57C00)';
+                formBtn.style.boxShadow = '0 4px 15px rgba(255, 152, 0, 0.4)';
+                formBtn.style.cursor = 'pointer';
+                formBtn.onclick = openAradhanaForm;
+            }
+            
             const gridContainer = document.getElementById('aaradhna-grid');
             if (!gridContainer) return;
             
             gridContainer.innerHTML = '';
-            const tasks = currentRegistration.dailyTasks || Array(60).fill(false);
             
-            for (let i = 0; i < 60; i++) {
+            data.calendar.forEach(day => {
                 const dayDiv = document.createElement('div');
-                const isCompleted = tasks[i];
-                
                 dayDiv.style.width = '24px';
                 dayDiv.style.height = '24px';
-                dayDiv.style.borderRadius = '6px';
-                dayDiv.style.display = 'flex';
-                dayDiv.style.alignItems = 'center';
-                dayDiv.style.justifyContent = 'center';
-                dayDiv.style.fontSize = '0.7rem';
-                dayDiv.style.fontWeight = '700';
-                dayDiv.style.cursor = isCompleted ? 'default' : 'pointer';
-                dayDiv.style.transition = 'all 0.3s ease';
-                dayDiv.style.border = isCompleted ? 'none' : '1px solid var(--border-color)';
-                dayDiv.style.background = isCompleted ? '#34C759' : '#f8f9fa';
-                dayDiv.style.color = isCompleted ? 'white' : 'var(--text-light)';
-                dayDiv.title = `Day ${i + 1}`;
+                dayDiv.style.borderRadius = '50%';
                 
-                if (isCompleted) {
-                    dayDiv.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><polyline points="20 6 9 17 4 12"></polyline></svg>`;
+                if (day.status === 'FILLED') {
+                    dayDiv.style.background = '#4CAF50';
+                    dayDiv.title = `${day.date}: ${day.points} Points`;
+                } else if (day.status === 'MISSED') {
+                    dayDiv.style.background = '#F44336';
+                    dayDiv.title = `${day.date}: Missed`;
                 } else {
-                    dayDiv.textContent = i + 1;
-                    dayDiv.onclick = () => markDay(i);
-                    dayDiv.onmouseover = () => { dayDiv.style.borderColor = 'var(--primary-color)'; dayDiv.style.color = 'var(--primary-color)'; };
-                    dayDiv.onmouseout = () => { dayDiv.style.borderColor = 'var(--border-color)'; dayDiv.style.color = 'var(--text-light)'; };
+                    dayDiv.style.background = '#E0E0E0';
+                    dayDiv.title = `${day.date}: Upcoming`;
                 }
                 
                 gridContainer.appendChild(dayDiv);
-            }
+            });
         }
+        const ARADHANA_QUESTIONS = [
+            { q: "1) तप करना", opts: ["नवकारसी (50)", "बियासण (250)", "एकासणा (400)", "आयंबिल (500)", "उपवास (700)", "कुछ नहीं किया (0)"] },
+            { q: "2) माता-पिता / साहेबजी अथवा वडिलों के पैर छूना", opts: ["पैर छुआ (50)", "नहीं छुआ (0)"] },
+            { q: "3) देरासर में तीन प्रदक्षिणा देना / दर्शन करना", opts: ["दर्शन किया (50)", "प्रदक्षिणा दी (50)", "दोनों किया (100)", "नहीं किया (0)"] },
+            { q: "4) परमात्मा की पूजा करना", opts: ["अष्टप्रकारी पूजा की (200)", "वासक्षेप पूजा / पखाल पूजा / केसर पूजा की (100)", "पूजा नहीं की (0)"] },
+            { q: "5) गुरु महाराज / गुरु मूर्ति को वंदन करना एवं मा. सा. को गोचरी की विनंती करना (उपाश्रय में जाकर) अथवा गोचरी वोहराना", opts: ["वंदन किया (100)", "विनंती की या वोहराया (100)", "दोनों किया (200)", "दोनों नहीं किया (0)"] },
+            { q: "6) बच्चों के हाथों से अनुकंपा / जीवदया करना", opts: ["अनुकंपा (50)", "जीवदया (50)", "दोनों (100)", "नहीं किया (0)"] },
+            { q: "7) सुबह उठते समय 8 नवकार गिनना/सुनाना एवं सोने से पहले 7 नवकार गिनना/सुनाना", opts: ["सुबह गिना/सुनाया (50)", "रात को गिना/सुनाया (50)", "दोनों समय गिना/सुनाया (100)", "नहीं गिना/सुनाया (0)"] },
+            { q: "8) एक लुखी रोटी खाना", opts: ["लुखी रोटी खाई (50)", "नहीं खाई (0)"] },
+            { q: "9) गरम पानी पीना", opts: ["पिया (100)", "नहीं पिया (0)"] },
+            { q: "10) थाली धोकर पीना", opts: ["एक टाइम (50)", "दो टाइम (100)", "तीन टाइम (150)", "नहीं पिया (0)"] },
+            { q: "11) बाहर की अभक्ष्य वस्तु एवं कंदमूल का त्याग", opts: ["त्याग किया (100)", "त्याग नहीं किया (0)"] },
+            { q: "12) सामायिक करना", opts: ["0 (0)", "1 सामायिक (150)", "2 सामायिक (300)", "3 सामायिक (450)"] },
+            { q: "13) बाढ़ी / पक्की नवकार वाली गिनना (108 नवकार)", opts: ["0 (0)", "1 (100)", "2 (200)", "3 (300)"] },
+            { q: "14) रात्रि भोजन का त्याग", opts: ["तिविहार (100)", "चौविहार (200)", "त्याग नहीं किया (0)"] },
+            { q: "15) संध्या प्रभु दर्शन / आरती", opts: ["प्रभु दर्शन किया (50)", "आरती की (50)", "दोनों किया (100)", "दोनों नहीं किया (0)"] },
+            { q: "16) पाठशाला जाना / संस्कार शाला", opts: ["पाठशाला जाना (100)", "पाठशाला जाना एवं नई गाथा करना (150)", "पाठशाला नहीं गए (0)"] },
+            { q: "17) प्रतिक्रमण करना", opts: ["राई प्रतिक्रमण किया (200)", "देवसिय प्रतिक्रमण किया (200)", "दोनों प्रतिक्रमण किया (400)", "नहीं किया (0)"] },
+            { q: "18) पोषध करना", opts: ["दिवस (1500)", "रात्रि (500)", "दोनों (2000)", "नहीं किया (0)"] },
+            { q: "19) मोबाइल एवं टी.वी. का त्याग", opts: ["मोबाइल और टीवी दोनों का त्याग (300)", "सिर्फ मोबाइल का त्याग (200)", "सिर्फ टीवी का त्याग (100)", "दोनों का त्याग नहीं किया (0)"] },
+            { q: "20) आराधक के माता-पिता का रात्रि भोजन त्याग", opts: ["पिता ने त्याग किया (100)", "माता ने त्याग किया (100)", "दोनों ने त्याग किया (200)", "किसी ने त्याग नहीं किया (0)"] }
+        ];
+
+        function openAradhanaForm() {
+            const container = document.getElementById('aradhana-questions-container');
+            container.innerHTML = '';
+            
+            ARADHANA_QUESTIONS.forEach((qData, qIndex) => {
+                const qDiv = document.createElement('div');
+                qDiv.style.background = '#f8f9fa';
+                qDiv.style.padding = '1rem';
+                qDiv.style.borderRadius = '8px';
+                qDiv.style.border = '1px solid var(--border-color)';
+                
+                const qTitle = document.createElement('h4');
+                qTitle.textContent = qData.q;
+                qTitle.style.marginBottom = '0.75rem';
+                qTitle.style.color = 'var(--text-dark)';
+                qDiv.appendChild(qTitle);
+                
+                qData.opts.forEach((optText, oIndex) => {
+                    const label = document.createElement('label');
+                    label.style.display = 'block';
+                    label.style.marginBottom = '0.5rem';
+                    label.style.cursor = 'pointer';
+                    label.style.color = 'var(--text-dark)';
+                    
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `aradhana-q-${qIndex}`;
+                    radio.value = oIndex;
+                    radio.required = true;
+                    radio.style.marginRight = '8px';
+                    
+                    label.appendChild(radio);
+                    label.appendChild(document.createTextNode(optText));
+                    qDiv.appendChild(label);
+                });
+                
+                container.appendChild(qDiv);
+            });
+            
+            document.getElementById('aradhana-form-modal').style.display = 'flex';
+        }
+
+        document.getElementById('close-aradhana-form-modal').addEventListener('click', () => {
+            document.getElementById('aradhana-form-modal').style.display = 'none';
+        });
+
+        document.getElementById('aradhana-form').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const answers = [];
+            for (let i = 0; i < 20; i++) {
+                const checked = document.querySelector(`input[name="aradhana-q-${i}"]:checked`);
+                if (!checked) return alert('Please answer all 20 questions.');
+                answers.push(parseInt(checked.value));
+            }
+            
+            try {
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.textContent = 'Submitting...';
+                submitBtn.disabled = true;
+                
+                const response = await fetch('/api/aradhana/submit', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ answers })
+                });
+                
+                const data = await response.json();
+                
+                if (response.ok) {
+                    alert('Submission successful! You earned ' + data.points + ' points.');
+                    document.getElementById('aradhana-form-modal').style.display = 'none';
+                    fetchAradhanaStatus(); // Refresh dashboard
+                } else {
+                    alert(data.error || 'Submission failed');
+                }
+            } catch (err) {
+                console.error(err);
+                alert('Connection error');
+            } finally {
+                const submitBtn = e.target.querySelector('button[type="submit"]');
+                submitBtn.textContent = 'Submit Aradhana';
+                submitBtn.disabled = false;
+            }
+        });
     </script>
     <style>
         /* OVERRIDE GLOBALS from style.css for Dashboard Layout */
@@ -944,19 +1065,58 @@
                 </div>
             </div>
             
+            <!-- Dashboard Metrics -->
             <div style="background: white; color: var(--text-dark); padding: 1.5rem; border-radius: 16px; text-align: left; margin-bottom: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
+                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="flex: 1; text-align: center; background: #F3E5F5; padding: 1rem; border-radius: 12px; border: 1px solid #E1BEE7;">
+                        <p style="font-size: 0.75rem; color: #7B1FA2; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Today's Points</p>
+                        <p id="aradhana-today-points" style="font-size: 1.8rem; font-weight: 800; color: #4A148C; margin: 0.5rem 0 0 0;">0</p>
+                    </div>
+                    <div style="flex: 1; text-align: center; background: #FFF3E0; padding: 1rem; border-radius: 12px; border: 1px solid #FFE0B2;">
+                        <p style="font-size: 0.75rem; color: #E65100; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Total Points</p>
+                        <p id="aradhana-total-points" style="font-size: 1.8rem; font-weight: 800; color: #E65100; margin: 0.5rem 0 0 0;">0</p>
+                    </div>
+                </div>
+
+                <div id="aradhana-motivation-box" style="background: #E8F5E9; border-left: 4px solid #43A047; padding: 1rem; border-radius: 4px; margin-bottom: 1.5rem; color: #2E7D32; font-size: 0.95rem; font-weight: 500;">
+                    <!-- Motivational message goes here -->
+                </div>
+
+                <button id="open-aradhana-form-btn" style="width: 100%; background: linear-gradient(135deg, #FF9800, #F57C00); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4); margin-bottom: 1.5rem; transition: all 0.3s ease;">
+                    <i class="fas fa-pencil-alt" style="margin-right: 8px;"></i> Fill Today's Aradhana
+                </button>
+                
                 <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary-dark); display: flex; align-items: center; gap: 0.5rem;">
                     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
-                    60-Day Aaradhna Tracker
+                    Aaradhna Calendar
                 </h3>
-                <div id="aaradhna-grid" style="display: grid; grid-template-columns: repeat(10, 1fr); gap: 0.4rem; justify-items: center;">
-                    <!-- Grid items will be injected by JS -->
+                <div style="display: flex; gap: 1rem; font-size: 0.75rem; color: var(--text-light); margin-bottom: 1rem; justify-content: center;">
+                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width:12px;height:12px;border-radius:50%;background:#4CAF50;"></div> Filled</div>
+                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width:12px;height:12px;border-radius:50%;background:#F44336;"></div> Missed</div>
+                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width:12px;height:12px;border-radius:50%;background:#E0E0E0;"></div> Upcoming</div>
+                </div>
+                <div id="aaradhna-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; justify-items: center;">
+                    <!-- Calendar grid items injected by JS -->
                 </div>
             </div>
             
             <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">
                 ID: <span id="card-username-display" style="font-family: monospace;">JTC-2023-XXXX</span>
             </div>
+        </div>
+    </div>
+
+    <div id="aradhana-form-modal" class="modal">
+        <div class="modal-content" style="max-height: 90vh; overflow-y: auto; background: white; padding: 2rem;">
+            <span class="close-modal" id="close-aradhana-form-modal">&times;</span>
+            <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--primary-dark);">Today's Aradhana</h2>
+            <p style="color: var(--text-light); margin-bottom: 1.5rem;">Select your choices for today. You cannot change these once submitted.</p>
+            
+            <form id="aradhana-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
+                <!-- Questions injected by JS for cleanliness -->
+                <div id="aradhana-questions-container"></div>
+                <button type="submit" style="background: var(--primary-color); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; margin-top: 1rem;">Submit Aradhana</button>
+            </form>
         </div>
     </div>
 
