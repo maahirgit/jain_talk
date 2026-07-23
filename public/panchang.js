@@ -276,3 +276,64 @@ document.addEventListener('DOMContentLoaded', () => {
         }
     }
 });
+
+// Alerts Modal Logic
+window.generateAlerts = function() {
+    const container = document.getElementById('alerts-container');
+    if (!container) return;
+    
+    container.innerHTML = '';
+    
+    // Add Ongoing Event Alert
+    const eventAlert = document.createElement('div');
+    eventAlert.style.padding = '1rem';
+    eventAlert.style.background = '#FFF3E0';
+    eventAlert.style.border = '1px solid #FFCC80';
+    eventAlert.style.borderRadius = '12px';
+    eventAlert.style.color = '#E65100';
+    eventAlert.innerHTML = `
+        <div style="font-weight: 700; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem;">
+            <span style="display: inline-block; width: 8px; height: 8px; background: #E65100; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+            Ongoing Event
+        </div>
+        <div style="font-size: 0.95rem;"><strong>चलो सब आराधना करें</strong> is currently active. Join the daily tracker!</div>
+    `;
+    container.appendChild(eventAlert);
+
+    // Calculate Tithi Alerts
+    const today = new Date();
+    const todayTithi = calculateTithi(today);
+    const parvaTithis = ["Pancham", "Aatham", "Chaudas", "Amas", "Poonam"];
+    
+    if (parvaTithis.includes(todayTithi.name)) {
+        const todayAlert = document.createElement('div');
+        todayAlert.style.padding = '1rem';
+        todayAlert.style.background = '#FFF5E6';
+        todayAlert.style.border = '1px solid #FFD8A8';
+        todayAlert.style.borderRadius = '12px';
+        todayAlert.style.color = '#E85D04';
+        todayAlert.innerHTML = `
+            <div style="font-weight: 700; margin-bottom: 0.2rem;">Parva Tithi Today!</div>
+            <div style="font-size: 0.95rem;">Today is <strong>${todayTithi.fullName}</strong>.</div>
+        `;
+        container.appendChild(todayAlert);
+    }
+    
+    const tomorrow = new Date(today);
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const tomorrowTithi = calculateTithi(tomorrow);
+    
+    if (parvaTithis.includes(tomorrowTithi.name)) {
+        const tomorrowAlert = document.createElement('div');
+        tomorrowAlert.style.padding = '1rem';
+        tomorrowAlert.style.background = '#E3F2FD';
+        tomorrowAlert.style.border = '1px solid #BBDEFB';
+        tomorrowAlert.style.borderRadius = '12px';
+        tomorrowAlert.style.color = '#1565C0';
+        tomorrowAlert.innerHTML = `
+            <div style="font-weight: 700; margin-bottom: 0.2rem;">Upcoming Parva Tithi</div>
+            <div style="font-size: 0.95rem;">Tomorrow is <strong>${tomorrowTithi.fullName}</strong>. Make your spiritual plans in advance!</div>
+        `;
+        container.appendChild(tomorrowAlert);
+    }
+};
