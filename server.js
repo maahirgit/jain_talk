@@ -390,6 +390,42 @@ app.get('/api/admin/registrations', async (req, res) => {
     }
 });
 
+app.get('/api/users/:id/reels', async (req, res) => {
+    try {
+        const reels = await Reel.find({ userId: req.params.id }).sort({ createdAt: -1 });
+        res.status(200).json(reels);
+    } catch (error) {
+        console.error('Fetch User Reels Error:', error);
+        res.status(500).json({ error: 'Failed to fetch user reels' });
+    }
+});
+
+app.post('/api/reels/:id/like', async (req, res) => {
+    try {
+        const token = req.cookies.auth_token;
+        if (!token) return res.status(401).json({ error: 'Not authenticated' });
+        
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+        const userId = decoded.id;
+        
+        const reel = await Reel.findById(req.params.id);
+        if (!reel) return res.status(404).json({ error: 'Reel not found' });
+        
+        const index = reel.likes.indexOf(userId);
+        if (index === -1) {
+            reel.likes.push(userId); // Like
+        } else {
+            reel.likes.splice(index, 1); // Unlike
+        }
+        
+        await reel.save();
+        res.status(200).json({ likes: reel.likes.length, isLiked: index === -1 });
+    } catch (error) {
+        console.error('Like Reel Error:', error);
+        res.status(500).json({ error: 'Failed to like reel' });
+    }
+});
+
 // Mark Daily Task Endpoint
 app.put('/api/aaradhna/mark-day', async (req, res) => {
     try {

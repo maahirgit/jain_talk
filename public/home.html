@@ -812,6 +812,22 @@
         </div>
     </div>
 
+    <!-- Upload Reel Modal -->
+    <div class="modal-overlay" id="upload-reel-modal">
+        <div class="modal-content" style="background: white; border-radius: 24px; padding: 2.5rem 2rem; max-width: 450px;">
+            <button class="modal-close" id="close-upload-reel">&times;</button>
+            <h2 style="margin: 0 0 1.5rem 0; color: var(--text-dark); text-align: center;">Upload Reel</h2>
+            <form id="upload-reel-form">
+                <div style="margin-bottom: 1.5rem;">
+                    <label style="display: block; font-size: 0.9rem; font-weight: 600; margin-bottom: 0.5rem;">Select Video (Max 10MB)</label>
+                    <input type="file" id="reel-video" accept="video/mp4,video/quicktime,video/webm" required style="width: 100%; padding: 0.75rem; border: 1px solid var(--border-color); border-radius: 8px;">
+                </div>
+                <button type="submit" id="submit-reel-btn" style="width: 100%; padding: 1rem; background: var(--primary-color); color: white; border: none; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer;">Post Reel</button>
+            </form>
+            <div id="upload-reel-status" style="margin-top: 1rem; text-align: center; font-size: 0.9rem; font-weight: 600;"></div>
+        </div>
+    </div>
+
     <!-- Alerts Modal -->
     <div class="modal-overlay" id="alerts-modal">
         <div class="modal-content" style="background: white; border-radius: 24px; padding: 2.5rem 2rem; max-width: 450px;">
@@ -1106,15 +1122,10 @@
             document.getElementById('upload-reel-form')?.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const fileInput = document.getElementById('reel-video');
-                const captionInput = document.getElementById('reel-caption');
-                const submitBtn = document.getElementById('submit-reel-btn');
-                const statusDiv = document.getElementById('upload-reel-status');
-                
                 if (!fileInput.files[0]) return;
                 
                 const formData = new FormData();
                 formData.append('video', fileInput.files[0]);
-                formData.append('caption', captionInput.value);
                 
                 submitBtn.disabled = true;
                 submitBtn.textContent = 'Uploading... (Please wait)';
@@ -1129,7 +1140,6 @@
                         setTimeout(() => {
                             uploadReelModal.classList.remove('active');
                             fileInput.value = '';
-                            captionInput.value = '';
                             submitBtn.disabled = false;
                             submitBtn.textContent = 'Post Reel';
                             statusDiv.textContent = '';
@@ -1162,6 +1172,7 @@
                         
                         container.innerHTML = '';
                         reels.forEach(reel => {
+                            const isLiked = currentUser ? (reel.likes || []).includes(currentUser._id) : false;
                             const slide = document.createElement('div');
                             slide.style.height = '100vh';
                             slide.style.width = '100%';
@@ -1178,12 +1189,12 @@
                                         </div>
                                         ${reel.userId.username || reel.userId.name}
                                     </div>
-                                    <div style="font-size: 0.95rem;">${reel.caption}</div>
+                                    </div>
                                 </div>
                                 <div style="position: absolute; bottom: 2rem; right: 1rem; display: flex; flex-direction: column; gap: 1.5rem; align-items: center; color: white;">
-                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5));">
-                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
-                                        <span style="font-size: 0.8rem; font-weight: 600;">Like</span>
+                                    <div style="display: flex; flex-direction: column; align-items: center; gap: 0.2rem; filter: drop-shadow(0 2px 4px rgba(0,0,0,0.5)); cursor: pointer;" onclick="likeReel('${reel._id}', this)">
+                                        <svg width="28" height="28" viewBox="0 0 24 24" fill="${isLiked ? '#F44336' : 'none'}" stroke="${isLiked ? '#F44336' : 'currentColor'}" stroke-width="2"><path d="M20.84 4.61a5.5 5.5 0 0 0-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 0 0-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 0 0 0-7.78z"></path></svg>
+                                        <span class="like-count" style="font-size: 0.8rem; font-weight: 600;">${reel.likes ? reel.likes.length : 0}</span>
                                     </div>
                                 </div>
                             `;
@@ -1210,6 +1221,40 @@
                     container.innerHTML = '<div style="color: white; text-align: center; padding-top: 50vh;">Failed to load feed.</div>';
                 }
             }
+            
+            window.likeReel = async function(reelId, element) {
+                if (!currentUser) return alert("Please log in to like a reel.");
+                
+                const svg = element.querySelector('svg');
+                const countSpan = element.querySelector('.like-count');
+                
+                // Optimistic UI update
+                const isCurrentlyLiked = svg.getAttribute('fill') !== 'none';
+                let count = parseInt(countSpan.textContent) || 0;
+                
+                if (isCurrentlyLiked) {
+                    svg.setAttribute('fill', 'none');
+                    svg.setAttribute('stroke', 'currentColor');
+                    countSpan.textContent = Math.max(0, count - 1);
+                } else {
+                    svg.setAttribute('fill', '#F44336');
+                    svg.setAttribute('stroke', '#F44336');
+                    countSpan.textContent = count + 1;
+                }
+                
+                try {
+                    const response = await fetch(`/api/reels/${reelId}/like`, { method: 'POST' });
+                    if (response.ok) {
+                        const data = await response.json();
+                        // Re-sync with server
+                        svg.setAttribute('fill', data.isLiked ? '#F44336' : 'none');
+                        svg.setAttribute('stroke', data.isLiked ? '#F44336' : 'currentColor');
+                        countSpan.textContent = data.likes;
+                    }
+                } catch (e) {
+                    console.error('Failed to like reel');
+                }
+            };
 
             // Countdown Logic
             const targetDate = new Date('July 28, 2026 00:00:00').getTime();
