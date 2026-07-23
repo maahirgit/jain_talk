@@ -786,11 +786,6 @@
                 <div id="profile-city" style="font-size: 0.9rem; margin-top: 2px;">...</div>
             </div>
 
-            <!-- Action Buttons -->
-            <div id="profile-actions-container" style="display: flex; gap: 0.5rem; margin-bottom: 1.5rem;">
-                <button id="profile-edit-btn" style="flex: 1; background: #efefef; color: var(--text-dark); border: none; padding: 0.5rem; border-radius: 8px; font-weight: 600; cursor: pointer; display: none;">Edit profile</button>
-            </div>
-
             <!-- Tabs -->
             <div style="display: flex; border-bottom: 1px solid var(--border-color); margin-bottom: 1px;">
                 <div style="flex: 1; text-align: center; padding: 0.75rem 0; border-bottom: 2px solid var(--text-dark); font-weight: 600; color: var(--text-dark); display: flex; justify-content: center; align-items: center; gap: 0.5rem;">
@@ -1094,16 +1089,13 @@
                         document.getElementById('profile-followers-count')?.remove();
                         document.getElementById('profile-following-count')?.remove();
                         
-                        // Toggle Edit button
+                        // Toggle Logout button
                         const isSelf = currentUser && currentUser._id === userId;
-                        const editBtn = document.getElementById('profile-edit-btn');
                         const logoutBtn = document.getElementById('profile-logout-btn');
                         
                         if (isSelf) {
-                            editBtn.style.display = 'block';
                             logoutBtn.style.display = 'block';
                         } else {
-                            editBtn.style.display = 'none';
                             logoutBtn.style.display = 'none';
                         }
                         
