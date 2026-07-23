@@ -417,7 +417,7 @@ app.get('/api/reels', async (req, res) => {
     }
 });
 
-app.post('/api/reels', upload.single('video'), async (req, res) => {
+app.post('/api/reels', uploadVideo.single('video'), async (req, res) => {
     try {
         const token = req.cookies.auth_token;
         if (!token) return res.status(401).json({ error: 'Not authenticated' });
@@ -425,28 +425,18 @@ app.post('/api/reels', upload.single('video'), async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
         if (!req.file) {
-            return res.status(400).json({ error: 'Video file is required' });
+            return res.status(400).json({ error: 'Video file is required or invalid format' });
         }
         
-        const result = await cloudinary.uploader.upload(req.file.path, {
-            resource_type: "video",
-            folder: "jain_talk/reels"
-        });
-        
+        // multer-storage-cloudinary automatically uploads the file.
+        // req.file.path contains the uploaded Cloudinary URL.
         const reel = new Reel({
             userId: decoded.id,
-            videoUrl: result.secure_url,
+            videoUrl: req.file.path,
             likes: []
         });
         
         await reel.save();
-        
-        // Clean up temp file
-        try {
-            require('fs').unlinkSync(req.file.path);
-        } catch (e) {
-            console.error('Failed to delete temp video file', e);
-        }
         
         res.status(201).json({ message: 'Reel posted successfully', reel });
     } catch (error) {
