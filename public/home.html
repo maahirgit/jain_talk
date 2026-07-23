@@ -108,10 +108,13 @@
         }
         
         function openAaradhnaCard() {
-            document.getElementById('card-name').textContent = currentUser.name;
-            document.getElementById('card-sangh').textContent = currentUser.sangh;
-            document.getElementById('card-city').textContent = currentRegistration.city;
-            document.getElementById('card-age').textContent = currentRegistration.age;
+            if (!currentUser || !currentRegistration) return;
+            
+            document.getElementById('card-name').textContent = currentUser.name || 'Not Provided';
+            document.getElementById('card-sangh').textContent = currentUser.sangh || 'Not Provided';
+            document.getElementById('card-city').textContent = currentRegistration.city || currentUser.city || 'Not Provided';
+            document.getElementById('card-age').textContent = currentRegistration.age || 'Not Provided';
+            
             renderAaradhnaGrid();
             document.getElementById('aaradhna-card-modal').classList.add('active');
         }
@@ -845,7 +848,7 @@
     <!-- Aaradhna Card Modal -->
     <div class="modal-overlay" id="aaradhna-card-modal">
         <div class="modal-content" style="background: linear-gradient(135deg, var(--primary-color), var(--primary-dark)); color: white; text-align: center; border-radius: 24px; padding: 3rem 2rem;">
-            <button class="modal-close" id="close-card-modal" style="color: white;">&times;</button>
+            <button class="modal-close" id="close-card-modal" style="color: white; z-index: 100;">&times;</button>
             <div style="margin-bottom: 1.5rem;">
                 <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" style="background: rgba(255,255,255,0.2); padding: 12px; border-radius: 50%;"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></svg>
             </div>
