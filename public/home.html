@@ -249,6 +249,22 @@
             { q: "19) मोबाइल एवं टी.वी. का त्याग", opts: ["मोबाइल और टीवी दोनों का त्याग (300)", "सिर्फ मोबाइल का त्याग (200)", "सिर्फ टीवी का त्याग (100)", "दोनों का त्याग नहीं किया (0)"] },
             { q: "20) आराधक के माता-पिता का रात्रि भोजन त्याग", opts: ["पिता ने त्याग किया (100)", "माता ने त्याग किया (100)", "दोनों ने त्याग किया (200)", "किसी ने त्याग नहीं किया (0)"] }
         ];
+        
+        function calculateLiveScore() {
+            let total = 0;
+            for (let i = 0; i < 20; i++) {
+                const checked = document.querySelector(`input[name="aradhana-q-${i}"]:checked`);
+                if (checked) {
+                    const oIndex = parseInt(checked.value);
+                    const optText = ARADHANA_QUESTIONS[i].opts[oIndex];
+                    const match = optText.match(/\((\d+)\)/);
+                    if (match) {
+                        total += parseInt(match[1]);
+                    }
+                }
+            }
+            document.getElementById('live-score-value').textContent = total;
+        }
 
         function openAradhanaForm() {
             // Get today's date in IST
@@ -260,6 +276,7 @@
 
             const container = document.getElementById('aradhana-questions-container');
             container.innerHTML = '';
+            document.getElementById('live-score-value').textContent = '0';
             
             ARADHANA_QUESTIONS.forEach((qData, qIndex) => {
                 const qDiv = document.createElement('div');
@@ -287,6 +304,7 @@
                     radio.value = oIndex;
                     radio.required = true;
                     radio.style.marginRight = '8px';
+                    radio.addEventListener('change', calculateLiveScore);
                     
                     label.appendChild(radio);
                     label.appendChild(document.createTextNode(optText));
@@ -1160,6 +1178,9 @@
             <form id="aradhana-form" style="display: flex; flex-direction: column; gap: 1.5rem;" novalidate>
                 <!-- Questions injected by JS for cleanliness -->
                 <div id="aradhana-questions-container"></div>
+                <div id="live-score-display" style="position: sticky; bottom: -2rem; background: white; padding: 1rem; border-top: 2px solid var(--border-color); font-size: 1.3rem; font-weight: bold; color: var(--primary-dark); text-align: center; border-radius: 8px; box-shadow: 0 -4px 10px rgba(0,0,0,0.05);">
+                    Total Points: <span id="live-score-value" style="color: var(--primary-color);">0</span>
+                </div>
                 <button type="button" id="aradhana-submit-btn" style="background: var(--primary-color); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; margin-top: 1rem;">Submit Aradhana</button>
             </form>
         </div>
