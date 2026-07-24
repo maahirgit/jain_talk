@@ -317,11 +317,10 @@
             document.getElementById('aradhana-form-modal').classList.add('active');
         }
 
-        document.getElementById('close-aradhana-form-modal').addEventListener('click', () => {
-            document.getElementById('aradhana-form-modal').classList.remove('active');
-        });
-
         document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('close-aradhana-form-modal').addEventListener('click', () => {
+                document.getElementById('aradhana-form-modal').classList.remove('active');
+            });
             document.getElementById('aradhana-submit-btn').addEventListener('click', async (e) => {
             
             const answers = [];
