@@ -194,13 +194,37 @@
                 formBtn.style.cursor = 'pointer';
                 formBtn.onclick = openAradhanaForm;
             }
-            
+            window.aradhanaCalendarData = data.calendar;
+            if (!window.currentCalMonth) {
+                const now = new Date();
+                window.currentCalMonth = now.getMonth();
+                window.currentCalYear = now.getFullYear();
+            }
+            renderCalendarMonth();          
+        }
+
+        function renderCalendarMonth() {
             const gridContainer = document.getElementById('aaradhna-grid');
-            if (!gridContainer) return;
+            const monthDisplay = document.getElementById('calendar-month-display');
+            if (!gridContainer || !monthDisplay || !window.aradhanaCalendarData) return;
             
             gridContainer.innerHTML = '';
             
-            data.calendar.forEach(day => {
+            const monthNames = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+            monthDisplay.textContent = monthNames[window.currentCalMonth] + " " + window.currentCalYear;
+            
+            const firstDay = new Date(window.currentCalYear, window.currentCalMonth, 1).getDay();
+            const daysInMonth = new Date(window.currentCalYear, window.currentCalMonth + 1, 0).getDate();
+            
+            for (let i = 0; i < firstDay; i++) {
+                const emptyDiv = document.createElement('div');
+                gridContainer.appendChild(emptyDiv);
+            }
+            
+            const calMap = {};
+            window.aradhanaCalendarData.forEach(d => { calMap[d.date] = d; });
+            
+            for (let i = 1; i <= daysInMonth; i++) {
                 const dayDiv = document.createElement('div');
                 dayDiv.classList.add('day-dot');
                 dayDiv.style.width = '32px';
@@ -211,26 +235,56 @@
                 dayDiv.style.justifyContent = 'center';
                 dayDiv.style.fontSize = '0.85rem';
                 dayDiv.style.fontWeight = 'bold';
-                dayDiv.style.color = 'white';
                 
-                const dateNum = parseInt(day.date.split('-')[2]);
-                dayDiv.textContent = dateNum;
+                const mStr = (window.currentCalMonth + 1).toString().padStart(2, '0');
+                const dStr = i.toString().padStart(2, '0');
+                const dateStr = `${window.currentCalYear}-${mStr}-${dStr}`;
                 
-                if (day.status === 'FILLED') {
-                    dayDiv.style.background = '#4CAF50';
-                    dayDiv.title = `${day.date}: ${day.points} Points`;
-                } else if (day.status === 'MISSED') {
-                    dayDiv.style.background = '#F44336';
-                    dayDiv.title = `${day.date}: Missed`;
+                dayDiv.textContent = i;
+                
+                const dayData = calMap[dateStr];
+                if (dayData) {
+                    dayDiv.style.color = 'white';
+                    if (dayData.status === 'FILLED') {
+                        dayDiv.style.background = '#4CAF50';
+                        dayDiv.style.boxShadow = '0 2px 5px rgba(76, 175, 80, 0.4)';
+                        dayDiv.title = `${dayData.date}: ${dayData.points} Points`;
+                    } else if (dayData.status === 'MISSED') {
+                        dayDiv.style.background = '#F44336';
+                        dayDiv.style.boxShadow = '0 2px 5px rgba(244, 67, 54, 0.4)';
+                        dayDiv.title = `${dayData.date}: Missed`;
+                    } else {
+                        dayDiv.style.background = '#E0E0E0';
+                        dayDiv.style.color = '#333';
+                        dayDiv.title = `${dayData.date}: Upcoming`;
+                    }
                 } else {
-                    dayDiv.style.background = '#E0E0E0';
-                    dayDiv.style.color = '#333';
-                    dayDiv.title = `${day.date}: Upcoming`;
+                    dayDiv.style.color = '#ccc';
+                    dayDiv.style.background = 'transparent';
                 }
                 
                 gridContainer.appendChild(dayDiv);
-            });
+            }
         }
+
+        window.prevMonth = function() {
+            window.currentCalMonth--;
+            if (window.currentCalMonth < 0) {
+                window.currentCalMonth = 11;
+                window.currentCalYear--;
+            }
+            renderCalendarMonth();
+        };
+
+        window.nextMonth = function() {
+            window.currentCalMonth++;
+            if (window.currentCalMonth > 11) {
+                window.currentCalMonth = 0;
+                window.currentCalYear++;
+            }
+            renderCalendarMonth();
+        };
+
         const ARADHANA_QUESTIONS = [
             { q: "1) तप करना", opts: ["नवकारसी (50)", "बियासण (250)", "एकासणा (400)", "आयंबिल (500)", "उपवास (700)", "कुछ नहीं किया (0)"] },
             { q: "2) माता-पिता / साहेबजी अथवा वडिलों के पैर छूना", opts: ["पैर छुआ (50)", "नहीं छुआ (0)"] },
@@ -1253,11 +1307,17 @@
                     <svg viewBox="0 0 24 24" width="20" height="20" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                     Aaradhna Calendar
                 </h3>
-                <div style="display: flex; gap: 1rem; font-size: 0.75rem; color: var(--text-light); margin-bottom: 1rem; justify-content: center;">
-                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width:12px;height:12px;border-radius:50%;background:#4CAF50;"></div> Filled</div>
-                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width:12px;height:12px;border-radius:50%;background:#F44336;"></div> Missed</div>
-                    <div style="display: flex; align-items: center; gap: 4px;"><div style="width:12px;height:12px;border-radius:50%;background:#E0E0E0;"></div> Upcoming</div>
+                
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <button onclick="prevMonth()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--primary-color); padding: 5px;">&#10094;</button>
+                    <div id="calendar-month-display" style="font-weight: 700; color: var(--text-dark); font-size: 1.1rem;">Month 2026</div>
+                    <button onclick="nextMonth()" style="background: none; border: none; font-size: 1.2rem; cursor: pointer; color: var(--primary-color); padding: 5px;">&#10095;</button>
                 </div>
+                
+                <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; justify-items: center; font-size: 0.75rem; font-weight: 700; color: var(--text-light); margin-bottom: 0.5rem;">
+                    <div>Su</div><div>Mo</div><div>Tu</div><div>We</div><div>Th</div><div>Fr</div><div>Sa</div>
+                </div>
+
                 <div id="aaradhna-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; justify-items: center;">
                     <!-- Calendar grid items injected by JS -->
                 </div>
