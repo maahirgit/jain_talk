@@ -254,6 +254,41 @@
             { q: "20) आराधक के माता-पिता का रात्रि भोजन त्याग", opts: ["पिता ने त्याग किया (100)", "माता ने त्याग किया (100)", "दोनों ने त्याग किया (200)", "किसी ने त्याग नहीं किया (0)"] }
         ];
         
+        function updateDependentOptions() {
+            const q0Selected = document.querySelector('input[name="aradhana-q-0"]:checked');
+            if (!q0Selected) return;
+            const q0Value = parseInt(q0Selected.value);
+            
+            // Q10 is qIndex=9 (थाली धोकर पीना)
+            const q9Radios = document.querySelectorAll('input[name="aradhana-q-9"]');
+            
+            q9Radios.forEach(radio => {
+                const val = parseInt(radio.value);
+                const label = radio.parentElement;
+                let show = true;
+                
+                if (q0Value === 1) { // बियासण - max 2 times (hide 3 time)
+                    if (val === 2) show = false;
+                } else if (q0Value === 2 || q0Value === 3) { // एकासणा / आयंबिल - max 1 time
+                    if (val === 1 || val === 2) show = false;
+                } else if (q0Value === 4) { // उपवास - only D option (nahi piya)
+                    if (val !== 3) show = false;
+                }
+                
+                if (show) {
+                    label.style.display = 'block';
+                } else {
+                    label.style.display = 'none';
+                    if (radio.checked) {
+                        radio.checked = false;
+                        const defaultRadio = document.querySelector('input[name="aradhana-q-9"][value="3"]');
+                        if (defaultRadio) defaultRadio.checked = true;
+                    }
+                }
+            });
+            calculateLiveScore();
+        }
+        
         function calculateLiveScore() {
             let total = 0;
             for (let i = 0; i < 20; i++) {
@@ -308,7 +343,10 @@
                     radio.value = oIndex;
                     radio.required = true;
                     radio.style.marginRight = '8px';
-                    radio.addEventListener('change', calculateLiveScore);
+                    radio.addEventListener('change', () => {
+                        calculateLiveScore();
+                        if (qIndex === 0) updateDependentOptions();
+                    });
                     
                     label.appendChild(radio);
                     label.appendChild(document.createTextNode(optText));
@@ -317,6 +355,9 @@
                 
                 container.appendChild(qDiv);
             });
+            
+            // Ensure logic is applied initially if something is pre-selected
+            updateDependentOptions();
             
             document.getElementById('aradhana-form-modal').classList.add('active');
         }
