@@ -694,10 +694,9 @@ app.post('/api/aradhana/submit', async (req, res) => {
         
         const todayStr = getLocalDateString(new Date());
         
-        // Validate dates
-        if (!isTestingBypass && (todayStr < '2026-07-28' || todayStr > '2026-09-15')) {
-            return res.status(400).json({ error: 'Aradhana can only be submitted between July 28 and Sept 15' });
-        }
+        // Date validation removed - open for all users
+        // (Chaturmas Aradhana period: July 28 to Sept 15, 2026)
+        console.log('[SUBMIT] User:', user.email, '| Date:', todayStr, '| Answers length:', answers.length);
         
         // Check if already submitted
         const existing = await AradhanaSubmission.findOne({ userId: decoded.id, dateString: todayStr });
