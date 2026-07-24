@@ -251,6 +251,13 @@
         ];
 
         function openAradhanaForm() {
+            // Get today's date in IST
+            const now = new Date();
+            const istDate = new Date(now.getTime() + (330 * 60000));
+            const dateDisplay = istDate.toISOString().split('T')[0];
+            
+            document.getElementById('aradhana-form-date-display').textContent = 'Date: ' + dateDisplay;
+
             const container = document.getElementById('aradhana-questions-container');
             container.innerHTML = '';
             
@@ -1121,7 +1128,8 @@
     <div id="aradhana-form-modal" class="modal" style="z-index: 2500;">
         <div class="modal-content" style="max-height: 90vh; overflow-y: auto; background: white; padding: 2rem;">
             <span class="close-modal" id="close-aradhana-form-modal">&times;</span>
-            <h2 style="font-size: 1.5rem; margin-bottom: 1rem; color: var(--primary-dark);">Today's Aradhana</h2>
+            <h2 style="font-size: 1.5rem; margin-bottom: 0.5rem; color: var(--primary-dark);">Today's Aradhana</h2>
+            <p id="aradhana-form-date-display" style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;"></p>
             <p style="color: var(--text-light); margin-bottom: 1.5rem;">Select your choices for today. You cannot change these once submitted.</p>
             
             <form id="aradhana-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
