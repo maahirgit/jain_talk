@@ -306,11 +306,25 @@
         document.getElementById('aradhana-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const answers = [];
+            let calculatedPoints = 0;
+            
             for (let i = 0; i < 20; i++) {
                 const checked = document.querySelector(`input[name="aradhana-q-${i}"]:checked`);
                 if (!checked) return alert('Please answer all 20 questions.');
-                answers.push(parseInt(checked.value));
+                
+                const oIndex = parseInt(checked.value);
+                answers.push(oIndex);
+                
+                // Extract points from the bracket in the text (e.g. "नवकारसी (50)")
+                const optText = ARADHANA_QUESTIONS[i].opts[oIndex];
+                const match = optText.match(/\((\d+)\)/);
+                if (match) {
+                    calculatedPoints += parseInt(match[1]);
+                }
             }
+            
+            // Instantly update UI for immediate feedback
+            alert('Calculated Score: ' + calculatedPoints + ' points! Saving to server...');
             
             try {
                 const submitBtn = e.target.querySelector('button[type="submit"]');
