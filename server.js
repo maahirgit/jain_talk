@@ -785,6 +785,49 @@ app.get('/api/panchang', (req, res) => {
     }
 });
 
+// Leaderboard API Endpoint
+app.get('/api/leaderboard', async (req, res) => {
+    try {
+        const leaderboard = await AradhanaSubmission.aggregate([
+            {
+                $group: {
+                    _id: "$userId",
+                    totalPoints: { $sum: "$points" }
+                }
+            },
+            {
+                $sort: { totalPoints: -1 }
+            },
+            {
+                $limit: 10
+            },
+            {
+                $lookup: {
+                    from: "users",
+                    localField: "_id",
+                    foreignField: "_id",
+                    as: "userInfo"
+                }
+            },
+            {
+                $unwind: "$userInfo"
+            },
+            {
+                $project: {
+                    _id: 1,
+                    totalPoints: 1,
+                    name: "$userInfo.name",
+                    username: "$userInfo.username"
+                }
+            }
+        ]);
+        res.status(200).json(leaderboard);
+    } catch (error) {
+        console.error('Leaderboard API Error:', error);
+        res.status(500).json({ error: 'Failed to fetch leaderboard data' });
+    }
+});
+
 // Daily Cron Job (Runs every day at 08:00 AM) for Email Reminders
 cron.schedule('0 8 * * *', async () => {
     try {

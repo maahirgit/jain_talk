@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Leaderboard - Jain Talk</title>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: var(--bg-color);
+            padding-bottom: 80px; /* For mobile nav */
+        }
+        
+        .header {
+            background: linear-gradient(135deg, var(--primary-color), var(--primary-dark));
+            padding: 2rem 1.5rem;
+            color: white;
+            text-align: center;
+            border-bottom-left-radius: 24px;
+            border-bottom-right-radius: 24px;
+            position: relative;
+            box-shadow: 0 10px 20px rgba(255,152,0,0.15);
+        }
+        
+        .back-btn {
+            position: absolute;
+            top: 1.5rem;
+            left: 1.5rem;
+            color: white;
+            text-decoration: none;
+            display: flex;
+            align-items: center;
+            font-weight: 600;
+            background: rgba(255,255,255,0.2);
+            padding: 0.5rem 1rem;
+            border-radius: 20px;
+            backdrop-filter: blur(5px);
+        }
+        
+        .podium-container {
+            display: flex;
+            justify-content: center;
+            align-items: flex-end;
+            margin-top: -3rem;
+            gap: 0.5rem;
+            padding: 0 1rem;
+            z-index: 10;
+            position: relative;
+        }
+        
+        .podium-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 30%;
+            max-width: 120px;
+        }
+        
+        .podium-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            font-size: 1.2rem;
+            margin-bottom: -15px;
+            z-index: 2;
+            border: 3px solid;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+        }
+        
+        .podium-box {
+            width: 100%;
+            border-top-left-radius: 12px;
+            border-top-right-radius: 12px;
+            color: white;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem 0.5rem 0.5rem;
+            text-align: center;
+            box-shadow: 0 -4px 15px rgba(0,0,0,0.1);
+        }
+        
+        .podium-name {
+            font-weight: 700;
+            font-size: 0.8rem;
+            margin-bottom: 0.2rem;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            width: 100%;
+        }
+        
+        .podium-score {
+            font-size: 0.9rem;
+            font-weight: 800;
+        }
+        
+        /* Rank 1 */
+        .podium-item.rank-1 .podium-avatar { border-color: #FFD700; color: #FFD700; width: 75px; height: 75px; font-size: 1.5rem; }
+        .podium-item.rank-1 .podium-box { height: 140px; background: linear-gradient(to bottom, #FFD700, #F57F17); }
+        
+        /* Rank 2 */
+        .podium-item.rank-2 .podium-avatar { border-color: #C0C0C0; color: #C0C0C0; }
+        .podium-item.rank-2 .podium-box { height: 110px; background: linear-gradient(to bottom, #E0E0E0, #9E9E9E); }
+        
+        /* Rank 3 */
+        .podium-item.rank-3 .podium-avatar { border-color: #CD7F32; color: #CD7F32; }
+        .podium-item.rank-3 .podium-box { height: 80px; background: linear-gradient(to bottom, #D7CCC8, #8D6E63); }
+        
+        .list-container {
+            padding: 2rem 1rem;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+        
+        .list-item {
+            background: white;
+            border-radius: 16px;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.03);
+            border: 1px solid var(--border-color);
+            transition: transform 0.2s;
+        }
+        
+        .list-item:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0,0,0,0.06);
+        }
+        
+        .rank-badge {
+            width: 32px;
+            height: 32px;
+            background: #f0f0f0;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            color: var(--text-light);
+            margin-right: 1rem;
+        }
+        
+        .user-info {
+            flex-grow: 1;
+        }
+        
+        .user-name {
+            font-weight: 700;
+            color: var(--text-dark);
+            font-size: 1rem;
+            margin-bottom: 0.1rem;
+        }
+        
+        .score-badge {
+            background: rgba(255,152,0,0.1);
+            color: var(--primary-dark);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-weight: 800;
+            font-size: 0.95rem;
+        }
+        
+        .loading {
+            text-align: center;
+            padding: 3rem;
+            color: var(--text-light);
+            font-weight: 500;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <a href="/home.html" class="back-btn">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
+            Back
+        </a>
+        <h1 style="margin: 0; font-size: 2.2rem; font-weight: 800; padding-top: 1rem;">Top Aradhaks</h1>
+        <p style="margin-top: 0.5rem; opacity: 0.9; font-weight: 500;">The highest point scorers this season</p>
+    </div>
+
+    <div id="podium-area" class="podium-container" style="display: none;">
+        <!-- Rank 2 -->
+        <div class="podium-item rank-2" id="podium-2" style="display: none;">
+            <div class="podium-avatar">2</div>
+            <div class="podium-box">
+                <div class="podium-name" id="name-2">...</div>
+                <div class="podium-score" id="score-2">...</div>
+            </div>
+        </div>
+        
+        <!-- Rank 1 -->
+        <div class="podium-item rank-1" id="podium-1" style="display: none;">
+            <div class="podium-avatar">1</div>
+            <div class="podium-box">
+                <div class="podium-name" id="name-1" style="font-size: 0.9rem;">...</div>
+                <div class="podium-score" id="score-1" style="font-size: 1rem;">...</div>
+            </div>
+        </div>
+        
+        <!-- Rank 3 -->
+        <div class="podium-item rank-3" id="podium-3" style="display: none;">
+            <div class="podium-avatar">3</div>
+            <div class="podium-box">
+                <div class="podium-name" id="name-3">...</div>
+                <div class="podium-score" id="score-3">...</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="list-container" id="leaderboard-list">
+        <div class="loading">Loading leaderboard data...</div>
+    </div>
+
+    <script>
+        function getFallbackUsername(user) {
+            return 'JT_' + (user._id ? user._id.toString().slice(-4).toUpperCase() : 'XXXX') + '_' + (user.name ? user.name.split(' ')[0] : 'User');
+        }
+
+        async function fetchLeaderboard() {
+            try {
+                const response = await fetch('/api/leaderboard');
+                if (!response.ok) throw new Error('Failed to fetch');
+                const data = await response.json();
+                
+                const listContainer = document.getElementById('leaderboard-list');
+                listContainer.innerHTML = '';
+                
+                if (data.length === 0) {
+                    listContainer.innerHTML = '<div class="loading">No submissions yet!</div>';
+                    return;
+                }
+
+                document.getElementById('podium-area').style.display = 'flex';
+
+                data.forEach((user, index) => {
+                    const displayUsername = user.username || getFallbackUsername(user);
+                    const rank = index + 1;
+                    
+                    if (rank <= 3) {
+                        const pItem = document.getElementById(`podium-${rank}`);
+                        if (pItem) {
+                            pItem.style.display = 'flex';
+                            document.getElementById(`name-${rank}`).textContent = displayUsername;
+                            document.getElementById(`score-${rank}`).textContent = user.totalPoints;
+                        }
+                    } else {
+                        const itemDiv = document.createElement('div');
+                        itemDiv.className = 'list-item';
+                        itemDiv.innerHTML = `
+                            <div class="rank-badge">${rank}</div>
+                            <div class="user-info">
+                                <div class="user-name">${displayUsername}</div>
+                            </div>
+                            <div class="score-badge">${user.totalPoints} pts</div>
+                        `;
+                        listContainer.appendChild(itemDiv);
+                    }
+                });
+                
+            } catch (err) {
+                console.error(err);
+                document.getElementById('leaderboard-list').innerHTML = '<div class="loading" style="color: #F44336;">Error loading leaderboard. Please try again.</div>';
+            }
+        }
+        
+        // Auto-fetch on load
+        document.addEventListener('DOMContentLoaded', fetchLeaderboard);
+    </script>
+</body>
+</html>
