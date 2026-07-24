@@ -213,6 +213,9 @@
                 dayDiv.style.fontWeight = 'bold';
                 dayDiv.style.color = 'white';
                 
+                const dateNum = parseInt(day.date.split('-')[2]);
+                dayDiv.textContent = dateNum;
+                
                 if (day.status === 'FILLED') {
                     dayDiv.style.background = '#4CAF50';
                     dayDiv.title = `${day.date}: ${day.points} Points`;
@@ -221,6 +224,7 @@
                     dayDiv.title = `${day.date}: Missed`;
                 } else {
                     dayDiv.style.background = '#E0E0E0';
+                    dayDiv.style.color = '#333';
                     dayDiv.title = `${day.date}: Upcoming`;
                 }
                 
@@ -341,12 +345,10 @@
                 }
             }
             
-            // Instantly update UI for immediate feedback
-            alert('Calculated Score: ' + calculatedPoints + ' points! Saving to server...');
-            
+            // Remove the blocking alert for calculated score
             try {
                 const submitBtn = document.getElementById('aradhana-submit-btn');
-                submitBtn.textContent = 'Submitting...';
+                submitBtn.textContent = 'Saving ' + calculatedPoints + ' points...';
                 submitBtn.disabled = true;
                 
                 const response = await fetch('/api/aradhana/submit', {
@@ -358,16 +360,20 @@
                 const data = await response.json();
                 
                 if (response.ok) {
-                    alert('Submission successful! You earned ' + data.points + ' points.');
-                    document.getElementById('aradhana-form-modal').classList.remove('active');
-                    fetchAradhanaStatus(); // Refresh dashboard
+                    submitBtn.textContent = 'Success! ' + data.points + ' points awarded.';
+                    submitBtn.style.background = '#4CAF50';
+                    setTimeout(() => {
+                        document.getElementById('aradhana-form-modal').classList.remove('active');
+                        fetchAradhanaStatus(); // Refresh dashboard
+                    }, 1500);
                 } else {
                     alert(data.error || 'Submission failed');
+                    submitBtn.textContent = 'Submit Aradhana';
+                    submitBtn.disabled = false;
                 }
             } catch (err) {
                 console.error(err);
                 alert('Connection error');
-            } finally {
                 const submitBtn = document.getElementById('aradhana-submit-btn');
                 submitBtn.textContent = 'Submit Aradhana';
                 submitBtn.disabled = false;
