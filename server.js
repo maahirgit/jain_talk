@@ -596,7 +596,7 @@ app.get('/api/aradhana/status', async (req, res) => {
         // Ensure user is registered and verified for the course
         const registration = await CourseRegistration.findOne({ userId: decoded.id, courseName: "चलो सब आराधना करें" });
         const user = await User.findById(decoded.id);
-        const isTestingBypass = user && user.email.toLowerCase().includes('maahir');
+        const isTestingBypass = user && (user.email.toLowerCase().includes('maahir') || user.email.toLowerCase() === 'akshitjain61130@gmail.com');
         
         if (!isTestingBypass && (!registration || !registration.isPaymentVerified)) {
             return res.status(403).json({ error: 'You are not verified for this course.' });
@@ -683,7 +683,7 @@ app.post('/api/aradhana/submit', async (req, res) => {
         
         // Ensure user is registered and verified for the course
         const registration = await CourseRegistration.findOne({ userId: decoded.id, courseName: "चलो सब आराधना करें" });
-        const isTestingBypass = user.email.toLowerCase().includes('maahir');
+        const isTestingBypass = user.email.toLowerCase().includes('maahir') || user.email.toLowerCase() === 'akshitjain61130@gmail.com';
         
         if (!isTestingBypass && (!registration || !registration.isPaymentVerified)) {
             return res.status(403).json({ error: 'You are not verified for this course.' });
