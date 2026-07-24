@@ -679,9 +679,11 @@ app.post('/api/aradhana/submit', async (req, res) => {
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(decoded.id);
         
+        if (!user) return res.status(401).json({ error: 'User not found' });
+        
         // Ensure user is registered and verified for the course
         const registration = await CourseRegistration.findOne({ userId: decoded.id, courseName: "चलो सब आराधना करें" });
-        const isTestingBypass = user && user.email === 'maahirmshah4252@gmail.com';
+        const isTestingBypass = (user.email === 'maahirmshah4252@gmail.com');
         
         if (!isTestingBypass && (!registration || !registration.isPaymentVerified)) {
             return res.status(403).json({ error: 'You are not verified for this course.' });
@@ -694,8 +696,11 @@ app.post('/api/aradhana/submit', async (req, res) => {
         
         const todayStr = getLocalDateString(new Date());
         
-        // Date validation removed - open for all users
-        // (Chaturmas Aradhana period: July 28 to Sept 15, 2026)
+        // Date validation: Only open between July 28 - Sept 15 for regular users
+        // maahirmshah4252@gmail.com (admin/testing) can submit anytime
+        if (!isTestingBypass && (todayStr < '2026-07-28' || todayStr > '2026-09-15')) {
+            return res.status(400).json({ error: 'Aradhana can only be submitted between July 28 and Sept 15' });
+        }
         console.log('[SUBMIT] User:', user.email, '| Date:', todayStr, '| Answers length:', answers.length);
         
         // Check if already submitted
