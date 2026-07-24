@@ -879,11 +879,10 @@
                 </a>
 
                 <!-- 4. Reels Placeholder -->
-                <a href="#" class="feature-card" style="opacity: 0.8; cursor: default; transform: none; box-shadow: 0 4px 15px rgba(0,0,0,0.03);">
+                <a href="#" id="home-reels-card" class="feature-card">
                     <div class="card-icon" style="background: #FCE4EC; color: #E91E63;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="2" width="20" height="20" rx="2.18" ry="2.18"></rect><line x1="7" y1="2" x2="7" y2="22"></line><line x1="17" y1="2" x2="17" y2="22"></line><line x1="2" y1="12" x2="22" y2="12"></line><line x1="2" y1="7" x2="7" y2="7"></line><line x1="2" y1="17" x2="7" y2="17"></line><line x1="17" y1="17" x2="22" y2="17"></line><line x1="17" y1="7" x2="22" y2="7"></line></svg>
                     </div>
-                    <span class="card-tag" style="background: #FCE4EC; color: #E91E63;">Coming Soon</span>
                     <div class="card-title">Reels</div>
                     <p class="card-desc">Watch short, inspiring video clips from respected monks and spiritual leaders.</p>
                 </a>
@@ -1430,7 +1429,7 @@
                 });
             });
             
-            const openReelsBtns = [document.getElementById('desktop-reels-btn'), document.getElementById('mobile-reels-btn')];
+            const openReelsBtns = [document.getElementById('desktop-reels-btn'), document.getElementById('mobile-reels-btn'), document.getElementById('home-reels-card')];
             openReelsBtns.forEach(btn => {
                 if (btn) btn.addEventListener('click', (e) => {
                     e.preventDefault();
