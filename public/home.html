@@ -304,8 +304,8 @@
         });
 
         document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('aradhana-form').addEventListener('submit', async (e) => {
-            e.preventDefault();
+            document.getElementById('aradhana-submit-btn').addEventListener('click', async (e) => {
+            
             const answers = [];
             let calculatedPoints = 0;
             
@@ -328,7 +328,7 @@
             alert('Calculated Score: ' + calculatedPoints + ' points! Saving to server...');
             
             try {
-                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const submitBtn = document.getElementById('aradhana-submit-btn');
                 submitBtn.textContent = 'Submitting...';
                 submitBtn.disabled = true;
                 
@@ -351,7 +351,7 @@
                 console.error(err);
                 alert('Connection error');
             } finally {
-                const submitBtn = e.target.querySelector('button[type="submit"]');
+                const submitBtn = document.getElementById('aradhana-submit-btn');
                 submitBtn.textContent = 'Submit Aradhana';
                 submitBtn.disabled = false;
             }
@@ -1160,7 +1160,7 @@
             <form id="aradhana-form" style="display: flex; flex-direction: column; gap: 1.5rem;" novalidate>
                 <!-- Questions injected by JS for cleanliness -->
                 <div id="aradhana-questions-container"></div>
-                <button type="submit" style="background: var(--primary-color); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; margin-top: 1rem;">Submit Aradhana</button>
+                <button type="button" id="aradhana-submit-btn" style="background: var(--primary-color); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; margin-top: 1rem;">Submit Aradhana</button>
             </form>
         </div>
     </div>
