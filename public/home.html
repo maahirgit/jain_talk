@@ -256,36 +256,82 @@
         
         function updateDependentOptions() {
             const q0Selected = document.querySelector('input[name="aradhana-q-0"]:checked');
-            if (!q0Selected) return;
-            const q0Value = parseInt(q0Selected.value);
-            
-            // Q10 is qIndex=9 (थाली धोकर पीना)
-            const q9Radios = document.querySelectorAll('input[name="aradhana-q-9"]');
-            
-            q9Radios.forEach(radio => {
-                const val = parseInt(radio.value);
-                const label = radio.parentElement;
-                let show = true;
-                
-                if (q0Value === 1) { // बियासण - max 2 times (hide 3 time)
-                    if (val === 2) show = false;
-                } else if (q0Value === 2 || q0Value === 3) { // एकासणा / आयंबिल - max 1 time
-                    if (val === 1 || val === 2) show = false;
-                } else if (q0Value === 4) { // उपवास - only D option (nahi piya)
-                    if (val !== 3) show = false;
-                }
-                
-                if (show) {
-                    label.style.display = 'block';
-                } else {
-                    label.style.display = 'none';
-                    if (radio.checked) {
-                        radio.checked = false;
-                        const defaultRadio = document.querySelector('input[name="aradhana-q-9"][value="3"]');
-                        if (defaultRadio) defaultRadio.checked = true;
+            if (q0Selected) {
+                const q0Value = parseInt(q0Selected.value);
+                const q9Radios = document.querySelectorAll('input[name="aradhana-q-9"]');
+                q9Radios.forEach(radio => {
+                    const val = parseInt(radio.value);
+                    const label = radio.parentElement;
+                    let show = true;
+                    if (q0Value === 1) { // बियासण - max 2 times (hide 3 time)
+                        if (val === 2) show = false;
+                    } else if (q0Value === 2 || q0Value === 3) { // एकासणा / आयंबिल - max 1 time
+                        if (val === 1 || val === 2) show = false;
+                    } else if (q0Value === 4) { // उपवास - only D option (nahi piya)
+                        if (val !== 3) show = false;
                     }
-                }
-            });
+                    if (show) {
+                        label.style.display = 'block';
+                    } else {
+                        label.style.display = 'none';
+                        if (radio.checked) {
+                            radio.checked = false;
+                            const defaultRadio = document.querySelector('input[name="aradhana-q-9"][value="3"]');
+                            if (defaultRadio) defaultRadio.checked = true;
+                        }
+                    }
+                });
+            }
+            
+            // --- Q17 (पोषध) restricting Q8 (गरम पानी) & Q11 (सामायिक) ---
+            const q17Selected = document.querySelector('input[name="aradhana-q-17"]:checked');
+            if (q17Selected) {
+                const q17Value = parseInt(q17Selected.value);
+                // 0 = दिवस, 1 = रात्रि, 2 = दोनों, 3 = नहीं किया
+                const isDivasiyaOrDono = (q17Value === 0 || q17Value === 2);
+
+                // Q8 (गरम पानी): index 8. Opts: 0: पिया, 1: नहीं पिया
+                const q8Radios = document.querySelectorAll('input[name="aradhana-q-8"]');
+                q8Radios.forEach(radio => {
+                    const val = parseInt(radio.value);
+                    const label = radio.parentElement;
+                    let show = true;
+                    if (isDivasiyaOrDono && val === 0) {
+                        show = false; // Cannot get points for garam pani if divasiya/dono poshad
+                    }
+                    if (show) {
+                        label.style.display = 'block';
+                    } else {
+                        label.style.display = 'none';
+                        if (radio.checked) {
+                            radio.checked = false;
+                            const defaultRadio = document.querySelector('input[name="aradhana-q-8"][value="1"]'); // "नहीं पिया (0)"
+                            if (defaultRadio) defaultRadio.checked = true;
+                        }
+                    }
+                });
+
+                // Q11 (सामायिक): index 11. Opts: 0: "0 (0)", 1: "1 सामायिक", 2: "2 सामायिक", 3: "3 सामायिक"
+                const q11Radios = document.querySelectorAll('input[name="aradhana-q-11"]');
+                q11Radios.forEach(radio => {
+                    const val = parseInt(radio.value);
+                    const label = radio.parentElement;
+                    let show = true;
+                    if (isDivasiyaOrDono && val !== 0) {
+                        show = false; // Cannot get individual samayik points if divasiya/dono poshad
+                    }
+                    if (show) {
+                        label.style.display = 'block';
+                    } else {
+                        label.style.display = 'none';
+                        if (radio.checked) {
+                            radio.checked = false;
+                            const defaultRadio = document.querySelector('input[name="aradhana-q-11"][value="0"]'); // "0 (0)"
+                            if (defaultRadio) defaultRadio.checked = true;
+                        }
+                    }
+                });
+            }
             calculateLiveScore();
         }
         
@@ -345,7 +391,7 @@
                     radio.style.marginRight = '8px';
                     radio.addEventListener('change', () => {
                         calculateLiveScore();
-                        if (qIndex === 0) updateDependentOptions();
+                        if (qIndex === 0 || qIndex === 17) updateDependentOptions();
                     });
                     
                     label.appendChild(radio);
