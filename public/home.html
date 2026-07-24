@@ -149,7 +149,7 @@
 
         async function fetchAradhanaStatus() {
             try {
-                const response = await fetch('/api/aradhana/status', { cache: 'no-store' });
+                const response = await fetch('/api/aradhana/status?t=' + Date.now(), { cache: 'no-store' });
                 if (response.ok) {
                     const data = await response.json();
                     renderAradhanaDashboard(data);
@@ -944,7 +944,9 @@
                 </div>
             </div>
 
-            <!-- Grid -->
+            <!-- Version Indicator -->
+            <div style="text-align: center; font-size: 0.8rem; color: #ccc; margin-top: 2rem; margin-bottom: 1rem;" id="app-version">App Version: 2.1 (Anti-Cache)</div>
+
             <div id="profile-reels-grid" style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 2px;">
                 <!-- Reels injected here -->
             </div>
@@ -1048,6 +1050,8 @@
                 <p style="color: var(--text-light); font-size: 0.95rem;">We will review back within 24hrs.</p>
                 
                 <div id="countdown-container" style="margin-top: 1.5rem; background: var(--secondary-color); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
+                    <h2 style="color: var(--primary-dark); margin-bottom: 1rem; font-size: 1.5rem; text-align: center;">🙏 Aradhana Dashboard</h2>
+                    <div style="text-align: center; font-size: 0.8rem; color: #888; margin-bottom: 1rem;">Version 2.2 (Anti-Cache)</div>
                     <h4 style="color: var(--primary-dark); margin-bottom: 0.5rem; font-size: 1.1rem;">Chaturmas Aradhna begin in</h4>
                     <div id="countdown-timer" style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
                         -- days -- hours -- mins -- secs
@@ -1156,6 +1160,7 @@
 
     <script>
         document.addEventListener('DOMContentLoaded', () => {
+            console.log('Aradhana v2 loaded');
             // Logout logic
             document.getElementById('logout-btn').addEventListener('click', async () => {
                 try {
