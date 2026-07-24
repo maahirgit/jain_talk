@@ -202,9 +202,16 @@
             
             data.calendar.forEach(day => {
                 const dayDiv = document.createElement('div');
-                dayDiv.style.width = '24px';
-                dayDiv.style.height = '24px';
+                dayDiv.classList.add('day-dot');
+                dayDiv.style.width = '32px';
+                dayDiv.style.height = '32px';
                 dayDiv.style.borderRadius = '50%';
+                dayDiv.style.display = 'flex';
+                dayDiv.style.alignItems = 'center';
+                dayDiv.style.justifyContent = 'center';
+                dayDiv.style.fontSize = '0.85rem';
+                dayDiv.style.fontWeight = 'bold';
+                dayDiv.style.color = 'white';
                 
                 if (day.status === 'FILLED') {
                     dayDiv.style.background = '#4CAF50';
@@ -1068,16 +1075,16 @@
             
             <!-- Dashboard Metrics -->
             <div style="background: white; color: var(--text-dark); padding: 1.5rem; border-radius: 16px; text-align: left; margin-bottom: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
-                <div style="display: flex; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="flex: 1; text-align: center; background: #E3F2FD; padding: 1rem; border-radius: 12px; border: 1px solid #BBDEFB;">
+                <div style="display: flex; flex-wrap: wrap; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="flex: 1 1 100px; text-align: center; background: #E3F2FD; padding: 1rem; border-radius: 12px; border: 1px solid #BBDEFB;">
                         <p style="font-size: 0.75rem; color: #1565C0; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Yesterday's Points</p>
                         <p id="aradhana-yesterday-points" style="font-size: 1.8rem; font-weight: 800; color: #0D47A1; margin: 0.5rem 0 0 0;">0</p>
                     </div>
-                    <div style="flex: 1; text-align: center; background: #F3E5F5; padding: 1rem; border-radius: 12px; border: 1px solid #E1BEE7;">
+                    <div style="flex: 1 1 100px; text-align: center; background: #F3E5F5; padding: 1rem; border-radius: 12px; border: 1px solid #E1BEE7;">
                         <p style="font-size: 0.75rem; color: #7B1FA2; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Today's Points</p>
                         <p id="aradhana-today-points" style="font-size: 1.8rem; font-weight: 800; color: #4A148C; margin: 0.5rem 0 0 0;">0</p>
                     </div>
-                    <div style="flex: 1; text-align: center; background: #FFF3E0; padding: 1rem; border-radius: 12px; border: 1px solid #FFE0B2;">
+                    <div style="flex: 1 1 100px; text-align: center; background: #FFF3E0; padding: 1rem; border-radius: 12px; border: 1px solid #FFE0B2;">
                         <p style="font-size: 0.75rem; color: #E65100; text-transform: uppercase; font-weight: 700; letter-spacing: 1px;">Total Points</p>
                         <p id="aradhana-total-points" style="font-size: 1.8rem; font-weight: 800; color: #E65100; margin: 0.5rem 0 0 0;">0</p>
                     </div>
