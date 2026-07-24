@@ -303,7 +303,8 @@
             document.getElementById('aradhana-form-modal').classList.remove('active');
         });
 
-        document.getElementById('aradhana-form').addEventListener('submit', async (e) => {
+        document.addEventListener('DOMContentLoaded', () => {
+            document.getElementById('aradhana-form').addEventListener('submit', async (e) => {
             e.preventDefault();
             const answers = [];
             let calculatedPoints = 0;
@@ -354,6 +355,7 @@
                 submitBtn.textContent = 'Submit Aradhana';
                 submitBtn.disabled = false;
             }
+        });
         });
     </script>
     <style>
