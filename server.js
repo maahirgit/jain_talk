@@ -584,6 +584,9 @@ function getLocalDateString(date) {
 }
 
 app.get('/api/aradhana/status', async (req, res) => {
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    res.setHeader('Pragma', 'no-cache');
+    res.setHeader('Expires', '0');
     try {
         const token = req.cookies.auth_token;
         if (!token) return res.status(401).json({ error: 'Not authenticated' });
@@ -659,7 +662,8 @@ app.get('/api/aradhana/status', async (req, res) => {
             yesterdaysPoints,
             calendar,
             todayStr,
-            hasSubmittedToday: submissionMap[todayStr] !== undefined
+            hasSubmittedToday: submissionMap[todayStr] !== undefined,
+            isTestingBypass
         });
     } catch (error) {
         console.error('Fetch Aradhana Status Error:', error);

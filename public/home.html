@@ -181,7 +181,7 @@
             }
             
             const formBtn = document.getElementById('open-aradhana-form-btn');
-            if (data.hasSubmittedToday) {
+            if (data.hasSubmittedToday && !data.isTestingBypass) {
                 formBtn.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> Today's Aradhana Completed`;
                 formBtn.style.background = '#4CAF50';
                 formBtn.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.4)';
@@ -1132,7 +1132,7 @@
             <p id="aradhana-form-date-display" style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color); margin-bottom: 0.5rem;"></p>
             <p style="color: var(--text-light); margin-bottom: 1.5rem;">Select your choices for today. You cannot change these once submitted.</p>
             
-            <form id="aradhana-form" style="display: flex; flex-direction: column; gap: 1.5rem;">
+            <form id="aradhana-form" style="display: flex; flex-direction: column; gap: 1.5rem;" novalidate>
                 <!-- Questions injected by JS for cleanliness -->
                 <div id="aradhana-questions-container"></div>
                 <button type="submit" style="background: var(--primary-color); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; margin-top: 1rem;">Submit Aradhana</button>
