@@ -289,8 +289,9 @@ document.addEventListener('DOMContentLoaded', () => {
                         accountSelect.innerHTML = '';
                         data.accounts.forEach(acc => {
                             const opt = document.createElement('option');
-                            opt.value = acc.username;
-                            opt.textContent = `${acc.name} (${acc.username})`;
+                            opt.value = acc.id;
+                            const displayName = acc.username ? `${acc.name} (${acc.username})` : `${acc.name} (${acc.email})`;
+                            opt.textContent = displayName;
                             accountSelect.appendChild(opt);
                         });
                         
@@ -313,7 +314,7 @@ document.addEventListener('DOMContentLoaded', () => {
         resetPasswordForm.addEventListener('submit', async (e) => {
             e.preventDefault();
             const newPassword = document.getElementById('reset-new-password').value;
-            const selectedUsername = accountSelect.value;
+            const selectedAccountId = accountSelect.value;
             const btn = document.getElementById('reset-password-btn');
 
             if (newPassword.length < 6) {
@@ -328,7 +329,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch('/api/reset-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ email: resetEmail, otp: validOtp, username: selectedUsername, newPassword })
+                    body: JSON.stringify({ email: resetEmail, otp: validOtp, accountId: selectedAccountId, newPassword })
                 });
                 const data = await response.json();
 

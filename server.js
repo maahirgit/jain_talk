@@ -291,7 +291,7 @@ app.post('/api/verify-otp', authLimiter, async (req, res) => {
         }
         
         // Return list of accounts
-        const accounts = users.map(u => ({ username: u.username, name: u.name }));
+        const accounts = users.map(u => ({ id: u._id.toString(), username: u.username, name: u.name, email: u.email }));
         res.status(200).json({ accounts });
     } catch (error) {
         console.error('Verify OTP Error:', error);
@@ -302,10 +302,10 @@ app.post('/api/verify-otp', authLimiter, async (req, res) => {
 // Reset Password Route
 app.post('/api/reset-password', authLimiter, async (req, res) => {
     try {
-        const { email, otp, username, newPassword } = req.body;
+        const { email, otp, accountId, newPassword } = req.body;
         const user = await User.findOne({ 
+            _id: accountId,
             email: new RegExp('^' + email + '$', 'i'),
-            username,
             resetOtp: otp,
             resetOtpExpires: { $gt: Date.now() }
         });
