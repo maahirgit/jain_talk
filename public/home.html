@@ -11,6 +11,217 @@
     
     <!-- Authentication Verification -->
     <script>
+        const ARADHANA_QUESTIONS = [
+            { q: "1) तप करना", opts: ["नवकारसी (50)", "बियासण (250)", "एकासणा (400)", "आयंबिल (500)", "उपवास (700)", "कुछ नहीं किया (0)"] },
+            { q: "2) माता-पिता / साहेबजी अथवा वडिलों के पैर छूना", opts: ["पैर छुआ (50)", "नहीं छुआ (0)"] },
+            { q: "3) देरासर में तीन प्रदक्षिणा देना / दर्शन करना", opts: ["दर्शन किया (50)", "प्रदक्षिणा दी (50)", "दोनों किया (100)", "नहीं किया (0)"] },
+            { q: "4) परमात्मा की पूजा करना", opts: ["अष्टप्रकारी पूजा की (200)", "वासक्षेप पूजा / पखाल पूजा / केसर पूजा की (100)", "पूजा नहीं की (0)"] },
+            { q: "5) गुरु महाराज / गुरु मूर्ति को वंदन करना एवं मा. सा. को गोचरी की विनंती करना (उपाश्रय में जाकर) अथवा गोचरी वोहराना", opts: ["वंदन किया (100)", "विनंती की या वोहराया (100)", "दोनों किया (200)", "दोनों नहीं किया (0)"] },
+            { q: "6) बच्चों के हाथों से अनुकंपा / जीवदया करना", opts: ["अनुकंपा (50)", "जीवदया (50)", "दोनों (100)", "नहीं किया (0)"] },
+            { q: "7) सुबह उठते समय 8 नवकार गिनना/सुनाना एवं सोने से पहले 7 नवकार गिनना/सुनाना", opts: ["सुबह गिना/सुनाया (50)", "रात को गिना/सुनाया (50)", "दोनों समय गिना/सुनाया (100)", "नहीं गिना/सुनाया (0)"] },
+            { q: "8) एक लुखी रोटी खाना", opts: ["लुखी रोटी खाई (50)", "नहीं खाई (0)"] },
+            { q: "9) गरम पानी पीना", opts: ["पिया (100)", "नहीं पिया (0)"] },
+            { q: "10) थाली धोकर पीना", opts: ["एक टाइम (50)", "दो टाइम (100)", "तीन टाइम (150)", "नहीं पिया (0)"] },
+            { q: "11) बाहर की अभक्ष्य वस्तु एवं कंदमूल का त्याग", opts: ["त्याग किया (100)", "त्याग नहीं किया (0)"] },
+            { q: "12) सामायिक करना", opts: ["0 (0)", "1 सामायिक (150)", "2 सामायिक (300)", "3 सामायिक (450)"] },
+            { q: "13) बाढ़ी / पक्की नवकार वाली गिनना (108 नवकार)", opts: ["0 (0)", "1 (100)", "2 (200)", "3 (300)"] },
+            { q: "14) रात्रि भोजन का त्याग", opts: ["तिविहार (100)", "चौविहार (200)", "त्याग नहीं किया (0)"] },
+            { q: "15) संध्या प्रभु दर्शन / आरती", opts: ["प्रभु दर्शन किया (50)", "आरती की (50)", "दोनों किया (100)", "दोनों नहीं किया (0)"] },
+            { q: "16) पाठशाला जाना / संस्कार शाला", opts: ["पाठशाला जाना (100)", "पाठशाला जाना एवं नई गाथा करना (150)", "पाठशाला नहीं गए (0)"] },
+            { q: "17) प्रतिक्रमण करना", opts: ["राई प्रतिक्रमण किया (200)", "देवसिय प्रतिक्रमण किया (200)", "दोनों प्रतिक्रमण किया (400)", "नहीं किया (0)"] },
+            { q: "18) पोषध करना", opts: ["दिवस (1500)", "रात्रि (500)", "दोनों (2000)", "नहीं किया (0)"] },
+            { q: "19) मोबाइल एवं टी.वी. का त्याग", opts: ["मोबाइल और टीवी दोनों का त्याग (300)", "सिर्फ मोबाइल का त्याग (200)", "सिर्फ टीवी का त्याग (100)", "दोनों का त्याग नहीं किया (0)"] },
+            { q: "20) आराधक के माता-पिता का रात्रि भोजन त्याग", opts: ["पिता ने त्याग किया (100)", "माता ने त्याग किया (100)", "दोनों ने त्याग किया (200)", "किसी ने त्याग नहीं किया (0)"] }
+        ];
+        
+        function updateDependentOptions() {
+            const q0Selected = document.querySelector('input[name="aradhana-q-0"]:checked');
+            if (q0Selected) {
+                const q0Value = parseInt(q0Selected.value);
+                const q9Radios = document.querySelectorAll('input[name="aradhana-q-9"]');
+                q9Radios.forEach(radio => {
+                    const val = parseInt(radio.value);
+                    const label = radio.parentElement;
+                    let show = true;
+                    if (q0Value === 1) { // बियासण - max 2 times (hide 3 time)
+                        if (val === 2) show = false;
+                    } else if (q0Value === 2 || q0Value === 3) { // एकासणा / आयंबिल - max 1 time
+                        if (val === 1 || val === 2) show = false;
+                    } else if (q0Value === 4) { // उपवास - only D option (nahi piya)
+                        if (val !== 3) show = false;
+                    }
+                    if (show) {
+                        label.style.display = 'block';
+                    } else {
+                        label.style.display = 'none';
+                        if (radio.checked) {
+                            radio.checked = false;
+                            const defaultRadio = document.querySelector('input[name="aradhana-q-9"][value="3"]');
+                            if (defaultRadio) defaultRadio.checked = true;
+                        }
+                    }
+                });
+            }
+            
+            // --- Q17 (पोषध) restricting Q8 (गरम पानी) & Q11 (सामायिक) ---
+            const q17Selected = document.querySelector('input[name="aradhana-q-17"]:checked');
+            if (q17Selected) {
+                const q17Value = parseInt(q17Selected.value);
+                // 0 = दिवस, 1 = रात्रि, 2 = दोनों, 3 = नहीं किया
+                const isDivasiyaOrDono = (q17Value === 0 || q17Value === 2);
+
+                // Q8 (गरम पानी): index 8. Opts: 0: पिया, 1: नहीं पिया
+                const q8Radios = document.querySelectorAll('input[name="aradhana-q-8"]');
+                q8Radios.forEach(radio => {
+                    const val = parseInt(radio.value);
+                    const label = radio.parentElement;
+                    let show = true;
+                    if (isDivasiyaOrDono && val === 0) {
+                        show = false; // Cannot get points for garam pani if divasiya/dono poshad
+                    }
+                    if (show) {
+                        label.style.display = 'block';
+                    } else {
+                        label.style.display = 'none';
+                        if (radio.checked) {
+                            radio.checked = false;
+                            const defaultRadio = document.querySelector('input[name="aradhana-q-8"][value="1"]'); // "नहीं पिया (0)"
+                            if (defaultRadio) defaultRadio.checked = true;
+                        }
+                    }
+                });
+
+                // Q11 (सामायिक): index 11. Opts: 0: "0 (0)", 1: "1 सामायिक", 2: "2 सामायिक", 3: "3 सामायिक"
+                const q11Radios = document.querySelectorAll('input[name="aradhana-q-11"]');
+                q11Radios.forEach(radio => {
+                    const val = parseInt(radio.value);
+                    const label = radio.parentElement;
+                    let show = true;
+                    if (isDivasiyaOrDono && val !== 0) {
+                        show = false; // Cannot get individual samayik points if divasiya/dono poshad
+                    }
+                    if (show) {
+                        label.style.display = 'block';
+                    } else {
+                        label.style.display = 'none';
+                        if (radio.checked) {
+                            radio.checked = false;
+                            const defaultRadio = document.querySelector('input[name="aradhana-q-11"][value="0"]'); // "0 (0)"
+                            if (defaultRadio) defaultRadio.checked = true;
+                        }
+                    }
+                });
+            }
+            calculateLiveScore();
+        }
+        
+        function calculateLiveScore() {
+            let total = 0;
+            for (let i = 0; i < 20; i++) {
+                const checked = document.querySelector(`input[name="aradhana-q-${i}"]:checked`);
+                if (checked) {
+                    const oIndex = parseInt(checked.value);
+                    const optText = ARADHANA_QUESTIONS[i].opts[oIndex];
+                    const match = optText.match(/\((\d+)\)/);
+                    if (match) {
+                        total += parseInt(match[1]);
+                    }
+                }
+            }
+            document.getElementById('live-score-value').textContent = total;
+        }
+
+        function openAradhanaForm() {
+            // Get today's date in IST
+            const now = new Date();
+            const istDate = new Date(now.getTime() + (330 * 60000));
+            const dateDisplay = istDate.toISOString().split('T')[0];
+            
+            document.getElementById('aradhana-form-date-display').textContent = 'Date: ' + dateDisplay;
+
+            const container = document.getElementById('aradhana-questions-container');
+            container.innerHTML = '';
+            document.getElementById('live-score-value').textContent = '0';
+            
+            document.getElementById('aradhana-submit-btn').style.display = 'block';
+            const msgBox = document.getElementById('preview-msg');
+            if (msgBox) msgBox.remove();
+            
+            ARADHANA_QUESTIONS.forEach((qData, qIndex) => {
+                const qDiv = document.createElement('div');
+                qDiv.style.background = '#f8f9fa';
+                qDiv.style.padding = '1rem';
+                qDiv.style.borderRadius = '8px';
+                qDiv.style.border = '1px solid var(--border-color)';
+                
+                const qTitle = document.createElement('h4');
+                qTitle.textContent = qData.q;
+                qTitle.style.marginBottom = '0.75rem';
+                qTitle.style.color = 'var(--text-dark)';
+                qDiv.appendChild(qTitle);
+                
+                qData.opts.forEach((optText, oIndex) => {
+                    const label = document.createElement('label');
+                    label.style.display = 'block';
+                    label.style.marginBottom = '0.5rem';
+                    label.style.cursor = 'pointer';
+                    label.style.color = 'var(--text-dark)';
+                    
+                    const radio = document.createElement('input');
+                    radio.type = 'radio';
+                    radio.name = `aradhana-q-${qIndex}`;
+                    radio.value = oIndex;
+                    radio.required = true;
+                    radio.style.marginRight = '8px';
+                    radio.addEventListener('change', () => {
+                        calculateLiveScore();
+                        if (qIndex === 0 || qIndex === 17) updateDependentOptions();
+                    });
+                    
+                    label.appendChild(radio);
+                    label.appendChild(document.createTextNode(optText));
+                    qDiv.appendChild(label);
+                });
+                
+                container.appendChild(qDiv);
+            });
+            
+            // Ensure logic is applied initially if something is pre-selected
+            updateDependentOptions();
+            
+            document.getElementById('aradhana-form-modal').classList.add('active');
+        }
+
+        window.previewAaradhnaForm = function() {
+            try {
+                openAradhnaForm();
+                
+                setTimeout(() => {
+                    const inputs = document.querySelectorAll('#aradhana-questions-container input[type="radio"]');
+                    inputs.forEach(input => input.disabled = true);
+                    
+                    const submitBtn = document.getElementById('aradhana-submit-btn');
+                    if (submitBtn) {
+                        submitBtn.style.display = 'none';
+                    }
+                    
+                    let msgBox = document.getElementById('preview-msg');
+                    if(!msgBox) {
+                        msgBox = document.createElement('div');
+                        msgBox.id = 'preview-msg';
+                        msgBox.style.padding = '1rem';
+                        msgBox.style.background = '#FFF3E0';
+                        msgBox.style.color = '#E67A00';
+                        msgBox.style.borderRadius = '8px';
+                        msgBox.style.marginBottom = '1.5rem';
+                        msgBox.style.fontWeight = 'bold';
+                        msgBox.style.textAlign = 'center';
+                        msgBox.textContent = 'Preview Mode: Viewing only. Submissions are not yet active.';
+                        const container = document.getElementById('aradhana-questions-container');
+                        container.insertBefore(msgBox, container.firstChild);
+                    }
+                }, 50);
+            } catch (err) {
         async function verifyAuth() {
             try {
                 const response = await fetch('/api/me');
@@ -285,217 +496,6 @@
             renderCalendarMonth();
         };
 
-        const ARADHANA_QUESTIONS = [
-            { q: "1) तप करना", opts: ["नवकारसी (50)", "बियासण (250)", "एकासणा (400)", "आयंबिल (500)", "उपवास (700)", "कुछ नहीं किया (0)"] },
-            { q: "2) माता-पिता / साहेबजी अथवा वडिलों के पैर छूना", opts: ["पैर छुआ (50)", "नहीं छुआ (0)"] },
-            { q: "3) देरासर में तीन प्रदक्षिणा देना / दर्शन करना", opts: ["दर्शन किया (50)", "प्रदक्षिणा दी (50)", "दोनों किया (100)", "नहीं किया (0)"] },
-            { q: "4) परमात्मा की पूजा करना", opts: ["अष्टप्रकारी पूजा की (200)", "वासक्षेप पूजा / पखाल पूजा / केसर पूजा की (100)", "पूजा नहीं की (0)"] },
-            { q: "5) गुरु महाराज / गुरु मूर्ति को वंदन करना एवं मा. सा. को गोचरी की विनंती करना (उपाश्रय में जाकर) अथवा गोचरी वोहराना", opts: ["वंदन किया (100)", "विनंती की या वोहराया (100)", "दोनों किया (200)", "दोनों नहीं किया (0)"] },
-            { q: "6) बच्चों के हाथों से अनुकंपा / जीवदया करना", opts: ["अनुकंपा (50)", "जीवदया (50)", "दोनों (100)", "नहीं किया (0)"] },
-            { q: "7) सुबह उठते समय 8 नवकार गिनना/सुनाना एवं सोने से पहले 7 नवकार गिनना/सुनाना", opts: ["सुबह गिना/सुनाया (50)", "रात को गिना/सुनाया (50)", "दोनों समय गिना/सुनाया (100)", "नहीं गिना/सुनाया (0)"] },
-            { q: "8) एक लुखी रोटी खाना", opts: ["लुखी रोटी खाई (50)", "नहीं खाई (0)"] },
-            { q: "9) गरम पानी पीना", opts: ["पिया (100)", "नहीं पिया (0)"] },
-            { q: "10) थाली धोकर पीना", opts: ["एक टाइम (50)", "दो टाइम (100)", "तीन टाइम (150)", "नहीं पिया (0)"] },
-            { q: "11) बाहर की अभक्ष्य वस्तु एवं कंदमूल का त्याग", opts: ["त्याग किया (100)", "त्याग नहीं किया (0)"] },
-            { q: "12) सामायिक करना", opts: ["0 (0)", "1 सामायिक (150)", "2 सामायिक (300)", "3 सामायिक (450)"] },
-            { q: "13) बाढ़ी / पक्की नवकार वाली गिनना (108 नवकार)", opts: ["0 (0)", "1 (100)", "2 (200)", "3 (300)"] },
-            { q: "14) रात्रि भोजन का त्याग", opts: ["तिविहार (100)", "चौविहार (200)", "त्याग नहीं किया (0)"] },
-            { q: "15) संध्या प्रभु दर्शन / आरती", opts: ["प्रभु दर्शन किया (50)", "आरती की (50)", "दोनों किया (100)", "दोनों नहीं किया (0)"] },
-            { q: "16) पाठशाला जाना / संस्कार शाला", opts: ["पाठशाला जाना (100)", "पाठशाला जाना एवं नई गाथा करना (150)", "पाठशाला नहीं गए (0)"] },
-            { q: "17) प्रतिक्रमण करना", opts: ["राई प्रतिक्रमण किया (200)", "देवसिय प्रतिक्रमण किया (200)", "दोनों प्रतिक्रमण किया (400)", "नहीं किया (0)"] },
-            { q: "18) पोषध करना", opts: ["दिवस (1500)", "रात्रि (500)", "दोनों (2000)", "नहीं किया (0)"] },
-            { q: "19) मोबाइल एवं टी.वी. का त्याग", opts: ["मोबाइल और टीवी दोनों का त्याग (300)", "सिर्फ मोबाइल का त्याग (200)", "सिर्फ टीवी का त्याग (100)", "दोनों का त्याग नहीं किया (0)"] },
-            { q: "20) आराधक के माता-पिता का रात्रि भोजन त्याग", opts: ["पिता ने त्याग किया (100)", "माता ने त्याग किया (100)", "दोनों ने त्याग किया (200)", "किसी ने त्याग नहीं किया (0)"] }
-        ];
-        
-        function updateDependentOptions() {
-            const q0Selected = document.querySelector('input[name="aradhana-q-0"]:checked');
-            if (q0Selected) {
-                const q0Value = parseInt(q0Selected.value);
-                const q9Radios = document.querySelectorAll('input[name="aradhana-q-9"]');
-                q9Radios.forEach(radio => {
-                    const val = parseInt(radio.value);
-                    const label = radio.parentElement;
-                    let show = true;
-                    if (q0Value === 1) { // बियासण - max 2 times (hide 3 time)
-                        if (val === 2) show = false;
-                    } else if (q0Value === 2 || q0Value === 3) { // एकासणा / आयंबिल - max 1 time
-                        if (val === 1 || val === 2) show = false;
-                    } else if (q0Value === 4) { // उपवास - only D option (nahi piya)
-                        if (val !== 3) show = false;
-                    }
-                    if (show) {
-                        label.style.display = 'block';
-                    } else {
-                        label.style.display = 'none';
-                        if (radio.checked) {
-                            radio.checked = false;
-                            const defaultRadio = document.querySelector('input[name="aradhana-q-9"][value="3"]');
-                            if (defaultRadio) defaultRadio.checked = true;
-                        }
-                    }
-                });
-            }
-            
-            // --- Q17 (पोषध) restricting Q8 (गरम पानी) & Q11 (सामायिक) ---
-            const q17Selected = document.querySelector('input[name="aradhana-q-17"]:checked');
-            if (q17Selected) {
-                const q17Value = parseInt(q17Selected.value);
-                // 0 = दिवस, 1 = रात्रि, 2 = दोनों, 3 = नहीं किया
-                const isDivasiyaOrDono = (q17Value === 0 || q17Value === 2);
-
-                // Q8 (गरम पानी): index 8. Opts: 0: पिया, 1: नहीं पिया
-                const q8Radios = document.querySelectorAll('input[name="aradhana-q-8"]');
-                q8Radios.forEach(radio => {
-                    const val = parseInt(radio.value);
-                    const label = radio.parentElement;
-                    let show = true;
-                    if (isDivasiyaOrDono && val === 0) {
-                        show = false; // Cannot get points for garam pani if divasiya/dono poshad
-                    }
-                    if (show) {
-                        label.style.display = 'block';
-                    } else {
-                        label.style.display = 'none';
-                        if (radio.checked) {
-                            radio.checked = false;
-                            const defaultRadio = document.querySelector('input[name="aradhana-q-8"][value="1"]'); // "नहीं पिया (0)"
-                            if (defaultRadio) defaultRadio.checked = true;
-                        }
-                    }
-                });
-
-                // Q11 (सामायिक): index 11. Opts: 0: "0 (0)", 1: "1 सामायिक", 2: "2 सामायिक", 3: "3 सामायिक"
-                const q11Radios = document.querySelectorAll('input[name="aradhana-q-11"]');
-                q11Radios.forEach(radio => {
-                    const val = parseInt(radio.value);
-                    const label = radio.parentElement;
-                    let show = true;
-                    if (isDivasiyaOrDono && val !== 0) {
-                        show = false; // Cannot get individual samayik points if divasiya/dono poshad
-                    }
-                    if (show) {
-                        label.style.display = 'block';
-                    } else {
-                        label.style.display = 'none';
-                        if (radio.checked) {
-                            radio.checked = false;
-                            const defaultRadio = document.querySelector('input[name="aradhana-q-11"][value="0"]'); // "0 (0)"
-                            if (defaultRadio) defaultRadio.checked = true;
-                        }
-                    }
-                });
-            }
-            calculateLiveScore();
-        }
-        
-        function calculateLiveScore() {
-            let total = 0;
-            for (let i = 0; i < 20; i++) {
-                const checked = document.querySelector(`input[name="aradhana-q-${i}"]:checked`);
-                if (checked) {
-                    const oIndex = parseInt(checked.value);
-                    const optText = ARADHANA_QUESTIONS[i].opts[oIndex];
-                    const match = optText.match(/\((\d+)\)/);
-                    if (match) {
-                        total += parseInt(match[1]);
-                    }
-                }
-            }
-            document.getElementById('live-score-value').textContent = total;
-        }
-
-        function openAradhanaForm() {
-            // Get today's date in IST
-            const now = new Date();
-            const istDate = new Date(now.getTime() + (330 * 60000));
-            const dateDisplay = istDate.toISOString().split('T')[0];
-            
-            document.getElementById('aradhana-form-date-display').textContent = 'Date: ' + dateDisplay;
-
-            const container = document.getElementById('aradhana-questions-container');
-            container.innerHTML = '';
-            document.getElementById('live-score-value').textContent = '0';
-            
-            document.getElementById('aradhana-submit-btn').style.display = 'block';
-            const msgBox = document.getElementById('preview-msg');
-            if (msgBox) msgBox.remove();
-            
-            ARADHANA_QUESTIONS.forEach((qData, qIndex) => {
-                const qDiv = document.createElement('div');
-                qDiv.style.background = '#f8f9fa';
-                qDiv.style.padding = '1rem';
-                qDiv.style.borderRadius = '8px';
-                qDiv.style.border = '1px solid var(--border-color)';
-                
-                const qTitle = document.createElement('h4');
-                qTitle.textContent = qData.q;
-                qTitle.style.marginBottom = '0.75rem';
-                qTitle.style.color = 'var(--text-dark)';
-                qDiv.appendChild(qTitle);
-                
-                qData.opts.forEach((optText, oIndex) => {
-                    const label = document.createElement('label');
-                    label.style.display = 'block';
-                    label.style.marginBottom = '0.5rem';
-                    label.style.cursor = 'pointer';
-                    label.style.color = 'var(--text-dark)';
-                    
-                    const radio = document.createElement('input');
-                    radio.type = 'radio';
-                    radio.name = `aradhana-q-${qIndex}`;
-                    radio.value = oIndex;
-                    radio.required = true;
-                    radio.style.marginRight = '8px';
-                    radio.addEventListener('change', () => {
-                        calculateLiveScore();
-                        if (qIndex === 0 || qIndex === 17) updateDependentOptions();
-                    });
-                    
-                    label.appendChild(radio);
-                    label.appendChild(document.createTextNode(optText));
-                    qDiv.appendChild(label);
-                });
-                
-                container.appendChild(qDiv);
-            });
-            
-            // Ensure logic is applied initially if something is pre-selected
-            updateDependentOptions();
-            
-            document.getElementById('aradhana-form-modal').classList.add('active');
-        }
-
-        window.previewAaradhnaForm = function() {
-            try {
-                openAradhnaForm();
-                
-                setTimeout(() => {
-                    const inputs = document.querySelectorAll('#aradhana-questions-container input[type="radio"]');
-                    inputs.forEach(input => input.disabled = true);
-                    
-                    const submitBtn = document.getElementById('aradhana-submit-btn');
-                    if (submitBtn) {
-                        submitBtn.style.display = 'none';
-                    }
-                    
-                    let msgBox = document.getElementById('preview-msg');
-                    if(!msgBox) {
-                        msgBox = document.createElement('div');
-                        msgBox.id = 'preview-msg';
-                        msgBox.style.padding = '1rem';
-                        msgBox.style.background = '#FFF3E0';
-                        msgBox.style.color = '#E67A00';
-                        msgBox.style.borderRadius = '8px';
-                        msgBox.style.marginBottom = '1.5rem';
-                        msgBox.style.fontWeight = 'bold';
-                        msgBox.style.textAlign = 'center';
-                        msgBox.textContent = 'Preview Mode: Viewing only. Submissions are not yet active.';
-                        const container = document.getElementById('aradhana-questions-container');
-                        container.insertBefore(msgBox, container.firstChild);
-                    }
-                }, 50);
-            } catch (err) {
                 alert("Error in preview: " + err.message + "\n" + err.stack);
             }
         }
