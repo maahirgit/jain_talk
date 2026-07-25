@@ -73,7 +73,7 @@ app.use(async (req, res, next) => {
 const userSchema = new mongoose.Schema({
     name: { type: String, required: true },
     number: { type: String, required: true },
-    email: { type: String, required: true, unique: true },
+    email: { type: String, required: true },
     city: { type: String, required: true },
     sangh: { type: String, required: true },
     password: { type: String, required: true },
@@ -157,9 +157,12 @@ app.post('/api/signup', authLimiter, async (req, res) => {
     try {
         const { name, number, email, city, sangh, password } = req.body;
 
-        const existingUser = await User.findOne({ email });
-        if (existingUser) {
-            return res.status(400).json({ error: 'An account with this email already exists!' });
+        const existingUsers = await User.find({ email });
+        for (const u of existingUsers) {
+            const isMatch = await bcrypt.compare(password, u.password);
+            if (isMatch) {
+                return res.status(400).json({ error: 'An account with this email and password already exists! Please use a different password to create a new account.' });
+            }
         }
 
         // Generate unique username: JT_{id}_{firstName}
@@ -189,15 +192,25 @@ app.post('/api/login', authLimiter, async (req, res) => {
     try {
         const { email, password } = req.body;
 
-        const user = await User.findOne({ email });
-        if (!user) {
+        const users = await User.find({ email });
+        if (!users || users.length === 0) {
             return res.status(400).json({ error: 'Invalid email or password.' });
         }
 
-        const isMatch = await bcrypt.compare(password, user.password);
-        if (!isMatch) {
+        let matchedUser = null;
+        for (const u of users) {
+            const isMatch = await bcrypt.compare(password, u.password);
+            if (isMatch) {
+                matchedUser = u;
+                break;
+            }
+        }
+
+        if (!matchedUser) {
             return res.status(400).json({ error: 'Invalid email or password.' });
         }
+
+        const user = matchedUser;
 
         // Generate JWT Token
         const token = jwt.sign(
