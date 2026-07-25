@@ -237,53 +237,81 @@ app.post('/api/login', authLimiter, async (req, res) => {
 // Forgot Password Route
 app.post('/api/forgot-password', authLimiter, async (req, res) => {
     try {
-        const { number } = req.body;
-        const user = await User.findOne({ number });
-        if (!user) {
-            return res.status(404).json({ error: 'User with this phone number not found.' });
+        const { email } = req.body;
+        const users = await User.find({ email: new RegExp('^' + email + '$', 'i') });
+        if (!users || users.length === 0) {
+            return res.status(404).json({ error: 'User with this email not found.' });
         }
         
         // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        user.resetOtp = otp;
-        user.resetOtpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
-        await user.save();
+        const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
+
+        // Save OTP to all associated accounts
+        for (const user of users) {
+            user.resetOtp = otp;
+            user.resetOtpExpires = otpExpires;
+            await user.save();
+        }
         
         // Send OTP via Email
         const mailOptions = {
             from: process.env.EMAIL_USER,
-            to: user.email,
+            to: email,
             subject: 'Password Reset OTP - Jain Talk',
             text: `Your OTP for password reset is: ${otp}. It is valid for 10 minutes.`
         };
 
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
             await transporter.sendMail(mailOptions);
-            console.log(`[EMAIL] OTP sent to ${user.email}`);
+            console.log(`[EMAIL] OTP sent to ${email}`);
         } else {
-            // Fallback for development if credentials are not set
-            console.log(`[MOCK EMAIL] Missing email credentials in .env. OTP for ${user.email} is ${otp}`);
+            console.log(`[MOCK EMAIL] Missing email credentials in .env. OTP for ${email} is ${otp}`);
         }
         
-        res.status(200).json({ message: 'OTP sent to your registered email address.' });
+        res.status(200).json({ message: 'OTP sent to your email address.' });
     } catch (error) {
         console.error('Forgot Password Error:', error);
         res.status(500).json({ error: 'Server error during forgot password.' });
     }
 });
 
+// Verify OTP Route (NEW)
+app.post('/api/verify-otp', authLimiter, async (req, res) => {
+    try {
+        const { email, otp } = req.body;
+        const users = await User.find({ 
+            email: new RegExp('^' + email + '$', 'i'),
+            resetOtp: otp,
+            resetOtpExpires: { $gt: Date.now() }
+        });
+        
+        if (!users || users.length === 0) {
+            return res.status(400).json({ error: 'Invalid or expired OTP.' });
+        }
+        
+        // Return list of accounts
+        const accounts = users.map(u => ({ username: u.username, name: u.name }));
+        res.status(200).json({ accounts });
+    } catch (error) {
+        console.error('Verify OTP Error:', error);
+        res.status(500).json({ error: 'Server error during OTP verification.' });
+    }
+});
+
 // Reset Password Route
 app.post('/api/reset-password', authLimiter, async (req, res) => {
     try {
-        const { number, otp, newPassword } = req.body;
+        const { email, otp, username, newPassword } = req.body;
         const user = await User.findOne({ 
-            number,
+            email: new RegExp('^' + email + '$', 'i'),
+            username,
             resetOtp: otp,
             resetOtpExpires: { $gt: Date.now() }
         });
         
         if (!user) {
-            return res.status(400).json({ error: 'Invalid or expired OTP.' });
+            return res.status(400).json({ error: 'Invalid OTP or account not found.' });
         }
         
         const salt = await bcrypt.genSalt(10);
@@ -294,7 +322,7 @@ app.post('/api/reset-password', authLimiter, async (req, res) => {
         user.resetOtpExpires = undefined;
         await user.save();
         
-        res.status(200).json({ message: 'Password reset successful! You can now log in.' });
+        res.status(200).json({ message: 'Password reset successful.' });
     } catch (error) {
         console.error('Reset Password Error:', error);
         res.status(500).json({ error: 'Server error during password reset.' });

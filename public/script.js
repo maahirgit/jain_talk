@@ -207,9 +207,14 @@ document.addEventListener('DOMContentLoaded', () => {
     const closeForgotModal = document.getElementById('close-forgot-modal');
     const forgotStep1 = document.getElementById('forgot-step-1');
     const forgotStep2 = document.getElementById('forgot-step-2');
+    const forgotStep3 = document.getElementById('forgot-step-3');
     const forgotPasswordForm = document.getElementById('forgot-password-form');
+    const verifyOtpForm = document.getElementById('verify-otp-form');
     const resetPasswordForm = document.getElementById('reset-password-form');
-    let resetPhoneNumber = '';
+    const accountSelect = document.getElementById('reset-account-select');
+    
+    let resetEmail = '';
+    let validOtp = '';
 
     if (forgotPasswordLink && forgotPasswordModal) {
         forgotPasswordLink.addEventListener('click', (e) => {
@@ -217,7 +222,9 @@ document.addEventListener('DOMContentLoaded', () => {
             forgotPasswordModal.classList.add('active');
             forgotStep1.style.display = 'block';
             forgotStep2.style.display = 'none';
+            if (forgotStep3) forgotStep3.style.display = 'none';
             forgotPasswordForm.reset();
+            if (verifyOtpForm) verifyOtpForm.reset();
             resetPasswordForm.reset();
         });
 
@@ -228,8 +235,8 @@ document.addEventListener('DOMContentLoaded', () => {
         // Step 1: Request OTP
         forgotPasswordForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const numberInput = document.getElementById('forgot-number');
-            resetPhoneNumber = numberInput.value;
+            const emailInput = document.getElementById('forgot-email');
+            resetEmail = emailInput.value;
             const btn = document.getElementById('send-otp-btn');
             
             btn.innerHTML = 'Sending...';
@@ -239,12 +246,12 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch('/api/forgot-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ number: resetPhoneNumber })
+                    body: JSON.stringify({ email: resetEmail })
                 });
                 const data = await response.json();
 
                 if (response.ok) {
-                    alert('OTP has been sent to your registered email address (check console if running locally without credentials).');
+                    alert('OTP has been sent to your email address (check console if running locally without credentials).');
                     forgotStep1.style.display = 'none';
                     forgotStep2.style.display = 'block';
                 } else {
@@ -259,11 +266,54 @@ document.addEventListener('DOMContentLoaded', () => {
             }
         });
 
-        // Step 2: Verify OTP & Reset Password
+        // Step 2: Verify OTP
+        if (verifyOtpForm) {
+            verifyOtpForm.addEventListener('submit', async (e) => {
+                e.preventDefault();
+                validOtp = document.getElementById('reset-otp').value;
+                const btn = document.getElementById('verify-otp-btn');
+                
+                btn.innerHTML = 'Verifying...';
+                btn.disabled = true;
+
+                try {
+                    const response = await fetch('/api/verify-otp', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ email: resetEmail, otp: validOtp })
+                    });
+                    const data = await response.json();
+
+                    if (response.ok && data.accounts) {
+                        // Populate select options
+                        accountSelect.innerHTML = '';
+                        data.accounts.forEach(acc => {
+                            const opt = document.createElement('option');
+                            opt.value = acc.username;
+                            opt.textContent = `${acc.name} (${acc.username})`;
+                            accountSelect.appendChild(opt);
+                        });
+                        
+                        forgotStep2.style.display = 'none';
+                        if (forgotStep3) forgotStep3.style.display = 'block';
+                    } else {
+                        alert(data.error || 'Failed to verify OTP.');
+                    }
+                } catch (error) {
+                    console.error('Verify OTP error:', error);
+                    alert('Something went wrong. Please try again.');
+                } finally {
+                    btn.innerHTML = 'Verify OTP';
+                    btn.disabled = false;
+                }
+            });
+        }
+
+        // Step 3: Reset Password
         resetPasswordForm.addEventListener('submit', async (e) => {
             e.preventDefault();
-            const otp = document.getElementById('reset-otp').value;
             const newPassword = document.getElementById('reset-new-password').value;
+            const selectedUsername = accountSelect.value;
             const btn = document.getElementById('reset-password-btn');
 
             if (newPassword.length < 6) {
@@ -278,7 +328,7 @@ document.addEventListener('DOMContentLoaded', () => {
                 const response = await fetch('/api/reset-password', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ number: resetPhoneNumber, otp, newPassword })
+                    body: JSON.stringify({ email: resetEmail, otp: validOtp, username: selectedUsername, newPassword })
                 });
                 const data = await response.json();
 
