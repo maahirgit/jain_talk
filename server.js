@@ -874,8 +874,8 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
-// Daily Cron Job (Runs every day at 08:00 AM) for Email Reminders
-cron.schedule('0 8 * * *', async () => {
+// Daily Cron Job (Runs every day at 18:00 / 6:00 PM) for Email Reminders
+cron.schedule('0 18 * * *', async () => {
     try {
         console.log('Running daily Panchang cron job for reminders...');
         
@@ -889,31 +889,60 @@ cron.schedule('0 8 * * *', async () => {
         if (parvaTithis.includes(tomorrowTithi.name)) {
             console.log(`Tomorrow is a Parva Tithi: ${tomorrowTithi.fullName}. Sending reminders...`);
             
+            // Format tomorrow's date
+            const dateStr = tomorrow.toLocaleDateString('en-GB'); // DD/MM/YYYY
+            const tithiDisplayName = tomorrowTithi.fullName;
+
             // Fetch all users with email
             const users = await User.find({ email: { $exists: true, $ne: "" } });
             
-            for (const user of users) {
+            // Filter unique emails
+            const uniqueEmails = [...new Set(users.map(u => u.email.trim().toLowerCase()))];
+            
+            for (let i = 0; i < uniqueEmails.length; i++) {
+                const email = uniqueEmails[i];
                 const mailOptions = {
                     from: process.env.EMAIL_USER,
-                    to: user.email,
-                    subject: '🌟 Reminder: Auspicious Day Tomorrow!',
+                    to: email,
+                    subject: `🌙 આવતીકાલે પર્વ તિથિ છે: ${tithiDisplayName} રિમાઇન્ડર - Jain Talk`,
                     html: `
-                        <div style="font-family: Arial, sans-serif; text-align: center; color: #333;">
-                            <h2 style="color: #FF9800;">Jai Jinendra, ${user.name}!</h2>
-                            <p>This is a gentle reminder that tomorrow is an auspicious Parva Tithi:</p>
-                            <h3 style="color: #D84315; font-size: 24px; margin: 10px 0;">${tomorrowTithi.fullName}</h3>
-                            <p>It is a great day for Aradhana, fasting, or spiritual activities.</p>
-                            <br/>
-                            <p>Warm regards,<br/><strong>Jain Talks Team</strong></p>
+                        <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                            <p>પ્રણામ પુણ્યશાળી,</p>
+                        
+                            <p>આપને પ્રેમપૂર્વક યાદ અપાવવા માટે કે આવતીકાલે, <strong>${dateStr}</strong> ના રોજ, <strong>${tithiDisplayName}</strong> ની પર્વ તિથિ છે.</p>
+                        
+                            <p>જૈન ધર્મમાં પર્વ તિથિનું અનેરું આધ્યાત્મિક મહત્વ રહેલું છે. આ પવિત્ર દિવસે નીચે મુજબના નિયમોનું પાલન કરવાનો આગ્રહ રાખવો:</p>
+                            
+                            <div style="margin: 20px 0; padding: 15px; background-color: #fff4e6; border-left: 5px solid #FF9800; border-radius: 4px;">
+                                <ul style="margin: 0; padding-left: 20px;">
+                                    <li style="margin-bottom: 10px;">🥬 <strong>લીલોતરી નો ત્યાગ:</strong> પર્વ તિથિના દિવસે લીલા શાકભાજી અને કંદમૂળનો સંપૂર્ણ ત્યાગ કરવો.</li>
+                                    <li style="margin-bottom: 10px;">🧘 <strong>તપશ્ચર્યા:</strong> આપની શક્તિ અનુસાર ઉપવાસ, એકાસણા કે બીયાસણા કરી આરાધના કરવી.</li>
+                                    <li>📿 <strong>ધર્મ ધ્યાન:</strong> વધુમાં વધુ સમય પ્રભુ સ્મરણ, સામાયિક અને ધર્મ ધ્યાનમાં પસાર કરવો.</li>
+                                </ul>
+                            </div>
+                        
+                            <p>આપણી <strong>'સૌ ચાલો આરાધના કરીએ'</strong> ની વેબસાઇટ પર આવતીકાલની વિશેષ આરાધના સબમિટ કરવાનું ચૂકશો નહીં!</p>
+                        
+                            <p>આપની ધર્મ આરાધના નિર્વિઘ્ને પૂર્ણ થાય તેવી શુભકામનાઓ.</p>
+                        
+                            <p>જય જિનેન્દ્ર!</p>
+                        
+                            <p>લી.,<br>
+                            <strong>Team Jain Talk</strong><br>
+                            <span style="font-size: 12px; color: #777;">Powered by Design Ville by Maahir Shah</span></p>
                         </div>
                     `
                 };
                 
                 try {
                     await transporter.sendMail(mailOptions);
+                    console.log(`[${i + 1}/${uniqueEmails.length}] Tithi reminder sent to ${email}`);
                 } catch (mailErr) {
-                    console.error(`Failed to send email to ${user.email}:`, mailErr.message);
+                    console.error(`Failed to send email to ${email}:`, mailErr.message);
                 }
+                
+                // Wait 1.5 seconds between emails to avoid rate limit
+                await new Promise(resolve => setTimeout(resolve, 1500));
             }
             console.log('Finished sending Parva Tithi reminders.');
         } else {
