@@ -753,7 +753,9 @@ const Astronomy = require('astronomy-engine');
 const cron = require('node-cron');
 
 function getExactTithi(date) {
-    const time = new Astronomy.AstroTime(date);
+    // Traditional Hindu Panchang assigns the day's Tithi based on Sunrise (approx 6:00 AM local time)
+    const sunriseDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6, 0, 0);
+    const time = new Astronomy.AstroTime(sunriseDate);
     const moonPhase = Astronomy.MoonPhase(time); // Returns 0 to 360 degrees
     
     // Tithi is exactly 12 degrees of moon phase
