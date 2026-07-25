@@ -1342,15 +1342,15 @@
             });
 
             // Aradhana Modal Event Listeners
-            const closeBtn = document.getElementById('close-aradhana-form-modal');
-            if (closeBtn) {
-                closeBtn.addEventListener('click', () => {
+            const aradhanaCloseBtn = document.getElementById('close-aradhana-form-modal');
+            if (aradhanaCloseBtn) {
+                aradhanaCloseBtn.addEventListener('click', () => {
                     document.getElementById('aradhana-form-modal').classList.remove('active');
                 });
             }
-            const submitBtn = document.getElementById('aradhana-submit-btn');
-            if (submitBtn) {
-                submitBtn.addEventListener('click', async (e) => {
+            const aradhanaSubmitBtn = document.getElementById('aradhana-submit-btn');
+            if (aradhanaSubmitBtn) {
+                aradhanaSubmitBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
                     const answers = [];
                     let calculatedPoints = 0;
