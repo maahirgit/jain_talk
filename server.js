@@ -953,6 +953,82 @@ cron.schedule('0 18 * * *', async () => {
     }
 });
 
+// Daily Cron Job (Runs every day at 21:00 / 9:00 PM) for Missing Aradhana Submissions
+cron.schedule('0 21 * * *', async () => {
+    try {
+        console.log('Running daily 9 PM Aradhana missing submission check...');
+        
+        // Get today's date in YYYY-MM-DD format
+        const today = new Date();
+        const yyyy = today.getFullYear();
+        const mm = String(today.getMonth() + 1).padStart(2, '0');
+        const dd = String(today.getDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+        
+        // Find all submissions for today
+        const todaysSubmissions = await AradhanaSubmission.find({ dateString: todayStr });
+        const submittedUserIds = todaysSubmissions.map(sub => sub.userId.toString());
+        
+        // Find all course registrations
+        const courseRegistrations = await CourseRegistration.find({});
+        
+        // Filter course users who haven't submitted today
+        const missingUsers = courseRegistrations.filter(reg => !submittedUserIds.includes(reg.userId.toString()));
+        
+        if (missingUsers.length === 0) {
+            console.log('All course registered users have submitted their Aradhana today!');
+            return;
+        }
+
+        // Get unique emails of missing users
+        const uniqueEmails = [...new Set(missingUsers.map(u => u.email.trim().toLowerCase()))].filter(email => email !== "");
+        
+        console.log(`Found ${uniqueEmails.length} missing submissions. Sending reminders...`);
+        
+        for (let i = 0; i < uniqueEmails.length; i++) {
+            const email = uniqueEmails[i];
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: '⏳ આજની આરાધના બાકી છે! (Today\'s Aradhana Pending)',
+                html: `
+                    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                        <p>પ્રણામ પુણ્યશાળી,</p>
+                        
+                        <p>અમારી સિસ્ટમ મુજબ, આપની આજની ધર્મ આરાધના હજુ સુધી નોંધાઈ નથી.</p>
+                        
+                        <p>આપની આરાધનામાં સાતત્ય જળવાઈ રહે તે માટે, કૃપા કરીને આજે રાત્રે સૂતા પહેલાં <strong>'સૌ ચાલો આરાધના કરીએ' (Jain Talk)</strong> વેબસાઇટ પર જઈને આપની આજની આરાધના ચોક્કસથી સબમિટ કરી દેજો.</p>
+                        
+                        <p>જય જિનેન્દ્ર!</p>
+                        
+                        <p>લી.,<br>
+                        <strong>Team Jain Talk</strong></p>
+                        
+                        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                        <p style="font-size: 12px; color: #777;">
+                            Website Designed and Developed by <a href="https://design-ville.com/" style="color: #FF9800; text-decoration: none;"><strong>Design Ville by Maahir Shah</strong></a>
+                        </p>
+                    </div>
+                `
+            };
+            
+            try {
+                await transporter.sendMail(mailOptions);
+                console.log(`[${i + 1}/${uniqueEmails.length}] Aradhana reminder sent to ${email}`);
+            } catch (mailErr) {
+                console.error(`Failed to send Aradhana reminder to ${email}:`, mailErr.message);
+            }
+            
+            // Wait 1.5 seconds to avoid rate limits
+            await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+        
+        console.log('Finished sending Aradhana missing reminders.');
+    } catch (error) {
+        console.error('9 PM Aradhana Cron Job Error:', error);
+    }
+});
+
 // Start Server
 if (!process.env.VERCEL) {
     app.listen(PORT, () => {
