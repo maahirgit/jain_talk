@@ -396,7 +396,7 @@
             }
             
             const formBtn = document.getElementById('open-aradhana-form-btn');
-            if (data.hasSubmittedToday && !data.isTestingBypass) {
+            if (data.hasSubmittedToday) {
                 formBtn.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> Today's Aradhana Completed`;
                 formBtn.style.background = '#4CAF50';
                 formBtn.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.4)';

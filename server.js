@@ -719,12 +719,7 @@ app.post('/api/aradhana/submit', async (req, res) => {
         // Check if already submitted
         const existing = await AradhanaSubmission.findOne({ userId: decoded.id, dateString: todayStr });
         if (existing) {
-            if (isTestingBypass) {
-                // Allow testing user to overwrite for testing purposes
-                await AradhanaSubmission.deleteOne({ _id: existing._id });
-            } else {
-                return res.status(400).json({ error: 'You have already submitted today\'s Aradhana' });
-            }
+            return res.status(400).json({ error: 'You have already submitted today\'s Aradhana' });
         }
         
         // Calculate exact points
