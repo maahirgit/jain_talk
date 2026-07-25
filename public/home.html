@@ -222,6 +222,10 @@
                     }
                 }, 50);
             } catch (err) {
+                alert("Error in preview: " + err.message + "\n" + err.stack);
+            }
+        }
+        
         async function verifyAuth() {
             try {
                 const response = await fetch('/api/me');
@@ -495,10 +499,6 @@
             }
             renderCalendarMonth();
         };
-
-                alert("Error in preview: " + err.message + "\n" + err.stack);
-            }
-        }
 
         // Attach form event listeners directly since DOM is already loaded
         if (!window.aradhanaFormListenersAttached) {
