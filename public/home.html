@@ -417,6 +417,10 @@
             container.innerHTML = '';
             document.getElementById('live-score-value').textContent = '0';
             
+            document.getElementById('aradhana-submit-btn').style.display = 'block';
+            const msgBox = document.getElementById('preview-msg');
+            if (msgBox) msgBox.remove();
+            
             ARADHANA_QUESTIONS.forEach((qData, qIndex) => {
                 const qDiv = document.createElement('div');
                 qDiv.style.background = '#f8f9fa';
@@ -460,6 +464,36 @@
             updateDependentOptions();
             
             document.getElementById('aradhana-form-modal').classList.add('active');
+        }
+
+        function previewAaradhnaForm() {
+            openAradhnaForm();
+            
+            setTimeout(() => {
+                const inputs = document.querySelectorAll('#aradhana-questions-container input[type="radio"]');
+                inputs.forEach(input => input.disabled = true);
+                
+                const submitBtn = document.getElementById('aradhana-submit-btn');
+                if (submitBtn) {
+                    submitBtn.style.display = 'none';
+                }
+                
+                let msgBox = document.getElementById('preview-msg');
+                if(!msgBox) {
+                    msgBox = document.createElement('div');
+                    msgBox.id = 'preview-msg';
+                    msgBox.style.padding = '1rem';
+                    msgBox.style.background = '#FFF3E0';
+                    msgBox.style.color = '#E67A00';
+                    msgBox.style.borderRadius = '8px';
+                    msgBox.style.marginBottom = '1.5rem';
+                    msgBox.style.fontWeight = 'bold';
+                    msgBox.style.textAlign = 'center';
+                    msgBox.textContent = 'Preview Mode: Viewing only. Submissions are not yet active.';
+                    const container = document.getElementById('aradhana-questions-container');
+                    container.insertBefore(msgBox, container.firstChild);
+                }
+            }, 50);
         }
 
         document.addEventListener('DOMContentLoaded', () => {
@@ -964,6 +998,9 @@
                             <button id="open-register-btn" style="padding: 0.6rem 1.5rem; border-radius: 8px; border: none; background: white; color: var(--primary-dark); font-weight: 700; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                                 Register
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
+                            </button>
+                            <button onclick="previewAaradhnaForm()" style="padding: 0.6rem 1rem; border-radius: 8px; border: 1px solid var(--primary-color); background: transparent; color: var(--primary-dark); font-weight: 700; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem;">
+                                Preview Form
                             </button>
                         </div>
                         <div id="event-countdown-container" style="background: var(--secondary-color); padding: 1rem; border-radius: 8px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
