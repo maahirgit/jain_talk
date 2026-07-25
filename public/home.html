@@ -467,94 +467,106 @@
         }
 
         window.previewAaradhnaForm = function() {
-            openAradhnaForm();
-            
-            setTimeout(() => {
-                const inputs = document.querySelectorAll('#aradhana-questions-container input[type="radio"]');
-                inputs.forEach(input => input.disabled = true);
+            try {
+                openAradhnaForm();
                 
-                const submitBtn = document.getElementById('aradhana-submit-btn');
-                if (submitBtn) {
-                    submitBtn.style.display = 'none';
-                }
-                
-                let msgBox = document.getElementById('preview-msg');
-                if(!msgBox) {
-                    msgBox = document.createElement('div');
-                    msgBox.id = 'preview-msg';
-                    msgBox.style.padding = '1rem';
-                    msgBox.style.background = '#FFF3E0';
-                    msgBox.style.color = '#E67A00';
-                    msgBox.style.borderRadius = '8px';
-                    msgBox.style.marginBottom = '1.5rem';
-                    msgBox.style.fontWeight = 'bold';
-                    msgBox.style.textAlign = 'center';
-                    msgBox.textContent = 'Preview Mode: Viewing only. Submissions are not yet active.';
-                    const container = document.getElementById('aradhana-questions-container');
-                    container.insertBefore(msgBox, container.firstChild);
-                }
-            }, 50);
+                setTimeout(() => {
+                    const inputs = document.querySelectorAll('#aradhana-questions-container input[type="radio"]');
+                    inputs.forEach(input => input.disabled = true);
+                    
+                    const submitBtn = document.getElementById('aradhana-submit-btn');
+                    if (submitBtn) {
+                        submitBtn.style.display = 'none';
+                    }
+                    
+                    let msgBox = document.getElementById('preview-msg');
+                    if(!msgBox) {
+                        msgBox = document.createElement('div');
+                        msgBox.id = 'preview-msg';
+                        msgBox.style.padding = '1rem';
+                        msgBox.style.background = '#FFF3E0';
+                        msgBox.style.color = '#E67A00';
+                        msgBox.style.borderRadius = '8px';
+                        msgBox.style.marginBottom = '1.5rem';
+                        msgBox.style.fontWeight = 'bold';
+                        msgBox.style.textAlign = 'center';
+                        msgBox.textContent = 'Preview Mode: Viewing only. Submissions are not yet active.';
+                        const container = document.getElementById('aradhana-questions-container');
+                        container.insertBefore(msgBox, container.firstChild);
+                    }
+                }, 50);
+            } catch (err) {
+                alert("Error in preview: " + err.message + "\n" + err.stack);
+            }
         }
 
-        document.addEventListener('DOMContentLoaded', () => {
-            document.getElementById('close-aradhana-form-modal').addEventListener('click', () => {
-                document.getElementById('aradhana-form-modal').classList.remove('active');
-            });
-            document.getElementById('aradhana-submit-btn').addEventListener('click', async (e) => {
-            
-            const answers = [];
-            let calculatedPoints = 0;
-            
-            for (let i = 0; i < 20; i++) {
-                const checked = document.querySelector(`input[name="aradhana-q-${i}"]:checked`);
-                if (!checked) return alert('Please answer all 20 questions.');
-                
-                const oIndex = parseInt(checked.value);
-                answers.push(oIndex);
-                
-                // Extract points from the bracket in the text (e.g. "नवकारसी (50)")
-                const optText = ARADHANA_QUESTIONS[i].opts[oIndex];
-                const match = optText.match(/\((\d+)\)/);
-                if (match) {
-                    calculatedPoints += parseInt(match[1]);
-                }
-            }
-            
-            // Remove the blocking alert for calculated score
-            try {
-                const submitBtn = document.getElementById('aradhana-submit-btn');
-                submitBtn.textContent = 'Saving ' + calculatedPoints + ' points...';
-                submitBtn.disabled = true;
-                
-                const response = await fetch('/api/aradhana/submit', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ answers })
+        // Attach form event listeners directly since DOM is already loaded
+        if (!window.aradhanaFormListenersAttached) {
+            const closeBtn = document.getElementById('close-aradhana-form-modal');
+            if (closeBtn) {
+                closeBtn.addEventListener('click', () => {
+                    document.getElementById('aradhana-form-modal').classList.remove('active');
                 });
-                
-                const data = await response.json();
-                
-                if (response.ok) {
-                    submitBtn.textContent = 'Success! ' + data.points + ' points awarded.';
-                    submitBtn.style.background = '#4CAF50';
-                    setTimeout(() => {
-                        document.getElementById('aradhana-form-modal').classList.remove('active');
-                        fetchAradhanaStatus(); // Refresh dashboard
-                    }, 1500);
-                } else {
-                    alert(data.error || 'Submission failed');
-                    submitBtn.textContent = 'Submit Aradhana';
-                    submitBtn.disabled = false;
-                }
-            } catch (err) {
-                console.error(err);
-                alert('Connection error');
-                const submitBtn = document.getElementById('aradhana-submit-btn');
-                submitBtn.textContent = 'Submit Aradhana';
-                submitBtn.disabled = false;
             }
-        });
-        });
+            const submitBtn = document.getElementById('aradhana-submit-btn');
+            if (submitBtn) {
+                submitBtn.addEventListener('click', async (e) => {
+                    e.preventDefault();
+                    const answers = [];
+                    let calculatedPoints = 0;
+                    
+                    for (let i = 0; i < 20; i++) {
+                        const checked = document.querySelector(`input[name="aradhana-q-${i}"]:checked`);
+                        if (!checked) return alert('Please answer all 20 questions.');
+                        
+                        const oIndex = parseInt(checked.value);
+                        answers.push(oIndex);
+                        
+                        // Extract points from the bracket in the text (e.g. "नवकारसी (50)")
+                        const optText = ARADHANA_QUESTIONS[i].opts[oIndex];
+                        const match = optText.match(/\((\d+)\)/);
+                        if (match) {
+                            calculatedPoints += parseInt(match[1]);
+                        }
+                    }
+                    
+                    // Remove the blocking alert for calculated score
+                    try {
+                        const sBtn = document.getElementById('aradhana-submit-btn');
+                        sBtn.textContent = 'Saving ' + calculatedPoints + ' points...';
+                        sBtn.disabled = true;
+                        
+                        const response = await fetch('/api/aradhana/submit', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ answers })
+                        });
+                        
+                        const data = await response.json();
+                        
+                        if (response.ok) {
+                            sBtn.textContent = 'Success! ' + data.points + ' points awarded.';
+                            sBtn.style.background = '#4CAF50';
+                            setTimeout(() => {
+                                document.getElementById('aradhana-form-modal').classList.remove('active');
+                                fetchAradhanaStatus(); // Refresh dashboard
+                            }, 1500);
+                        } else {
+                            alert(data.error || 'Submission failed');
+                            sBtn.textContent = 'Submit Aradhana';
+                            sBtn.disabled = false;
+                        }
+                    } catch (err) {
+                        console.error(err);
+                        alert('Connection error');
+                        const sBtn = document.getElementById('aradhana-submit-btn');
+                        sBtn.textContent = 'Submit Aradhana';
+                        sBtn.disabled = false;
+                    }
+                });
+            }
+            window.aradhanaFormListenersAttached = true;
+        }
     </script>
     <style>
         /* OVERRIDE GLOBALS from style.css for Dashboard Layout */
