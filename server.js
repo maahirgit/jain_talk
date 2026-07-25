@@ -809,9 +809,6 @@ app.get('/api/leaderboard', async (req, res) => {
                 $sort: { totalPoints: -1 }
             },
             {
-                $limit: 10
-            },
-            {
                 $lookup: {
                     from: "users",
                     localField: "_id",
@@ -821,6 +818,17 @@ app.get('/api/leaderboard', async (req, res) => {
             },
             {
                 $unwind: "$userInfo"
+            },
+            {
+                $match: {
+                    "userInfo.email": {
+                        $not: { $regex: /maahir/i },
+                        $ne: "akshitjain61130@gmail.com"
+                    }
+                }
+            },
+            {
+                $limit: 10
             },
             {
                 $project: {
