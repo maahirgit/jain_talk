@@ -783,8 +783,8 @@ app.post('/api/aradhana/submit', async (req, res) => {
         
         const todayStr = getLocalDateString(new Date());
         
-        // Date validation: Only open between July 28 - Sept 25
-        if (todayStr < '2025-07-28' || todayStr > '2025-09-25') {
+        // Date validation: Only open between July 28 - Sept 25, 2026
+        if (todayStr < '2026-07-28' || todayStr > '2026-09-25') {
             return res.status(400).json({ error: 'Aradhana can only be submitted between July 28 and Sept 25' });
         }
         console.log('[SUBMIT] User:', user.email, '| Date:', todayStr, '| Answers length:', answers.length);
