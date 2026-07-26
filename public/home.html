@@ -304,44 +304,34 @@
             if (registration) {
                 if (eventCountdown) eventCountdown.style.display = 'block';
                 if (whatsappGroup) whatsappGroup.style.display = 'block';
-                if (registration.isPaymentVerified || user.email === 'maahirmshah4252@gmail.com' || user.email.toLowerCase() === 'akshitjain61130@gmail.com') {
-                    
-                    // Hide preview form button — this user has real access
-                    if (previewFormBtn) previewFormBtn.style.display = 'none';
 
-                    if (aradhanaStarted) {
-                        // 28th+ → Show real Aradhana Card button
-                        registerBtn.innerHTML = `
-                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#34C759" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
-                            Unlocked: View Aaradhna Card
-                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: auto;"><path d="M9 18l6-6-6-6"></path></svg>
-                        `;
-                        registerBtn.style.color = 'var(--primary-dark)';
-                        registerBtn.style.background = 'white';
-                        registerBtn.style.cursor = 'pointer';
-                        registerBtn.style.opacity = '1';
-                    } else {
-                        // Before 28th → Show Access Granted state
-                        registerBtn.innerHTML = `
-                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#34C759" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                            Access Granted — Opens on 28th July!
-                        `;
-                        registerBtn.style.color = '#1b5e20';
-                        registerBtn.style.background = '#e8f5e9';
-                        registerBtn.style.cursor = 'default';
-                        registerBtn.style.opacity = '1';
-                        registerBtn.style.border = '1.5px solid #4CAF50';
-                        registerBtn.onclick = (e) => e.preventDefault(); // Disable click before 28th
-                    }
-                } else {
+                // ALL registered users get access — hide preview form button
+                if (previewFormBtn) previewFormBtn.style.display = 'none';
+
+                if (aradhanaStarted) {
+                    // 28th+ → Show real Aradhana Card button
                     registerBtn.innerHTML = `
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                        Locked: Verification Pending...
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#34C759" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+                        Unlocked: View Aaradhna Card
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: auto;"><path d="M9 18l6-6-6-6"></path></svg>
                     `;
-                    registerBtn.style.opacity = '0.7';
-                    registerBtn.style.cursor = 'not-allowed';
-                    registerBtn.style.background = '#f1f1f1';
-                    registerBtn.style.color = '#888';
+                    registerBtn.style.color = 'var(--primary-dark)';
+                    registerBtn.style.background = 'white';
+                    registerBtn.style.cursor = 'pointer';
+                    registerBtn.style.opacity = '1';
+                    registerBtn.style.border = 'none';
+                } else {
+                    // Before 28th → Show Access Granted state (non-clickable)
+                    registerBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#34C759" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        Access Granted — Opens on 28th July!
+                    `;
+                    registerBtn.style.color = '#1b5e20';
+                    registerBtn.style.background = '#e8f5e9';
+                    registerBtn.style.cursor = 'default';
+                    registerBtn.style.opacity = '1';
+                    registerBtn.style.border = '1.5px solid #4CAF50';
+                    registerBtn.onclick = (e) => e.preventDefault();
                 }
             }
 
@@ -1611,15 +1601,11 @@
                 e.preventDefault(); // Prevent any link jumping if it was an <a>
                 
                 if (currentRegistration) {
-                    if (currentRegistration.isPaymentVerified || currentUser.email === 'maahirmshah4252@gmail.com' || currentUser.email.toLowerCase() === 'akshitjain61130@gmail.com') {
-                        const aradhanaStartDate = new Date('2025-07-28T00:00:00');
-                        if (new Date() >= aradhanaStartDate) {
-                            openAaradhnaCard();
-                        }
-                        // else: do nothing, button is disabled before 28th
-                    } else {
-                        alert("Your registration is pending admin verification. Please check back later!");
+                    const aradhanaStartDate = new Date('2025-07-28T00:00:00');
+                    if (new Date() >= aradhanaStartDate) {
+                        openAaradhnaCard();
                     }
+                    // else: button is disabled before 28th, do nothing
                     return;
                 }
                 
