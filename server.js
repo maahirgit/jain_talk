@@ -932,8 +932,8 @@ cron.schedule('0 18 * * *', async () => {
             const dateStr = tomorrow.toLocaleDateString('en-GB'); // DD/MM/YYYY
             const tithiDisplayName = tomorrowTithi.fullName;
 
-            // Fetch all users with email
-            const users = await User.find({ email: { $exists: true, $ne: "" } });
+            // Fetch all users who have registered for the course
+            const users = await CourseRegistration.find({ email: { $exists: true, $ne: "" } });
             
             // Filter unique emails
             const uniqueEmails = [...new Set(users.map(u => u.email.trim().toLowerCase()))];
