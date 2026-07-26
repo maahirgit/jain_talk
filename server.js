@@ -121,8 +121,10 @@ const reelSchema = new mongoose.Schema({
 const Reel = mongoose.model('Reel', reelSchema);
 // Setup multer for file uploads with Cloudinary
 const { v2: cloudinary } = require('cloudinary');
+const { v2: cloudinary2 } = require('cloudinary');
 const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
+// Account 1 (Primary - existing data, read-only now as storage is full)
 if (process.env.CLOUDINARY_CLOUD_NAME) {
     cloudinary.config({
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -131,8 +133,16 @@ if (process.env.CLOUDINARY_CLOUD_NAME) {
     });
 }
 
+// Account 2 (Secondary - all new uploads go here)
+cloudinary2.config({
+    cloud_name: process.env.CLOUDINARY_CLOUD_NAME_2,
+    api_key: process.env.CLOUDINARY_API_KEY_2,
+    api_secret: process.env.CLOUDINARY_API_SECRET_2
+});
+
+// Images → Account 2
 const storage = new CloudinaryStorage({
-    cloudinary: cloudinary,
+    cloudinary: cloudinary2,
     params: {
         folder: 'jain_talks_uploads',
         allowed_formats: ['jpg', 'png', 'jpeg', 'webp']
@@ -140,8 +150,9 @@ const storage = new CloudinaryStorage({
 });
 const upload = multer({ storage: storage });
 
+// Videos → Account 2
 const videoStorage = new CloudinaryStorage({
-    cloudinary: cloudinary,
+    cloudinary: cloudinary2,
     params: {
         folder: 'jain_talks_reels',
         resource_type: 'video',
@@ -149,6 +160,7 @@ const videoStorage = new CloudinaryStorage({
     },
 });
 const uploadVideo = multer({ storage: videoStorage });
+
 
 // API Routes
 
@@ -513,13 +525,13 @@ app.get('/api/cloudinary-signature', (req, res) => {
         if (!token) return res.status(401).json({ error: 'Not authenticated' });
         
         const timestamp = Math.round((new Date).getTime() / 1000);
-        const config = cloudinary.config();
+        const config = cloudinary2.config();
         
         if (!config.api_secret) {
             return res.status(500).json({ error: 'Cloudinary is not configured on the server.' });
         }
         
-        const signature = cloudinary.utils.api_sign_request({
+        const signature = cloudinary2.utils.api_sign_request({
             timestamp: timestamp,
             folder: 'jain_talks_reels'
         }, config.api_secret);
