@@ -294,19 +294,45 @@
             const registerBtn = document.getElementById('open-register-btn');
             const eventCountdown = document.getElementById('event-countdown-container');
             const whatsappGroup = document.getElementById('whatsapp-group-container');
+            const previewFormBtn = document.getElementById('preview-form-btn');
+
+            // Aradhana unlocks from 28th July 2025
+            const aradhanaStartDate = new Date('2025-07-28T00:00:00');
+            const now = new Date();
+            const aradhanaStarted = now >= aradhanaStartDate;
+
             if (registration) {
                 if (eventCountdown) eventCountdown.style.display = 'block';
                 if (whatsappGroup) whatsappGroup.style.display = 'block';
                 if (registration.isPaymentVerified || user.email === 'maahirmshah4252@gmail.com' || user.email.toLowerCase() === 'akshitjain61130@gmail.com') {
-                    registerBtn.innerHTML = `
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#34C759" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
-                        Unlocked: View Aaradhna Card
-                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: auto;"><path d="M9 18l6-6-6-6"></path></svg>
-                    `;
-                    registerBtn.style.color = 'var(--primary-dark)';
-                    registerBtn.style.background = 'white';
-                    registerBtn.style.cursor = 'pointer';
-                    registerBtn.style.opacity = '1';
+                    
+                    // Hide preview form button — this user has real access
+                    if (previewFormBtn) previewFormBtn.style.display = 'none';
+
+                    if (aradhanaStarted) {
+                        // 28th+ → Show real Aradhana Card button
+                        registerBtn.innerHTML = `
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#34C759" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
+                            Unlocked: View Aaradhna Card
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left: auto;"><path d="M9 18l6-6-6-6"></path></svg>
+                        `;
+                        registerBtn.style.color = 'var(--primary-dark)';
+                        registerBtn.style.background = 'white';
+                        registerBtn.style.cursor = 'pointer';
+                        registerBtn.style.opacity = '1';
+                    } else {
+                        // Before 28th → Show Access Granted state
+                        registerBtn.innerHTML = `
+                            <svg viewBox="0 0 24 24" width="18" height="18" stroke="#34C759" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                            Access Granted — Opens on 28th July!
+                        `;
+                        registerBtn.style.color = '#1b5e20';
+                        registerBtn.style.background = '#e8f5e9';
+                        registerBtn.style.cursor = 'default';
+                        registerBtn.style.opacity = '1';
+                        registerBtn.style.border = '1.5px solid #4CAF50';
+                        registerBtn.onclick = (e) => e.preventDefault(); // Disable click before 28th
+                    }
                 } else {
                     registerBtn.innerHTML = `
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
@@ -943,7 +969,7 @@
                                 Register
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
                             </button>
-                            <button onclick="previewAaradhnaForm()" style="padding: 0.6rem 1rem; border-radius: 8px; border: none; background: rgba(255, 255, 255, 0.9); color: var(--primary-dark); font-weight: 700; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
+                            <button id="preview-form-btn" onclick="previewAaradhnaForm()" style="padding: 0.6rem 1rem; border-radius: 8px; border: none; background: rgba(255, 255, 255, 0.9); color: var(--primary-dark); font-weight: 700; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
                                 Preview Form
                             </button>
                         </div>
@@ -1586,7 +1612,11 @@
                 
                 if (currentRegistration) {
                     if (currentRegistration.isPaymentVerified || currentUser.email === 'maahirmshah4252@gmail.com' || currentUser.email.toLowerCase() === 'akshitjain61130@gmail.com') {
-                        openAaradhnaCard();
+                        const aradhanaStartDate = new Date('2025-07-28T00:00:00');
+                        if (new Date() >= aradhanaStartDate) {
+                            openAaradhnaCard();
+                        }
+                        // else: do nothing, button is disabled before 28th
                     } else {
                         alert("Your registration is pending admin verification. Please check back later!");
                     }
