@@ -179,7 +179,46 @@ app.post('/api/signup', authLimiter, async (req, res) => {
         });
 
         await newUser.save();
+        
+        // Send Welcome Email (Non-blocking)
+        const mailOptions = {
+            from: process.env.EMAIL_USER,
+            to: email,
+            subject: '🎉 Jain Talk માં આપનું હાર્દિક સ્વાગત છે! (Welcome to Jain Talk)',
+            html: `
+                <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                    <p>પ્રણામ પુણ્યશાળી <strong>${name}</strong>,</p>
+                    
+                    <p>આપ સૌની ધર્મ આરાધનાને ડિજિટલ માધ્યમથી વધુ સરળ અને સુંદર બનાવવા માટે, આ <strong>'Jain Talk'</strong> વેબસાઇટનું સંપૂર્ણ નિર્માણ અને ડેવલપમેન્ટ (Web Development) <strong>Design Ville by Maahir Shah</strong> દ્વારા કરવામાં આવ્યું છે (<a href="https://design-ville.com/" style="color: #FF9800; text-decoration: none;">https://design-ville.com/</a>).</p>
+                    
+                    <p><strong>Jain Talk</strong> પરિવારમાં આપનું હાર્દિક સ્વાગત છે! અમને ખૂબ આનંદ છે કે આપ અમારી સાથે જોડાયા છો.</p>
+                    
+                    <p>અમારી આ વેબસાઇટ પર આપને ધર્મ આરાધના માટેની અનેક અદભુત સુવિધાઓ મળશે:</p>
+                    
+                    <ul style="margin: 0; padding-left: 20px;">
+                        <li style="margin-bottom: 8px;">✨ <strong>સચોટ જૈન પંચાંગ:</strong> દરરોજની તિથિ અને પર્વ તિથિની જાણકારી.</li>
+                        <li style="margin-bottom: 8px;">🌅 <strong>નવકારશી અને ચૌવિહાર:</strong> આપના સમય મુજબના દૈનિક રિમાઇન્ડર.</li>
+                        <li style="margin-bottom: 8px;">🎥 <strong>જૈન રીલ્સ (Jain Reels):</strong> ધાર્મિક રીલ્સ જોવા અને પોસ્ટ કરવા માટે.</li>
+                        <li style="margin-bottom: 8px;">📊 <strong>દૈનિક આરાધના:</strong> આપની દૈનિક ધર્મ આરાધના નોંધવા અને ટ્રેક કરવા માટેનું પ્લેટફોર્મ.</li>
+                    </ul>
+                    
+                    <p>અમે આશા રાખીએ છીએ કે આ પ્લેટફોર્મ આપની ધર્મ આરાધના અને આધ્યાત્મિક યાત્રામાં ખૂબ જ ઉપયોગી સાબિત થશે.</p>
+                    
+                    <p>જય જિનેન્દ્ર!</p>
+                    
+                    <p>લી.,<br>
+                    <strong>Team Jain Talk</strong></p>
+                </div>
+            `
+        };
+
+        // Fire and forget email so it doesn't slow down the signup response
+        transporter.sendMail(mailOptions).catch(err => {
+            console.error('Failed to send welcome email:', err.message);
+        });
+
         res.status(201).json({ message: 'Account created successfully!' });
+
 
     } catch (error) {
         console.error('Signup Error:', error);
