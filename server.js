@@ -685,13 +685,10 @@ app.get('/api/aradhana/status', async (req, res) => {
         
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
-        // Ensure user is registered and verified for the course
+        // All registered users can access aradhana (no payment verification required)
         const registration = await CourseRegistration.findOne({ userId: decoded.id, courseName: "चलो सब आराधना करें" });
-        const user = await User.findById(decoded.id);
-        const isTestingBypass = user && (user.email.toLowerCase().includes('maahir') || user.email.toLowerCase() === 'akshitjain61130@gmail.com');
-        
-        if (!isTestingBypass && (!registration || !registration.isPaymentVerified)) {
-            return res.status(403).json({ error: 'You are not verified for this course.' });
+        if (!registration) {
+            return res.status(403).json({ error: 'You are not registered for this course.' });
         }
         
         const submissions = await AradhanaSubmission.find({ userId: decoded.id }).sort({ dateString: 1 });
@@ -754,8 +751,7 @@ app.get('/api/aradhana/status', async (req, res) => {
             yesterdaysPoints,
             calendar,
             todayStr,
-            hasSubmittedToday: submissionMap[todayStr] !== undefined,
-            isTestingBypass
+            hasSubmittedToday: submissionMap[todayStr] !== undefined
         });
     } catch (error) {
         console.error('Fetch Aradhana Status Error:', error);
@@ -773,12 +769,11 @@ app.post('/api/aradhana/submit', async (req, res) => {
         
         if (!user) return res.status(401).json({ error: 'User not found' });
         
-        // Ensure user is registered and verified for the course
+        // Ensure user is registered for the course (payment verification not required)
         const registration = await CourseRegistration.findOne({ userId: decoded.id, courseName: "चलो सब आराधना करें" });
-        const isTestingBypass = user.email.toLowerCase().includes('maahir') || user.email.toLowerCase() === 'akshitjain61130@gmail.com';
         
-        if (!isTestingBypass && (!registration || !registration.isPaymentVerified)) {
-            return res.status(403).json({ error: 'You are not verified for this course.' });
+        if (!registration) {
+            return res.status(403).json({ error: 'You are not registered for this course.' });
         }
         
         const { answers } = req.body;
@@ -788,10 +783,9 @@ app.post('/api/aradhana/submit', async (req, res) => {
         
         const todayStr = getLocalDateString(new Date());
         
-        // Date validation: Only open between July 28 - Sept 15 for regular users
-        // maahirmshah4252@gmail.com (admin/testing) can submit anytime
-        if (!isTestingBypass && (todayStr < '2026-07-28' || todayStr > '2026-09-15')) {
-            return res.status(400).json({ error: 'Aradhana can only be submitted between July 28 and Sept 15' });
+        // Date validation: Only open between July 28 - Sept 25
+        if (todayStr < '2025-07-28' || todayStr > '2025-09-25') {
+            return res.status(400).json({ error: 'Aradhana can only be submitted between July 28 and Sept 25' });
         }
         console.log('[SUBMIT] User:', user.email, '| Date:', todayStr, '| Answers length:', answers.length);
         
