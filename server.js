@@ -11,7 +11,7 @@ const path = require('path');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
 
-// Set up email transporter
+// Set up email transporters (primary + secondary fallback)
 const transporter = nodemailer.createTransport({
     service: 'gmail',
     auth: {
@@ -19,6 +19,31 @@ const transporter = nodemailer.createTransport({
         pass: process.env.EMAIL_PASS
     }
 });
+
+const transporter2 = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: process.env.EMAIL_USER_2,
+        pass: process.env.EMAIL_PASS_2
+    }
+});
+
+// Helper: try primary transporter first; on quota/rate-limit error fall back to secondary
+async function sendMailWithFallback(mailOptions) {
+    try {
+        await transporter.sendMail(mailOptions);
+    } catch (err) {
+        // Gmail daily limit errors contain codes like 550 / 421 / EENVELOPE or 'Daily user sending limit exceeded'
+        const isQuotaError = /limit exceeded|550|421|quota|too many/i.test(err.message || '');
+        if (isQuotaError && process.env.EMAIL_USER_2 && process.env.EMAIL_PASS_2) {
+            console.warn('[EMAIL] Primary account limit reached. Switching to secondary account...');
+            const fallbackOptions = { ...mailOptions, from: process.env.EMAIL_USER_2 };
+            await transporter2.sendMail(fallbackOptions);
+        } else {
+            throw err;
+        }
+    }
+}
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -225,7 +250,7 @@ app.post('/api/signup', authLimiter, async (req, res) => {
         };
 
         // Fire and forget email so it doesn't slow down the signup response
-        transporter.sendMail(mailOptions).catch(err => {
+        sendMailWithFallback(mailOptions).catch(err => {
             console.error('Failed to send welcome email:', err.message);
         });
 
@@ -314,7 +339,7 @@ app.post('/api/forgot-password', authLimiter, async (req, res) => {
         };
 
         if (process.env.EMAIL_USER && process.env.EMAIL_PASS) {
-            await transporter.sendMail(mailOptions);
+            await sendMailWithFallback(mailOptions);
             console.log(`[EMAIL] OTP sent to ${email}`);
         } else {
             console.log(`[MOCK EMAIL] Missing email credentials in .env. OTP for ${email} is ${otp}`);
@@ -684,12 +709,8 @@ app.get('/api/aradhana/status', async (req, res) => {
         if (!token) return res.status(401).json({ error: 'Not authenticated' });
         
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        // All registered users can access aradhana (no payment verification required)
-        const registration = await CourseRegistration.findOne({ userId: decoded.id, courseName: "चलो सब आराधना करें" });
-        if (!registration) {
-            return res.status(403).json({ error: 'You are not registered for this course.' });
-        }
+        const user = await User.findById(decoded.id);
+        if (!user) return res.status(401).json({ error: 'User not found' });
         
         const submissions = await AradhanaSubmission.find({ userId: decoded.id }).sort({ dateString: 1 });
         
@@ -769,13 +790,6 @@ app.post('/api/aradhana/submit', async (req, res) => {
         
         if (!user) return res.status(401).json({ error: 'User not found' });
         
-        // Ensure user is registered for the course (payment verification not required)
-        const registration = await CourseRegistration.findOne({ userId: decoded.id, courseName: "चलो सब आराधना करें" });
-        
-        if (!registration) {
-            return res.status(403).json({ error: 'You are not registered for this course.' });
-        }
-        
         const { answers } = req.body;
         if (!answers || answers.length !== 20) {
             return res.status(400).json({ error: 'Invalid answers submitted' });
@@ -826,8 +840,15 @@ const Astronomy = require('astronomy-engine');
 const cron = require('node-cron');
 
 function getExactTithi(date) {
-    // Traditional Hindu Panchang assigns the day's Tithi based on Sunrise (approx 6:00 AM local time)
-    const sunriseDate = new Date(date.getFullYear(), date.getMonth(), date.getDate(), 6, 0, 0);
+    // Traditional Hindu Panchang assigns the day's Tithi based on Sunrise (approx 6:00 AM IST)
+    // IST = UTC+5:30, so 6:00 AM IST = 00:30 UTC. We build the date in UTC to represent that moment.
+    const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000; // 5h30m in milliseconds
+    const year = date.getFullYear();
+    const month = date.getMonth();
+    const day = date.getDate();
+    // 6:00 AM IST expressed as UTC milliseconds
+    const sunriseIST_UTC = Date.UTC(year, month, day, 6, 0, 0) - IST_OFFSET_MS;
+    const sunriseDate = new Date(sunriseIST_UTC);
     const time = new Astronomy.AstroTime(sunriseDate);
     const moonPhase = Astronomy.MoonPhase(time); // Returns 0 to 360 degrees
     
@@ -919,8 +940,208 @@ app.get('/api/leaderboard', async (req, res) => {
     }
 });
 
-// Daily Cron Job (Runs every day at 18:00 / 6:00 PM) for Email Reminders
-cron.schedule('0 18 * * *', async () => {
+// ─────────────────────────────────────────────────────────────────────────────
+// VERCEL CRON ENDPOINT: Tithi Reminder (called daily at 12:30 UTC = 6:00 PM IST)
+// Secured by CRON_SECRET header set in vercel.json
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/cron/tithi-reminder', async (req, res) => {
+    // Verify the request is from Vercel Cron (or an authorised caller)
+    const authHeader = req.headers['authorization'];
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        console.log('[CRON] Running Tithi reminder job...');
+        await connectDB();
+
+        // ── Determine tomorrow's date in IST ──────────────────────────────────
+        const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+        const nowIST = new Date(Date.now() + IST_OFFSET_MS);
+        const tomorrowIST = new Date(nowIST);
+        tomorrowIST.setUTCDate(tomorrowIST.getUTCDate() + 1);
+
+        // Use a plain Date object whose year/month/date reflect IST tomorrow
+        const tomorrowForTithi = new Date(
+            tomorrowIST.getUTCFullYear(),
+            tomorrowIST.getUTCMonth(),
+            tomorrowIST.getUTCDate()
+        );
+
+        const tomorrowTithi = getExactTithi(tomorrowForTithi);
+
+        // Only send for these major Parva Tithis
+        const parvaTithis = ["Pancham", "Aatham", "Chaudas", "Amas", "Poonam"];
+
+        if (!parvaTithis.includes(tomorrowTithi.name)) {
+            console.log(`[CRON] Tomorrow is ${tomorrowTithi.fullName} — no reminder needed.`);
+            return res.status(200).json({ message: `No reminder needed. Tomorrow is ${tomorrowTithi.fullName}` });
+        }
+
+        console.log(`[CRON] Tomorrow is a Parva Tithi: ${tomorrowTithi.fullName}. Sending reminders...`);
+
+        // Format tomorrow's date as DD/MM/YYYY
+        const dd = String(tomorrowIST.getUTCDate()).padStart(2, '0');
+        const mm = String(tomorrowIST.getUTCMonth() + 1).padStart(2, '0');
+        const yyyy = tomorrowIST.getUTCFullYear();
+        const dateStr = `${dd}/${mm}/${yyyy}`;
+        const tithiDisplayName = tomorrowTithi.fullName;
+
+        // Fetch all course-registered users with an email
+        const users = await CourseRegistration.find({ email: { $exists: true, $ne: "" } });
+        const uniqueEmails = [...new Set(users.map(u => u.email.trim().toLowerCase()))];
+
+        let sent = 0, failed = 0;
+        for (let i = 0; i < uniqueEmails.length; i++) {
+            const email = uniqueEmails[i];
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: `🌙 આવતીકાલે પર્વ તિથિ છે: ${tithiDisplayName} રિમાઇન્ડર - Jain Talk`,
+                html: `
+                    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                        <p>પ્રણામ પુણ્યશાળી,</p>
+                    
+                        <p>આપને પ્રેમપૂર્વક યાદ અપાવવા માટે કે આવતીકાલે, <strong>${dateStr}</strong> ના રોજ, <strong>${tithiDisplayName}</strong> ની પર્વ તિથિ છે.</p>
+                    
+                        <p>જૈન ધર્મમાં પર્વ તિથિનું અનેરું આધ્યાત્મિક મહત્વ રહેલું છે. આ પવિત્ર દિવસે નીચે મુજબના નિયમોનું પાલન કરવાનો આગ્રહ રાખવો:</p>
+                        
+                        <div style="margin: 20px 0; padding: 15px; background-color: #fff4e6; border-left: 5px solid #FF9800; border-radius: 4px;">
+                            <ul style="margin: 0; padding-left: 20px;">
+                                <li style="margin-bottom: 10px;">🥬 <strong>લીલોતરી નો ત્યાગ:</strong> પર્વ તિથિના દિવસે લીલા શાકભાજી અને કંદમૂળનો સંપૂર્ણ ત્યાગ કરવો.</li>
+                                <li style="margin-bottom: 10px;">🧘 <strong>તપશ્ચર્યા:</strong> આપની શક્તિ અનુસાર ઉપવાસ, એકાસણા કે બીયાસણા કરી આરાધના કરવી.</li>
+                                <li>📿 <strong>ધર્મ ધ્યાન:</strong> વધુમાં વધુ સમય પ્રભુ સ્મરણ, સામાયિક અને ધર્મ ધ્યાનમાં પસાર કરવો.</li>
+                            </ul>
+                        </div>
+                    
+                        <p>આપણી <strong>'સૌ ચાલો આરાધના કરીએ'</strong> ની વેબસાઇટ પર આવતીકાલની વિશેષ આરાધના સબમિટ કરવાનું ચૂકશો નહીં!</p>
+                    
+                        <p>આપની ધર્મ આરાધના નિર્વિઘ્ને પૂર્ણ થાય તેવી શુભકામનાઓ.</p>
+                    
+                        <p>જય જિનેન્દ્ર!</p>
+                    
+                        <p>લી.,<br>
+                        <strong>Team Jain Talk</strong><br>
+                        <span style="font-size: 12px; color: #777;">Powered by Design Ville by Maahir Shah</span></p>
+                    </div>
+                `
+            };
+            
+            try {
+                await sendMailWithFallback(mailOptions);
+                console.log(`[${i + 1}/${uniqueEmails.length}] Tithi reminder sent to ${email}`);
+                sent++;
+            } catch (mailErr) {
+                console.error(`Failed to send email to ${email}:`, mailErr.message);
+                failed++;
+            }
+            
+            // Wait 1.5 seconds between emails to avoid rate limits
+            await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+
+        console.log(`[CRON] Tithi reminders done. Sent: ${sent}, Failed: ${failed}`);
+        return res.status(200).json({ message: `Tithi reminders sent`, tithi: tithiDisplayName, sent, failed });
+
+    } catch (error) {
+        console.error('[CRON] Tithi Reminder Error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// VERCEL CRON ENDPOINT: Aradhana Missing Submission Reminder (called daily at 15:30 UTC = 9:00 PM IST)
+// ─────────────────────────────────────────────────────────────────────────────
+app.get('/api/cron/aradhana-reminder', async (req, res) => {
+    const authHeader = req.headers['authorization'];
+    if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+        return res.status(401).json({ error: 'Unauthorized' });
+    }
+
+    try {
+        console.log('[CRON] Running Aradhana missing submission check...');
+        await connectDB();
+
+        // Get today's date in IST as YYYY-MM-DD
+        const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+        const nowIST = new Date(Date.now() + IST_OFFSET_MS);
+        const yyyy = nowIST.getUTCFullYear();
+        const mm = String(nowIST.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(nowIST.getUTCDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+
+        // Find all submissions for today
+        const todaysSubmissions = await AradhanaSubmission.find({ dateString: todayStr });
+        const submittedUserIds = todaysSubmissions.map(sub => sub.userId.toString());
+
+        // Find all course registrations and filter who hasn't submitted
+        const courseRegistrations = await CourseRegistration.find({});
+        const missingUsers = courseRegistrations.filter(reg => !submittedUserIds.includes(reg.userId.toString()));
+
+        if (missingUsers.length === 0) {
+            console.log('[CRON] All users submitted their Aradhana today!');
+            return res.status(200).json({ message: 'All users submitted today. No reminders needed.' });
+        }
+
+        const uniqueEmails = [...new Set(missingUsers.map(u => u.email.trim().toLowerCase()))].filter(e => e !== "");
+        console.log(`[CRON] ${uniqueEmails.length} users missing. Sending reminders...`);
+
+        let sent = 0, failed = 0;
+        for (let i = 0; i < uniqueEmails.length; i++) {
+            const email = uniqueEmails[i];
+            const mailOptions = {
+                from: process.env.EMAIL_USER,
+                to: email,
+                subject: '⏳ આજની આરાધના બાકી છે! (Today\'s Aradhana Pending)',
+                html: `
+                    <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
+                        <p>પ્રણામ પુણ્યશાળી,</p>
+                        
+                        <p>અમારી સિસ્ટમ મુજબ, આપની આજની ધર્મ આરાધના હજુ સુધી નોંધાઈ નથી.</p>
+                        
+                        <p>આપની આરાધનામાં સાતત્ય જળવાઈ રહે તે માટે, કૃપા કરીને આજે રાત્રે સૂતા પહેલાં <strong>'સૌ ચાલો આરાધના કરીએ' (Jain Talk)</strong> વેબસાઇટ પર જઈને આપની આજની આરાધના ચોક્કસથી સબમિટ કરી દેજો.</p>
+                        
+                        <p>જય જિનેન્દ્ર!</p>
+                        
+                        <p>લી.,<br>
+                        <strong>Team Jain Talk</strong></p>
+                        
+                        <hr style="border: none; border-top: 1px solid #ddd; margin: 20px 0;">
+                        <p style="font-size: 12px; color: #777;">
+                            Website Designed and Developed by <a href="https://design-ville.com/" style="color: #FF9800; text-decoration: none;"><strong>Design Ville by Maahir Shah</strong></a>
+                        </p>
+                    </div>
+                `
+            };
+
+            try {
+                await sendMailWithFallback(mailOptions);
+                console.log(`[${i + 1}/${uniqueEmails.length}] Aradhana reminder sent to ${email}`);
+                sent++;
+            } catch (mailErr) {
+                console.error(`Failed to send Aradhana reminder to ${email}:`, mailErr.message);
+                failed++;
+            }
+
+            await new Promise(resolve => setTimeout(resolve, 1500));
+        }
+
+        console.log(`[CRON] Aradhana reminders done. Sent: ${sent}, Failed: ${failed}`);
+        return res.status(200).json({ message: 'Aradhana reminders sent', sent, failed });
+
+    } catch (error) {
+        console.error('[CRON] Aradhana Reminder Error:', error);
+        return res.status(500).json({ error: 'Internal server error' });
+    }
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// NOTE: node-cron does NOT work on Vercel serverless.
+// Both cron jobs above are now driven by Vercel Cron in vercel.json.
+// ─────────────────────────────────────────────────────────────────────────────
+
+// Daily Cron Job (Runs every day at 21:00 / 9:00 PM) for Missing Aradhana Submissions
+cron.schedule('0 21 * * *', async () => {
     try {
         console.log('Running daily Panchang cron job for reminders...');
         
@@ -980,7 +1201,7 @@ cron.schedule('0 18 * * *', async () => {
                 };
                 
                 try {
-                    await transporter.sendMail(mailOptions);
+                    await sendMailWithFallback(mailOptions);
                     console.log(`[${i + 1}/${uniqueEmails.length}] Tithi reminder sent to ${email}`);
                 } catch (mailErr) {
                     console.error(`Failed to send email to ${email}:`, mailErr.message);
@@ -1058,7 +1279,7 @@ cron.schedule('0 21 * * *', async () => {
             };
             
             try {
-                await transporter.sendMail(mailOptions);
+                await sendMailWithFallback(mailOptions);
                 console.log(`[${i + 1}/${uniqueEmails.length}] Aradhana reminder sent to ${email}`);
             } catch (mailErr) {
                 console.error(`Failed to send Aradhana reminder to ${email}:`, mailErr.message);

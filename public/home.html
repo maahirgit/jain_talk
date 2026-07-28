@@ -1368,26 +1368,25 @@
             if (aradhanaSubmitBtn) {
                 aradhanaSubmitBtn.addEventListener('click', async (e) => {
                     e.preventDefault();
-                    const answers = [];
-                    let calculatedPoints = 0;
-                    
-                    for (let i = 0; i < 20; i++) {
-                        const checked = document.querySelector(`input[name="aradhana-q-${i}"]:checked`);
-                        if (!checked) return alert('Please answer all 20 questions.');
-                        
-                        const oIndex = parseInt(checked.value);
-                        answers.push(oIndex);
-                        
-                        // Extract points from the bracket in the text (e.g. "नवकारसी (50)")
-                        const optText = window.ARADHANA_QUESTIONS[i].opts[oIndex];
-                        const match = optText.match(/\((\d+)\)/);
-                        if (match) {
-                            calculatedPoints += parseInt(match[1]);
-                        }
-                    }
-                    
-                    // Remove the blocking alert for calculated score
                     try {
+                        const answers = [];
+                        let calculatedPoints = 0;
+                        
+                        for (let i = 0; i < 20; i++) {
+                            const checked = document.querySelector(`input[name="aradhana-q-${i}"]:checked`);
+                            if (!checked) { alert('Please answer all 20 questions.'); return; }
+                            
+                            const oIndex = parseInt(checked.value);
+                            answers.push(oIndex);
+                            
+                            // Extract points from the bracket in the text (e.g. "नवकारसी (50)")
+                            const optText = ARADHANA_QUESTIONS[i].opts[oIndex];
+                            const match = optText.match(/\((\d+)\)/);
+                            if (match) {
+                                calculatedPoints += parseInt(match[1]);
+                            }
+                        }
+                        
                         const sBtn = document.getElementById('aradhana-submit-btn');
                         sBtn.textContent = 'Saving ' + calculatedPoints + ' points...';
                         sBtn.disabled = true;
@@ -1405,7 +1404,7 @@
                             sBtn.style.background = '#4CAF50';
                             setTimeout(() => {
                                 document.getElementById('aradhana-form-modal').classList.remove('active');
-                                if (typeof fetchAradhanaStatus === 'function') fetchAradhanaStatus(); // Refresh dashboard
+                                if (typeof fetchAradhanaStatus === 'function') fetchAradhanaStatus();
                             }, 1500);
                         } else {
                             alert(data.error || 'Submission failed');
@@ -1413,11 +1412,10 @@
                             sBtn.disabled = false;
                         }
                     } catch (err) {
-                        console.error(err);
-                        alert('Connection error');
+                        console.error('Aradhana submit error:', err);
+                        alert('Error: ' + err.message);
                         const sBtn = document.getElementById('aradhana-submit-btn');
-                        sBtn.textContent = 'Submit Aradhana';
-                        sBtn.disabled = false;
+                        if (sBtn) { sBtn.textContent = 'Submit Aradhana'; sBtn.disabled = false; }
                     }
                 });
             }
