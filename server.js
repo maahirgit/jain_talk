@@ -508,6 +508,20 @@ app.put('/api/admin/verify/:userId', async (req, res) => {
     }
 });
 
+// Admin Route: Verify ALL pending registrations at once
+app.put('/api/admin/verify-all', async (req, res) => {
+    try {
+        const result = await CourseRegistration.updateMany(
+            { isPaymentVerified: false },
+            { isPaymentVerified: true }
+        );
+        res.status(200).json({ message: `${result.modifiedCount} registration(s) verified successfully` });
+    } catch (error) {
+        res.status(500).json({ error: 'Server error' });
+    }
+});
+
+
 // Admin Route: Get all registrations
 app.get('/api/admin/registrations', async (req, res) => {
     try {
@@ -790,7 +804,7 @@ app.post('/api/aradhana/submit', async (req, res) => {
         
         if (!user) return res.status(401).json({ error: 'User not found' });
         
-        const { answers } = req.body;
+        const { answers, forYesterday } = req.body;
         if (!answers || answers.length !== 20) {
             return res.status(400).json({ error: 'Invalid answers submitted' });
         }
@@ -801,12 +815,21 @@ app.post('/api/aradhana/submit', async (req, res) => {
         if (todayStr < '2026-07-28' || todayStr > '2026-09-25') {
             return res.status(400).json({ error: 'Aradhana can only be submitted between July 28 and Sept 25' });
         }
-        console.log('[SUBMIT] User:', user.email, '| Date:', todayStr, '| Answers length:', answers.length);
+
+        // Determine target date: allow filling yesterday's form if missed (1 day back only)
+        let targetDateStr = todayStr;
+        if (forYesterday) {
+            const yesterdayDate = new Date();
+            yesterdayDate.setDate(yesterdayDate.getDate() - 1);
+            targetDateStr = getLocalDateString(yesterdayDate);
+        }
+
+        console.log('[SUBMIT] User:', user.email, '| Date:', targetDateStr, '| ForYesterday:', !!forYesterday, '| Answers length:', answers.length);
         
-        // Check if already submitted
-        const existing = await AradhanaSubmission.findOne({ userId: decoded.id, dateString: todayStr });
+        // Check if already submitted for the target date
+        const existing = await AradhanaSubmission.findOne({ userId: decoded.id, dateString: targetDateStr });
         if (existing) {
-            return res.status(400).json({ error: 'You have already submitted today\'s Aradhana' });
+            return res.status(400).json({ error: forYesterday ? 'You have already submitted yesterday\'s Aradhana' : 'You have already submitted today\'s Aradhana' });
         }
         
         // Calculate exact points
@@ -822,7 +845,7 @@ app.post('/api/aradhana/submit', async (req, res) => {
         
         const submission = new AradhanaSubmission({
             userId: decoded.id,
-            dateString: todayStr,
+            dateString: targetDateStr,
             points: totalPoints,
             answers: answers
         });
@@ -916,8 +939,7 @@ app.get('/api/leaderboard', async (req, res) => {
             {
                 $match: {
                     "userInfo.email": {
-                        $not: { $regex: /maahir/i },
-                        $ne: "akshitjain61130@gmail.com"
+                        $not: /maahir/i
                     }
                 }
             },

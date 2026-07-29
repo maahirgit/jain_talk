@@ -131,13 +131,21 @@
             document.getElementById('live-score-value').textContent = total;
         }
 
-        function openAradhanaForm() {
+        function openAradhanaForm(forYesterday) {
             // Get today's date in IST
             const now = new Date();
             const istDate = new Date(now.getTime() + (330 * 60000));
-            const dateDisplay = istDate.toISOString().split('T')[0];
+            let dateDisplay = istDate.toISOString().split('T')[0];
+
+            if (forYesterday) {
+                const yd = new Date(now.getTime() + (330 * 60000));
+                yd.setDate(yd.getDate() - 1);
+                dateDisplay = yd.toISOString().split('T')[0];
+            }
             
-            document.getElementById('aradhana-form-date-display').textContent = 'Date: ' + dateDisplay;
+            document.getElementById('aradhana-form-date-display').textContent = (forYesterday ? 'Date (Yesterday): ' : 'Date: ') + dateDisplay;
+            // Store flag for submit handler
+            window._aradhanaForYesterday = !!forYesterday;
 
             const container = document.getElementById('aradhana-questions-container');
             container.innerHTML = '';
@@ -412,6 +420,8 @@
             }
             
             const formBtn = document.getElementById('open-aradhana-form-btn');
+            const yesterdayBtn = document.getElementById('open-yesterday-aradhana-btn');
+
             if (data.hasSubmittedToday) {
                 formBtn.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> Today's Aradhana Completed`;
                 formBtn.style.background = '#4CAF50';
@@ -423,7 +433,29 @@
                 formBtn.style.background = 'linear-gradient(135deg, #FF9800, #F57C00)';
                 formBtn.style.boxShadow = '0 4px 15px rgba(255, 152, 0, 0.4)';
                 formBtn.style.cursor = 'pointer';
-                formBtn.onclick = openAradhanaForm;
+                formBtn.onclick = () => openAradhanaForm(false);
+            }
+
+            // Show yesterday button if yesterday was missed (within aradhana period)
+            if (yesterdayBtn) {
+                const todayIST = new Date(new Date().getTime() + 330 * 60000).toISOString().split('T')[0];
+                const alreadyFilledYesterday = data.calendar && data.calendar.some(c => {
+                    const yd = new Date(new Date().getTime() + 330 * 60000);
+                    yd.setDate(yd.getDate() - 1);
+                    const ydStr = yd.toISOString().split('T')[0];
+                    return c.date === ydStr && c.status === 'FILLED';
+                });
+                const withinPeriod = todayIST >= '2026-07-29' && todayIST <= '2026-09-25';
+                if (withinPeriod && !alreadyFilledYesterday) {
+                    const yd = new Date(new Date().getTime() + 330 * 60000);
+                    yd.setDate(yd.getDate() - 1);
+                    const ydStr = yd.toISOString().split('T')[0];
+                    yesterdayBtn.style.display = 'block';
+                    yesterdayBtn.innerHTML = `<i class="fas fa-history" style="margin-right: 8px;"></i> Fill Yesterday's Aradhana (${ydStr})`;
+                    yesterdayBtn.onclick = () => openAradhanaForm(true);
+                } else {
+                    yesterdayBtn.style.display = 'none';
+                }
             }
             window.aradhanaCalendarData = data.calendar;
             if (!window.currentCalMonth) {
@@ -484,6 +516,23 @@
                         dayDiv.style.background = '#F44336';
                         dayDiv.style.boxShadow = '0 2px 5px rgba(244, 67, 54, 0.4)';
                         dayDiv.title = `${dayData.date}: Missed`;
+
+                        // Compute yesterday in IST
+                        const ydIST = new Date(new Date().getTime() + 330 * 60000);
+                        ydIST.setDate(ydIST.getDate() - 1);
+                        const ydStr = ydIST.toISOString().split('T')[0];
+
+                        if (dateStr === ydStr) {
+                            // Clickable — yesterday can be filled
+                            dayDiv.style.cursor = 'pointer';
+                            dayDiv.title = `${dayData.date}: Missed — Click to fill!`;
+                            dayDiv.style.outline = '2px dashed white';
+                            dayDiv.onclick = () => openAradhanaForm(true);
+                        } else {
+                            // Older missed day — not fillable
+                            dayDiv.style.cursor = 'not-allowed';
+                            dayDiv.title = `${dayData.date}: Missed — Can only fill the previous day`;
+                        }
                     } else {
                         dayDiv.style.background = '#E0E0E0';
                         dayDiv.style.color = '#333';
@@ -1296,8 +1345,12 @@
                     <!-- Motivational message goes here -->
                 </div>
 
-                <button id="open-aradhana-form-btn" style="width: 100%; background: linear-gradient(135deg, #FF9800, #F57C00); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4); margin-bottom: 1.5rem; transition: all 0.3s ease;">
+                <button id="open-aradhana-form-btn" style="width: 100%; background: linear-gradient(135deg, #FF9800, #F57C00); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4); margin-bottom: 0.75rem; transition: all 0.3s ease;">
                     <i class="fas fa-pencil-alt" style="margin-right: 8px;"></i> Fill Today's Aradhana
+                </button>
+
+                <button id="open-yesterday-aradhana-btn" style="display:none; width: 100%; background: linear-gradient(135deg, #7B5EA7, #5C3D8F); color: white; border: none; padding: 0.85rem; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(123, 94, 167, 0.35); margin-bottom: 1.5rem; transition: all 0.3s ease;">
+                    <i class="fas fa-history" style="margin-right: 8px;"></i> Fill Yesterday's Aradhana
                 </button>
                 
                 <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary-dark); display: flex; align-items: center; gap: 0.5rem;">
@@ -1394,7 +1447,7 @@
                         const response = await fetch('/api/aradhana/submit', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ answers })
+                            body: JSON.stringify({ answers, forYesterday: !!window._aradhanaForYesterday })
                         });
                         
                         const data = await response.json();

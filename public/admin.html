@@ -131,7 +131,12 @@
     </div>
 
     <div class="container">
-        <h2 style="margin-bottom: 1.5rem;">Course Registrations</h2>
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.5rem;">
+            <h2 style="margin:0;">Course Registrations</h2>
+            <button id="verify-all-btn" onclick="verifyAllPending()" style="background:var(--primary-color);color:white;border:none;padding:0.7rem 1.4rem;border-radius:10px;font-weight:700;font-size:0.95rem;cursor:pointer;transition:all 0.2s;">
+                ✅ Verify All Pending
+            </button>
+        </div>
         <div id="registrations-list">
             <p>Loading registrations...</p>
         </div>
@@ -200,6 +205,28 @@
             } catch (err) {
                 console.error(err);
                 alert('Error approving user');
+            }
+        }
+
+        async function verifyAllPending() {
+            const btn = document.getElementById('verify-all-btn');
+            if (!confirm('Are you sure you want to verify ALL pending registrations?')) return;
+            btn.textContent = 'Verifying...';
+            btn.disabled = true;
+            try {
+                const response = await fetch('/api/admin/verify-all', { method: 'PUT' });
+                const data = await response.json();
+                if (response.ok) {
+                    alert(data.message);
+                    fetchRegistrations();
+                } else {
+                    alert('Failed: ' + data.error);
+                }
+            } catch (err) {
+                alert('Error: ' + err.message);
+            } finally {
+                btn.textContent = '✅ Verify All Pending';
+                btn.disabled = false;
             }
         }
 

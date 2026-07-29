@@ -9,5 +9,15 @@
         }
       ]
     }
+  ],
+  "crons": [
+    {
+      "path": "/api/cron/tithi-reminder",
+      "schedule": "30 12 * * *"
+    },
+    {
+      "path": "/api/cron/aradhana-reminder",
+      "schedule": "30 15 * * *"
+    }
   ]
 }
