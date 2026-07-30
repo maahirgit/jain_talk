@@ -434,11 +434,9 @@ app.post('/api/logout', (req, res) => {
 // 5. Course Registration Route
 app.post('/api/register-course', upload.single('screenshot'), async (req, res) => {
     try {
-        const token = req.cookies.auth_token;
-        if (!token) {
-            if (req.file) await cloudinary.uploader.destroy(req.file.filename);
-            return res.status(401).json({ error: 'Not authenticated' });
-        }
+        // ── Registration is now CLOSED ──
+        if (req.file) await cloudinary.uploader.destroy(req.file.filename);
+        return res.status(403).json({ error: 'Registration is now closed. Please contact the organiser.' });
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
