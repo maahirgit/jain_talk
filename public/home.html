@@ -131,21 +131,28 @@
             document.getElementById('live-score-value').textContent = total;
         }
 
-        function openAradhanaForm(forYesterday) {
+        function openAradhanaForm(forYesterday, specificDate) {
             // Get today's date in IST
             const now = new Date();
             const istDate = new Date(now.getTime() + (330 * 60000));
             let dateDisplay = istDate.toISOString().split('T')[0];
 
-            if (forYesterday) {
+            if (specificDate) {
+                dateDisplay = specificDate;
+                window._aradhanaSpecificDate = specificDate;
+                window._aradhanaForYesterday = false;
+            } else if (forYesterday) {
                 const yd = new Date(now.getTime() + (330 * 60000));
                 yd.setDate(yd.getDate() - 1);
                 dateDisplay = yd.toISOString().split('T')[0];
+                window._aradhanaForYesterday = true;
+                window._aradhanaSpecificDate = null;
+            } else {
+                window._aradhanaForYesterday = false;
+                window._aradhanaSpecificDate = null;
             }
             
-            document.getElementById('aradhana-form-date-display').textContent = (forYesterday ? 'Date (Yesterday): ' : 'Date: ') + dateDisplay;
-            // Store flag for submit handler
-            window._aradhanaForYesterday = !!forYesterday;
+            document.getElementById('aradhana-form-date-display').textContent = (forYesterday || specificDate ? 'Date (Past): ' : 'Date: ') + dateDisplay;
 
             const container = document.getElementById('aradhana-questions-container');
             container.innerHTML = '';
@@ -534,13 +541,16 @@
                         const ydIST = new Date(new Date().getTime() + 330 * 60000);
                         ydIST.setDate(ydIST.getDate() - 1);
                         const ydStr = ydIST.toISOString().split('T')[0];
+                        
+                        const todayIST = new Date(new Date().getTime() + 330 * 60000).toISOString().split('T')[0];
+                        const isSpecialJuly30 = todayIST === '2026-07-30' && (dateStr === '2026-07-28' || dateStr === '2026-07-29');
 
-                        if (dateStr === ydStr) {
-                            // Clickable — yesterday can be filled
+                        if (dateStr === ydStr || isSpecialJuly30) {
+                            // Clickable — yesterday or special allowance can be filled
                             dayDiv.style.cursor = 'pointer';
                             dayDiv.title = `${dayData.date}: Missed — Click to fill!`;
                             dayDiv.style.outline = '2px dashed white';
-                            dayDiv.onclick = () => openAradhanaForm(true);
+                            dayDiv.onclick = () => openAradhanaForm(false, dateStr);
                         } else {
                             // Older missed day — not fillable
                             dayDiv.style.cursor = 'not-allowed';
@@ -1460,7 +1470,7 @@
                         const response = await fetch('/api/aradhana/submit', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ answers, forYesterday: !!window._aradhanaForYesterday })
+                            body: JSON.stringify({ answers, forYesterday: !!window._aradhanaForYesterday, specificDate: window._aradhanaSpecificDate })
                         });
                         
                         const data = await response.json();

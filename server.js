@@ -815,8 +815,11 @@ app.post('/api/aradhana/submit', async (req, res) => {
         }
 
         // Determine target date: allow filling yesterday's form if missed (1 day back only)
+        // SPECIAL CASE for July 30: allow filling for July 28 and July 29
         let targetDateStr = todayStr;
-        if (forYesterday) {
+        if (req.body.specificDate && todayStr === '2026-07-30' && (req.body.specificDate === '2026-07-28' || req.body.specificDate === '2026-07-29')) {
+            targetDateStr = req.body.specificDate;
+        } else if (forYesterday) {
             const yesterdayDate = new Date();
             yesterdayDate.setDate(yesterdayDate.getDate() - 1);
             targetDateStr = getLocalDateString(yesterdayDate);
