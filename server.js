@@ -35,10 +35,22 @@ async function sendMailWithFallback(mailOptions) {
     } catch (err) {
         // Gmail daily limit errors contain codes like 550 / 421 / EENVELOPE or 'Daily user sending limit exceeded'
         const isQuotaError = /limit exceeded|550|421|quota|too many/i.test(err.message || '');
-        if (isQuotaError && process.env.EMAIL_USER_2 && process.env.EMAIL_PASS_2) {
-            console.warn('[EMAIL] Primary account limit reached. Switching to secondary account...');
-            const fallbackOptions = { ...mailOptions, from: process.env.EMAIL_USER_2 };
-            await transporter2.sendMail(fallbackOptions);
+        if (isQuotaError) {
+            if (process.env.EMAIL_USER_2 && process.env.EMAIL_PASS_2) {
+                console.warn('[EMAIL] Primary account limit reached. Switching to secondary account...');
+                try {
+                    const fallbackOptions = { ...mailOptions, from: process.env.EMAIL_USER_2 };
+                    await transporter2.sendMail(fallbackOptions);
+                } catch (err2) {
+                    const isQuotaError2 = /limit exceeded|550|421|quota|too many/i.test(err2.message || '');
+                    if (isQuotaError2) {
+                        throw new Error('All email accounts have reached their daily sending limits (Gmail 500 emails/day limit).');
+                    }
+                    throw err2;
+                }
+            } else {
+                throw new Error('Email sending limit reached for the primary account. Please configure EMAIL_USER_2 in .env to increase the limit.');
+            }
         } else {
             throw err;
         }
@@ -102,7 +114,7 @@ const userSchema = new mongoose.Schema({
     city: { type: String, required: true },
     sangh: { type: String, required: true },
     password: { type: String, required: true },
-    username: { type: String, unique: true },
+    username: { type: String, unique: true, sparse: true },
     resetOtp: { type: String },
     resetOtpExpires: { type: Date }
 }, { timestamps: true });
@@ -321,13 +333,14 @@ app.post('/api/forgot-password', authLimiter, async (req, res) => {
         
         // Generate 6-digit OTP
         const otp = Math.floor(100000 + Math.random() * 900000).toString();
-        const otpExpires = Date.now() + 10 * 60 * 1000; // 10 minutes expiry
+        const otpExpires = new Date(Date.now() + 10 * 60 * 1000); // 10 minutes expiry
 
         // Save OTP to all associated accounts
         for (const user of users) {
-            user.resetOtp = otp;
-            user.resetOtpExpires = otpExpires;
-            await user.save();
+            await User.updateOne(
+                { _id: user._id },
+                { $set: { resetOtp: otp, resetOtpExpires: otpExpires } }
+            );
         }
         
         // Send OTP via Email
@@ -348,7 +361,7 @@ app.post('/api/forgot-password', authLimiter, async (req, res) => {
         res.status(200).json({ message: 'OTP sent to your email address.' });
     } catch (error) {
         console.error('Forgot Password Error:', error);
-        res.status(500).json({ error: 'Server error during forgot password.' });
+        res.status(500).json({ error: 'Server error during forgot password: ' + error.message });
     }
 });
 
@@ -371,7 +384,7 @@ app.post('/api/verify-otp', authLimiter, async (req, res) => {
         res.status(200).json({ accounts });
     } catch (error) {
         console.error('Verify OTP Error:', error);
-        res.status(500).json({ error: 'Server error during OTP verification.' });
+        res.status(500).json({ error: 'Server error during OTP verification: ' + error.message });
     }
 });
 
@@ -393,15 +406,18 @@ app.post('/api/reset-password', authLimiter, async (req, res) => {
         const salt = await bcrypt.genSalt(10);
         const hashedPassword = await bcrypt.hash(newPassword, salt);
         
-        user.password = hashedPassword;
-        user.resetOtp = undefined;
-        user.resetOtpExpires = undefined;
-        await user.save();
+        await User.updateOne(
+            { _id: user._id },
+            { 
+                $set: { password: hashedPassword },
+                $unset: { resetOtp: 1, resetOtpExpires: 1 }
+            }
+        );
         
         res.status(200).json({ message: 'Password reset successful.' });
     } catch (error) {
         console.error('Reset Password Error:', error);
-        res.status(500).json({ error: 'Server error during password reset.' });
+        res.status(500).json({ error: 'Server error during password reset: ' + error.message });
     }
 });
 
@@ -434,9 +450,25 @@ app.post('/api/logout', (req, res) => {
 // 5. Course Registration Route
 app.post('/api/register-course', upload.single('screenshot'), async (req, res) => {
     try {
-        // ── Registration is now CLOSED ──
-        if (req.file) await cloudinary.uploader.destroy(req.file.filename);
-        return res.status(403).json({ error: 'Registration is now closed. Please contact the organiser.' });
+        const token = req.cookies.auth_token;
+        if (!token) {
+            if (req.file) await cloudinary.uploader.destroy(req.file.filename);
+            return res.status(401).json({ error: 'Not authenticated' });
+        }
+
+        // Determine IST date
+        const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
+        const nowIST = new Date(Date.now() + IST_OFFSET_MS);
+        const yyyy = nowIST.getUTCFullYear();
+        const mm = String(nowIST.getUTCMonth() + 1).padStart(2, '0');
+        const dd = String(nowIST.getUTCDate()).padStart(2, '0');
+        const todayStr = `${yyyy}-${mm}-${dd}`;
+
+        // Close after Sunday night (August 2, 2026)
+        if (todayStr > '2026-08-02') {
+            if (req.file) await cloudinary.uploader.destroy(req.file.filename);
+            return res.status(403).json({ error: 'Registration is now closed. Please contact the organiser.' });
+        }
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         

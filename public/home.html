@@ -349,18 +349,27 @@
                     registerBtn.onclick = (e) => e.preventDefault();
                 }
             } else {
-                // Not registered — registration is now closed
-                registerBtn.innerHTML = `
-                    <svg viewBox="0 0 24 24" width="18" height="18" stroke="#c62828" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
-                    Registration Closed
-                `;
-                registerBtn.style.color = '#c62828';
-                registerBtn.style.background = '#ffebee';
-                registerBtn.style.cursor = 'not-allowed';
-                registerBtn.style.opacity = '1';
-                registerBtn.style.border = '1.5px solid #ef9a9a';
-                registerBtn.onclick = (e) => e.preventDefault();
-                if (previewFormBtn) previewFormBtn.style.display = 'none';
+                // Not registered — conditionally close after August 2, 2026 (Sunday)
+                const now = new Date();
+                const istOffset = 5.5 * 60 * 60 * 1000;
+                const istDate = new Date(now.getTime() + now.getTimezoneOffset() * 60000 + istOffset);
+                
+                // Ensure it closes starting Aug 3rd
+                const isClosed = istDate.getFullYear() > 2026 || (istDate.getFullYear() === 2026 && istDate.getMonth() + 1 > 8) || (istDate.getFullYear() === 2026 && istDate.getMonth() + 1 === 8 && istDate.getDate() > 2);
+                
+                if (isClosed) {
+                    registerBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#c62828" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></svg>
+                        Registration Closed
+                    `;
+                    registerBtn.style.color = '#c62828';
+                    registerBtn.style.background = '#ffebee';
+                    registerBtn.style.cursor = 'not-allowed';
+                    registerBtn.style.opacity = '1';
+                    registerBtn.style.border = '1.5px solid #ef9a9a';
+                    registerBtn.onclick = (e) => e.preventDefault();
+                    if (previewFormBtn) previewFormBtn.style.display = 'none';
+                }
             }
 
             if (user._id) fetchUserReels(user._id);
