@@ -369,6 +369,18 @@
                     registerBtn.style.border = '1.5px solid #ef9a9a';
                     registerBtn.onclick = (e) => e.preventDefault();
                     if (previewFormBtn) previewFormBtn.style.display = 'none';
+                } else {
+                    // Registration Open
+                    registerBtn.innerHTML = `
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#2e7d32" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        Registration Open
+                    `;
+                    registerBtn.style.color = '#2e7d32';
+                    registerBtn.style.background = '#e8f5e9';
+                    registerBtn.style.cursor = 'pointer';
+                    registerBtn.style.opacity = '1';
+                    registerBtn.style.border = '1.5px solid #81c784';
+                    // We don't overwrite onclick so the default event listener continues to work
                 }
             }
 
