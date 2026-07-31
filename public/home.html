@@ -571,7 +571,8 @@
                             dayDiv.style.cursor = 'pointer';
                             dayDiv.title = `${dayData.date}: Missed — Click to fill!`;
                             dayDiv.style.outline = '2px dashed white';
-                            dayDiv.onclick = () => openAradhanaForm(false, dateStr);
+                            // If it's strictly yesterday, use the forYesterday flag. Otherwise use specificDate.
+                            dayDiv.onclick = () => openAradhanaForm(dateStr === ydStr, dateStr === ydStr ? null : dateStr);
                         } else {
                             // Older missed day — not fillable
                             dayDiv.style.cursor = 'not-allowed';
