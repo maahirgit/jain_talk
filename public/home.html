@@ -558,26 +558,16 @@
                         dayDiv.style.boxShadow = '0 2px 5px rgba(244, 67, 54, 0.4)';
                         dayDiv.title = `${dayData.date}: Missed`;
 
-                        // Compute yesterday in IST
                         const ydIST = new Date(new Date().getTime() + 330 * 60000);
                         ydIST.setDate(ydIST.getDate() - 1);
                         const ydStr = ydIST.toISOString().split('T')[0];
-                        
-                        const todayIST = new Date(new Date().getTime() + 330 * 60000).toISOString().split('T')[0];
-                        const isSpecialJuly30 = todayIST === '2026-07-30' && (dateStr === '2026-07-28' || dateStr === '2026-07-29');
 
-                        if (dateStr === ydStr || isSpecialJuly30) {
-                            // Clickable — yesterday or special allowance can be filled
-                            dayDiv.style.cursor = 'pointer';
-                            dayDiv.title = `${dayData.date}: Missed — Click to fill!`;
-                            dayDiv.style.outline = '2px dashed white';
-                            // If it's strictly yesterday, use the forYesterday flag. Otherwise use specificDate.
-                            dayDiv.onclick = () => openAradhanaForm(dateStr === ydStr, dateStr === ydStr ? null : dateStr);
-                        } else {
-                            // Older missed day — not fillable
-                            dayDiv.style.cursor = 'not-allowed';
-                            dayDiv.title = `${dayData.date}: Missed — Can only fill the previous day`;
-                        }
+                        // Clickable — any missed day can be filled
+                        dayDiv.style.cursor = 'pointer';
+                        dayDiv.title = `${dayData.date}: Missed — Click to fill!`;
+                        dayDiv.style.outline = '2px dashed white';
+                        // If it's strictly yesterday, use the forYesterday flag. Otherwise use specificDate.
+                        dayDiv.onclick = () => openAradhanaForm(dateStr === ydStr, dateStr === ydStr ? null : dateStr);
                     } else {
                         dayDiv.style.background = '#E0E0E0';
                         dayDiv.style.color = '#333';
