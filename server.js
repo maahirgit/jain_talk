@@ -11,48 +11,56 @@ const path = require('path');
 const multer = require('multer');
 const nodemailer = require('nodemailer');
 
-// Set up email transporters (primary + secondary fallback)
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER,
-        pass: process.env.EMAIL_PASS
-    }
-});
-
-const transporter2 = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: process.env.EMAIL_USER_2,
-        pass: process.env.EMAIL_PASS_2
-    }
-});
-
-// Helper: try primary transporter first; on quota/rate-limit error fall back to secondary
+// Helper: try primary transporter first; on quota/rate-limit error fall back to secondary, tertiary, etc.
 async function sendMailWithFallback(mailOptions) {
-    try {
-        await transporter.sendMail(mailOptions);
-    } catch (err) {
-        // Gmail daily limit errors contain codes like 550 / 421 / EENVELOPE or 'Daily user sending limit exceeded'
-        const isQuotaError = /limit exceeded|550|421|quota|too many/i.test(err.message || '');
-        if (isQuotaError) {
-            if (process.env.EMAIL_USER_2 && process.env.EMAIL_PASS_2) {
-                console.warn('[EMAIL] Primary account limit reached. Switching to secondary account...');
-                try {
-                    const fallbackOptions = { ...mailOptions, from: process.env.EMAIL_USER_2 };
-                    await transporter2.sendMail(fallbackOptions);
-                } catch (err2) {
-                    const isQuotaError2 = /limit exceeded|550|421|quota|too many/i.test(err2.message || '');
-                    if (isQuotaError2) {
-                        throw new Error('All email accounts have reached their daily sending limits (Gmail 500 emails/day limit).');
-                    }
-                    throw err2;
-                }
-            } else {
-                throw new Error('Email sending limit reached for the primary account. Please configure EMAIL_USER_2 in .env to increase the limit.');
+    let currentAccount = 1;
+    let success = false;
+    let lastError = null;
+
+    while (!success) {
+        let userEnv = currentAccount === 1 ? 'EMAIL_USER' : `EMAIL_USER_${currentAccount}`;
+        let passEnv = currentAccount === 1 ? 'EMAIL_PASS' : `EMAIL_PASS_${currentAccount}`;
+        
+        let user = process.env[userEnv];
+        let pass = process.env[passEnv];
+
+        if (!user || !pass) {
+            // No more fallback accounts configured
+            if (currentAccount === 1) {
+                console.log(`[MOCK EMAIL] Missing email credentials in .env. Mail options:`, mailOptions);
+                return; // Simulate success if NO emails are configured
             }
-        } else {
-            throw err;
+            throw new Error(`All configured email accounts have reached their daily sending limits. (Tried ${currentAccount - 1} accounts). Please add ${userEnv} to .env to increase capacity.`);
+        }
+
+        const currentTransporter = nodemailer.createTransport({
+            service: 'gmail',
+            auth: { user, pass }
+        });
+
+        try {
+            const currentOptions = { ...mailOptions, from: user };
+            await currentTransporter.sendMail(currentOptions);
+            success = true;
+            if (currentAccount > 1) {
+                console.log(`[EMAIL] Successfully sent email using fallback account ${currentAccount} (${user})`);
+            }
+        } catch (err) {
+            lastError = err;
+            const isQuotaError = /limit exceeded|550|421|quota|too many|Daily user sending limit/i.test(err.message || '');
+            if (isQuotaError) {
+                console.warn(`[EMAIL] Account ${currentAccount} (${user}) limit reached or blocked. Trying next account...`);
+                currentAccount++;
+            } else {
+                // If it's an authentication error (e.g. invalid password), we might want to skip it too, but for now we throw
+                const isAuthError = /Invalid login|Authentication failed/i.test(err.message || '');
+                if (isAuthError) {
+                    console.warn(`[EMAIL] Account ${currentAccount} (${user}) failed authentication. Trying next account...`);
+                    currentAccount++;
+                } else {
+                    throw err; // Real error like network issue
+                }
+            }
         }
     }
 }
@@ -325,7 +333,7 @@ app.post('/api/login', authLimiter, async (req, res) => {
 // Forgot Password Route
 app.post('/api/forgot-password', authLimiter, async (req, res) => {
     try {
-        const { email } = req.body;
+        const email = req.body.email.trim();
         const users = await User.find({ email: new RegExp('^' + email + '$', 'i') });
         if (!users || users.length === 0) {
             return res.status(404).json({ error: 'User with this email not found.' });
@@ -368,7 +376,8 @@ app.post('/api/forgot-password', authLimiter, async (req, res) => {
 // Verify OTP Route (NEW)
 app.post('/api/verify-otp', authLimiter, async (req, res) => {
     try {
-        const { email, otp } = req.body;
+        const email = req.body.email.trim();
+        const { otp } = req.body;
         const users = await User.find({ 
             email: new RegExp('^' + email + '$', 'i'),
             resetOtp: otp,
@@ -391,7 +400,8 @@ app.post('/api/verify-otp', authLimiter, async (req, res) => {
 // Reset Password Route
 app.post('/api/reset-password', authLimiter, async (req, res) => {
     try {
-        const { email, otp, accountId, newPassword } = req.body;
+        const email = req.body.email.trim();
+        const { otp, accountId, newPassword } = req.body;
         const user = await User.findOne({ 
             _id: accountId,
             email: new RegExp('^' + email + '$', 'i'),
