@@ -165,11 +165,9 @@ const reelSchema = new mongoose.Schema({
 
 const Reel = mongoose.model('Reel', reelSchema);
 // Setup multer for file uploads with Cloudinary
-const { v2: cloudinary } = require('cloudinary');
-const { v2: cloudinary2 } = require('cloudinary');
-const { CloudinaryStorage } = require('multer-storage-cloudinary');
+const cloudinary = require('cloudinary').v2;
 
-// Account 1 (Primary - existing data, read-only now as storage is full)
+// We will use global config for Account 1, but explicitly pass Account 2 credentials when needed
 if (process.env.CLOUDINARY_CLOUD_NAME) {
     cloudinary.config({
         cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
@@ -178,16 +176,21 @@ if (process.env.CLOUDINARY_CLOUD_NAME) {
     });
 }
 
-// Account 2 (Secondary - all new uploads go here)
-cloudinary2.config({
+const cloudinary2Config = {
     cloud_name: process.env.CLOUDINARY_CLOUD_NAME_2,
     api_key: process.env.CLOUDINARY_API_KEY_2,
     api_secret: process.env.CLOUDINARY_API_SECRET_2
-});
+};
+
+const { CloudinaryStorage } = require('multer-storage-cloudinary');
 
 // Images → Account 2
+// We explicitly override the cloudinary config for this storage instance
+const cloudinaryInstance2 = require('cloudinary').v2;
+cloudinaryInstance2.config(cloudinary2Config);
+
 const storage = new CloudinaryStorage({
-    cloudinary: cloudinary2,
+    cloudinary: cloudinaryInstance2,
     params: {
         folder: 'jain_talks_uploads',
         allowed_formats: ['jpg', 'png', 'jpeg', 'webp']
@@ -197,7 +200,7 @@ const upload = multer({ storage: storage });
 
 // Videos → Account 2
 const videoStorage = new CloudinaryStorage({
-    cloudinary: cloudinary2,
+    cloudinary: cloudinaryInstance2,
     params: {
         folder: 'jain_talks_reels',
         resource_type: 'video',
@@ -462,7 +465,7 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
     try {
         const token = req.cookies.auth_token;
         if (!token) {
-            if (req.file) await cloudinary.uploader.destroy(req.file.filename);
+            if (req.file) await cloudinaryInstance2.uploader.destroy(req.file.filename);
             return res.status(401).json({ error: 'Not authenticated' });
         }
 
@@ -476,7 +479,7 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
 
         // Close after Sunday night (August 2, 2026)
         if (todayStr > '2026-08-02') {
-            if (req.file) await cloudinary.uploader.destroy(req.file.filename);
+            if (req.file) await cloudinaryInstance2.uploader.destroy(req.file.filename);
             return res.status(403).json({ error: 'Registration is now closed. Please contact the organiser.' });
         }
 
@@ -488,7 +491,7 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
         const existingRegistration = await CourseRegistration.findOne({ userId: decoded.id, courseName });
         if (existingRegistration) {
             if (req.file) {
-                await cloudinary.uploader.destroy(req.file.filename);
+                await cloudinaryInstance2.uploader.destroy(req.file.filename);
             }
             return res.status(400).json({ error: 'You have already registered for this course.' });
         }
@@ -517,7 +520,7 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
         console.error('Course Registration Error:', error);
         if (req.file) {
             try {
-                await cloudinary.uploader.destroy(req.file.filename);
+                await cloudinaryInstance2.uploader.destroy(req.file.filename);
             } catch (cleanupError) {
                 console.error('Failed to clean up image on error:', cleanupError);
             }
@@ -604,18 +607,23 @@ app.get('/api/cloudinary-signature', (req, res) => {
         if (!token) return res.status(401).json({ error: 'Not authenticated' });
         
         const timestamp = Math.round((new Date).getTime() / 1000);
-        const config = cloudinary2.config();
         
-        if (!config.api_secret) {
-            return res.status(500).json({ error: 'Cloudinary is not configured on the server.' });
+        if (!process.env.CLOUDINARY_API_SECRET_2) {
+            return res.status(500).json({ error: 'Cloudinary Account 2 is not configured on the server.' });
         }
         
-        const signature = cloudinary2.utils.api_sign_request({
+        // Explicitly use Account 2 config for signature
+        const signature = cloudinaryInstance2.utils.api_sign_request({
             timestamp: timestamp,
             folder: 'jain_talks_reels'
-        }, config.api_secret);
+        }, process.env.CLOUDINARY_API_SECRET_2);
         
-        res.json({ timestamp, signature, apiKey: config.api_key, cloudName: config.cloud_name });
+        res.json({ 
+            timestamp, 
+            signature, 
+            apiKey: process.env.CLOUDINARY_API_KEY_2, 
+            cloudName: process.env.CLOUDINARY_CLOUD_NAME_2 
+        });
     } catch (error) {
         res.status(500).json({ error: 'Failed to generate signature' });
     }
