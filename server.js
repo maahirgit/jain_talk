@@ -477,12 +477,6 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
         const dd = String(nowIST.getUTCDate()).padStart(2, '0');
         const todayStr = `${yyyy}-${mm}-${dd}`;
 
-        // Close after Sunday night (August 2, 2026)
-        if (todayStr > '2026-08-02') {
-            if (req.file) await cloudinaryInstance2.uploader.destroy(req.file.filename);
-            return res.status(403).json({ error: 'Registration is now closed. Please contact the organiser.' });
-        }
-
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
         const { courseName, name, email, number, age, city } = req.body;
