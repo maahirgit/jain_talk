@@ -1063,11 +1063,15 @@ app.get('/api/cron/tithi-reminder', async (req, res) => {
         const uniqueEmails = [...new Set(users.map(u => u.email.trim().toLowerCase()))];
 
         let sent = 0, failed = 0;
-        for (let i = 0; i < uniqueEmails.length; i++) {
-            const email = uniqueEmails[i];
+        
+        // Chunk emails into batches of 90 to avoid Gmail's 100 limit per email
+        // and to avoid Vercel timeouts (10s on hobby plan)
+        const BATCH_SIZE = 90;
+        for (let i = 0; i < uniqueEmails.length; i += BATCH_SIZE) {
+            const chunk = uniqueEmails.slice(i, i + BATCH_SIZE);
             const mailOptions = {
                 from: process.env.EMAIL_USER,
-                to: email,
+                bcc: chunk,
                 subject: `🌙 આવતીકાલે પર્વ તિથિ છે: ${tithiDisplayName} રિમાઇન્ડર - Jain Talk`,
                 html: `
                     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -1100,11 +1104,11 @@ app.get('/api/cron/tithi-reminder', async (req, res) => {
             
             try {
                 await sendMailWithFallback(mailOptions);
-                console.log(`[${i + 1}/${uniqueEmails.length}] Tithi reminder sent to ${email}`);
-                sent++;
+                console.log(`[CRON] Tithi reminder batch sent to ${chunk.length} users.`);
+                sent += chunk.length;
             } catch (mailErr) {
-                console.error(`Failed to send email to ${email}:`, mailErr.message);
-                failed++;
+                console.error(`Failed to send batch email:`, mailErr.message);
+                failed += chunk.length;
             }
             
             // Wait 1.5 seconds between emails to avoid rate limits
@@ -1158,11 +1162,15 @@ app.get('/api/cron/aradhana-reminder', async (req, res) => {
         console.log(`[CRON] ${uniqueEmails.length} users missing. Sending reminders...`);
 
         let sent = 0, failed = 0;
-        for (let i = 0; i < uniqueEmails.length; i++) {
-            const email = uniqueEmails[i];
+        
+        // Chunk emails into batches of 90 to avoid Gmail's 100 limit per email
+        // and to avoid Vercel timeouts (10s on hobby plan)
+        const BATCH_SIZE = 90;
+        for (let i = 0; i < uniqueEmails.length; i += BATCH_SIZE) {
+            const chunk = uniqueEmails.slice(i, i + BATCH_SIZE);
             const mailOptions = {
                 from: process.env.EMAIL_USER,
-                to: email,
+                bcc: chunk,
                 subject: '⏳ આજની આરાધના બાકી છે! (Today\'s Aradhana Pending)',
                 html: `
                     <div style="font-family: Arial, sans-serif; line-height: 1.6; color: #333;">
@@ -1187,8 +1195,8 @@ app.get('/api/cron/aradhana-reminder', async (req, res) => {
 
             try {
                 await sendMailWithFallback(mailOptions);
-                console.log(`[${i + 1}/${uniqueEmails.length}] Aradhana reminder sent to ${email}`);
-                sent++;
+                console.log(`[CRON] Aradhana reminder batch sent to ${chunk.length} users.`);
+                sent += chunk.length;
             } catch (mailErr) {
                 console.error(`Failed to send Aradhana reminder to ${email}:`, mailErr.message);
                 failed++;
