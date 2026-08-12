@@ -455,20 +455,14 @@
                 formBtn.onclick = () => openAradhanaForm(false);
             }
 
-            // Show yesterday button if yesterday was missed (within aradhana period)
+            // Show yesterday button if yesterday was missed
             if (yesterdayBtn) {
-                const todayIST = new Date(new Date().getTime() + 330 * 60000).toISOString().split('T')[0];
-                const alreadyFilledYesterday = data.calendar && data.calendar.some(c => {
-                    const yd = new Date(new Date().getTime() + 330 * 60000);
-                    yd.setDate(yd.getDate() - 1);
-                    const ydStr = yd.toISOString().split('T')[0];
-                    return c.date === ydStr && c.status === 'FILLED';
-                });
-                const withinPeriod = todayIST >= '2026-07-29' && todayIST <= '2026-09-25';
-                if (withinPeriod && !alreadyFilledYesterday) {
-                    const yd = new Date(new Date().getTime() + 330 * 60000);
-                    yd.setDate(yd.getDate() - 1);
-                    const ydStr = yd.toISOString().split('T')[0];
+                const yd = new Date(new Date().getTime() + 330 * 60000);
+                yd.setDate(yd.getDate() - 1);
+                const ydStr = yd.toISOString().split('T')[0];
+                const alreadyFilledYesterday = data.calendar && data.calendar.some(c => c.date === ydStr && c.status === 'FILLED');
+                
+                if (!alreadyFilledYesterday) {
                     yesterdayBtn.style.display = 'block';
                     yesterdayBtn.innerHTML = `<i class="fas fa-history" style="margin-right: 8px;"></i> Fill Yesterday's Aradhana (${ydStr})`;
                     yesterdayBtn.onclick = () => openAradhanaForm(true);

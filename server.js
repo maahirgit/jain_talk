@@ -852,11 +852,6 @@ app.post('/api/aradhana/submit', async (req, res) => {
         }
         
         const todayStr = getLocalDateString(new Date());
-        
-        // Date validation: Only open between July 28 - Sept 25, 2026
-        if (todayStr < '2026-07-28' || todayStr > '2026-09-25') {
-            return res.status(400).json({ error: 'Aradhana can only be submitted between July 28 and Sept 25' });
-        }
 
         let targetDateStr = todayStr;
         
@@ -865,10 +860,8 @@ app.post('/api/aradhana/submit', async (req, res) => {
         const ydStr = getLocalDateString(yesterdayDate);
 
         if (req.body.specificDate) {
-            // Allow filling any missed day in the past up to yesterday
-            if (req.body.specificDate <= ydStr) {
-                targetDateStr = req.body.specificDate;
-            }
+            // Allow filling any missed day
+            targetDateStr = req.body.specificDate;
         } else if (forYesterday) {
             targetDateStr = ydStr;
         }
