@@ -158,7 +158,13 @@
             container.innerHTML = '';
             document.getElementById('live-score-value').textContent = '0';
             
-            document.getElementById('aradhana-submit-btn').style.display = 'block';
+            const sBtn = document.getElementById('aradhana-submit-btn');
+            if (sBtn) {
+                sBtn.style.display = 'block';
+                sBtn.disabled = false;
+                sBtn.textContent = 'Submit Aradhana';
+                sBtn.style.background = 'var(--primary-color)';
+            }
             const msgBox = document.getElementById('preview-msg');
             if (msgBox) msgBox.remove();
             
