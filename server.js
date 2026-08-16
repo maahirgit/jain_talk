@@ -871,7 +871,10 @@ app.post('/api/aradhana/submit', async (req, res) => {
         // Check if already submitted for the target date
         const existing = await AradhanaSubmission.findOne({ userId: decoded.id, dateString: targetDateStr });
         if (existing) {
-            return res.status(400).json({ error: forYesterday ? 'You have already submitted yesterday\'s Aradhana' : 'You have already submitted today\'s Aradhana' });
+            let errorMsg = 'You have already submitted today\'s Aradhana';
+            if (forYesterday) errorMsg = 'You have already submitted yesterday\'s Aradhana';
+            else if (req.body.specificDate) errorMsg = `You have already submitted Aradhana for ${req.body.specificDate}`;
+            return res.status(400).json({ error: errorMsg });
         }
         
         // Calculate exact points
