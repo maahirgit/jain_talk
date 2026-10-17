@@ -145,7 +145,7 @@ const courseRegistrationSchema = new mongoose.Schema({
 
 const CourseRegistration = mongoose.model('CourseRegistration', courseRegistrationSchema);
 
-// Daily Aradhana Submission Schema
+// Daily Aradhana Submission Schema (Event 1 - Closed)
 const aradhanaSubmissionSchema = new mongoose.Schema({
     userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
     dateString: { type: String, required: true }, // Format: "YYYY-MM-DD"
@@ -154,6 +154,31 @@ const aradhanaSubmissionSchema = new mongoose.Schema({
 }, { timestamps: true });
 
 const AradhanaSubmission = mongoose.model('AradhanaSubmission', aradhanaSubmissionSchema);
+
+// ── EVENT 2: "चलो करें नवपदजी की आराधना" SCHEMAS ─────────────────────────────
+const navpadRegistrationSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    courseName: { type: String, default: "चलो करें नवपदजी की आराधना" },
+    name: { type: String, required: true },
+    email: { type: String, required: true },
+    number: { type: String, required: true },
+    age: { type: Number, required: true },
+    city: { type: String, required: true },
+    screenshotPath: { type: String, required: true },
+    isPaymentVerified: { type: Boolean, default: false },
+    dailyTasks: { type: [Boolean], default: () => Array(9).fill(false) }
+}, { timestamps: true });
+
+const NavpadRegistration = mongoose.model('NavpadRegistration', navpadRegistrationSchema);
+
+const navpadSubmissionSchema = new mongoose.Schema({
+    userId: { type: mongoose.Schema.Types.ObjectId, ref: 'User', required: true },
+    dateString: { type: String, required: true }, // Format: "YYYY-MM-DD"
+    points: { type: Number, required: true },
+    answers: { type: [Number], required: true } // Stores the 9 answers
+}, { timestamps: true });
+
+const NavpadSubmission = mongoose.model('NavpadSubmission', navpadSubmissionSchema);
 
 // Reel / Post Schema
 const reelSchema = new mongoose.Schema({
@@ -445,10 +470,16 @@ app.get('/api/me', async (req, res) => {
         
         if (!user) return res.status(404).json({ error: 'User not found' });
 
-        // Fetch user's registration
-        const registration = await CourseRegistration.findOne({ userId: user._id, courseName: "चलो सब आराधना करें" });
+        // Fetch user's registration for both events
+        const navpadRegistration = await NavpadRegistration.findOne({ userId: user._id });
+        const oldRegistration = await CourseRegistration.findOne({ userId: user._id, courseName: "चलो सब आराधना करें" });
 
-        res.status(200).json({ user, registration });
+        res.status(200).json({
+            user,
+            registration: navpadRegistration, // strictly NavpadRegistration for the current active event
+            navpadRegistration,
+            oldRegistration
+        });
     } catch (error) {
         res.status(401).json({ error: 'Invalid or expired token' });
     }
@@ -480,35 +511,63 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         
         const { courseName, name, email, number, age, city } = req.body;
+        const isNavpad = (!courseName || courseName.includes("नवपद") || courseName === "चलो करें नवपदजी की आराधना");
+        const finalCourseName = isNavpad ? "चलो करें नवपदजी की आराधना" : courseName;
 
-        // Prevent duplicate registrations
-        const existingRegistration = await CourseRegistration.findOne({ userId: decoded.id, courseName });
-        if (existingRegistration) {
-            if (req.file) {
-                await cloudinaryInstance2.uploader.destroy(req.file.filename);
+        if (isNavpad) {
+            const existingRegistration = await NavpadRegistration.findOne({ userId: decoded.id });
+            if (existingRegistration) {
+                if (req.file) await cloudinaryInstance2.uploader.destroy(req.file.filename);
+                return res.status(400).json({ error: 'You have already registered for this event.' });
             }
-            return res.status(400).json({ error: 'You have already registered for this course.' });
+
+            if (!req.file) {
+                return res.status(400).json({ error: 'Payment screenshot is required' });
+            }
+
+            const screenshotPath = req.file.path;
+            const registration = new NavpadRegistration({
+                userId: decoded.id,
+                courseName: finalCourseName,
+                name,
+                email,
+                number,
+                age,
+                city,
+                screenshotPath
+            });
+            await registration.save();
+            return res.status(201).json({ message: 'Registration submitted successfully!' });
+        } else {
+            // Prevent duplicate registrations
+            const existingRegistration = await CourseRegistration.findOne({ userId: decoded.id, courseName });
+            if (existingRegistration) {
+                if (req.file) {
+                    await cloudinaryInstance2.uploader.destroy(req.file.filename);
+                }
+                return res.status(400).json({ error: 'You have already registered for this course.' });
+            }
+
+            if (!req.file) {
+                return res.status(400).json({ error: 'Payment screenshot is required' });
+            }
+
+            const screenshotPath = req.file.path;
+
+            const registration = new CourseRegistration({
+                userId: decoded.id,
+                courseName,
+                name,
+                email,
+                number,
+                age,
+                city,
+                screenshotPath
+            });
+
+            await registration.save();
+            res.status(201).json({ message: 'Registration submitted successfully!' });
         }
-
-        if (!req.file) {
-            return res.status(400).json({ error: 'Payment screenshot is required' });
-        }
-
-        const screenshotPath = req.file.path;
-
-        const registration = new CourseRegistration({
-            userId: decoded.id,
-            courseName,
-            name,
-            email,
-            number,
-            age,
-            city,
-            screenshotPath
-        });
-
-        await registration.save();
-        res.status(201).json({ message: 'Registration submitted successfully!' });
 
     } catch (error) {
         console.error('Course Registration Error:', error);
@@ -528,14 +587,39 @@ app.get('/', (req, res) => {
     res.sendFile(path.join(__dirname, 'public', 'index.html'));
 });
 
-// Admin Route: Verify Payment for testing
-app.put('/api/admin/verify/:userId', async (req, res) => {
+// Admin Route: Verify Payment by registration _id or userId
+app.put('/api/admin/verify/:id', async (req, res) => {
     try {
-        const registration = await CourseRegistration.findOneAndUpdate(
-            { userId: req.params.userId },
-            { isPaymentVerified: true },
-            { new: true }
-        );
+        const id = req.params.id;
+        let registration = null;
+        if (mongoose.Types.ObjectId.isValid(id)) {
+            registration = await NavpadRegistration.findByIdAndUpdate(
+                id,
+                { isPaymentVerified: true },
+                { new: true }
+            );
+            if (!registration) {
+                registration = await CourseRegistration.findByIdAndUpdate(
+                    id,
+                    { isPaymentVerified: true },
+                    { new: true }
+                );
+            }
+        }
+        if (!registration) {
+            registration = await NavpadRegistration.findOneAndUpdate(
+                { userId: id },
+                { isPaymentVerified: true },
+                { new: true }
+            );
+        }
+        if (!registration) {
+            registration = await CourseRegistration.findOneAndUpdate(
+                { userId: id },
+                { isPaymentVerified: true },
+                { new: true }
+            );
+        }
         if (!registration) {
             return res.status(404).json({ error: 'Registration not found' });
         }
@@ -548,22 +632,27 @@ app.put('/api/admin/verify/:userId', async (req, res) => {
 // Admin Route: Verify ALL pending registrations at once
 app.put('/api/admin/verify-all', async (req, res) => {
     try {
-        const result = await CourseRegistration.updateMany(
+        const resultNavpad = await NavpadRegistration.updateMany(
             { isPaymentVerified: false },
             { isPaymentVerified: true }
         );
-        res.status(200).json({ message: `${result.modifiedCount} registration(s) verified successfully` });
+        const resultOld = await CourseRegistration.updateMany(
+            { isPaymentVerified: false },
+            { isPaymentVerified: true }
+        );
+        const total = (resultNavpad.modifiedCount || 0) + (resultOld.modifiedCount || 0);
+        res.status(200).json({ message: `${total} registration(s) verified successfully` });
     } catch (error) {
         res.status(500).json({ error: 'Server error' });
     }
 });
 
-
 // Admin Route: Get all registrations
 app.get('/api/admin/registrations', async (req, res) => {
     try {
-        const registrations = await CourseRegistration.find().populate('userId', 'name email sangh').sort({ createdAt: -1 });
-        res.status(200).json({ registrations });
+        const navpadRegs = await NavpadRegistration.find().populate('userId', 'name email sangh').sort({ createdAt: -1 });
+        const oldRegs = await CourseRegistration.find().populate('userId', 'name email sangh').sort({ createdAt: -1 });
+        res.status(200).json({ registrations: [...navpadRegs, ...oldRegs] });
     } catch (error) {
         console.error('Error fetching registrations:', error);
         res.status(500).json({ error: 'Server error' });
@@ -728,27 +817,41 @@ app.get('/api/users/:id/profile', async (req, res) => {
 
 
 
+// ── EVENT 2 ARADHANA SCORING (9 Tasks) ───────────────────────────────────────
+const NAVPAD_SCORING = [
+    [500, 700, 0],         // Q1: तप करना - (A) आयंबिल (500), (B) उपवास (700), (C) कुछ नहीं किया (0)
+    [50, 200, 250, 0],     // Q2: देरासर में प्रदक्षिणा एवं अष्टप्रकारी पूजा - (A) प्रदक्षिणा दी (50), (B) अष्टप्रकारी पूजा की (200), (C) दोनों किए (250), (D) दोनों नहीं किए (0)
+    [100, 100, 200, 0],    // Q3: गुरु वंदन एवं गोचरी विनंती / वोहराना - (A) गुरु वंदन किया (100), (B) गोचरी विनंती की या गोचरी वोहराई (100), (C) दोनों किए (200), (D) दोनों नहीं किए (0)
+    [500, 0],              // Q4: नवपदजी की ओली की आराधना (Compulsory) - (A) आराधना की (500), (B) आराधना नहीं की (0)
+    [150, 300, 450, 0],    // Q5: सामायिक करना - (A) 1 सामायिक (150), (B) 2 सामायिक (300), (C) 3 सामायिक (450), (D) सामायिक नहीं किया (0)
+    [50, 50, 100, 0],      // Q6: संध्या प्रभु दर्शन एवं आरती - (A) प्रभु दर्शन किया (50), (B) आरती की (50), (C) दोनों किए (100), (D) दोनों नहीं किए (0)
+    [200, 200, 400, 0],    // Q7: प्रतिक्रमण करना - (A) राई प्रतिक्रमण किया (200), (B) देवसिय प्रतिक्रमण किया (200), (C) दोनों प्रतिक्रमण किए (400), (D) कोई भी नहीं किया (0)
+    [1500, 500, 2000, 0],  // Q8: पोषध करना - (A) दिवस पोषध (1500), (B) रात्रि पोषध (500), (C) दोनों किए (2000), (D) पोषध नहीं किया (0)
+    [100, 0]               // Q9: पाठशाला / संस्कारशाला जाना - (A) पाठशाला गए (100), (B) पाठशाला नहीं गए (0)
+];
+
+// Archived Event 1 Scoring
 const ARADHANA_SCORING = [
-    [50, 250, 400, 500, 700, 0], // Q1
-    [50, 0], // Q2
-    [50, 50, 100, 0], // Q3
-    [200, 100, 0], // Q4
-    [100, 100, 200, 0], // Q5
-    [50, 50, 100, 0], // Q6
-    [50, 50, 100, 0], // Q7
-    [50, 0], // Q8
-    [100, 0], // Q9
-    [50, 100, 150, 0], // Q10
-    [100, 0], // Q11
-    [0, 150, 300, 450], // Q12
-    [0, 100, 200, 300], // Q13
-    [100, 200, 0], // Q14
-    [50, 50, 100, 0], // Q15
-    [100, 150, 0], // Q16
-    [200, 200, 400, 0], // Q17
-    [1500, 500, 2000, 0], // Q18
-    [300, 200, 100, 0], // Q19
-    [100, 100, 200, 0] // Q20
+    [50, 250, 400, 500, 700, 0],
+    [50, 0],
+    [50, 50, 100, 0],
+    [200, 100, 0],
+    [100, 100, 200, 0],
+    [50, 50, 100, 0],
+    [50, 50, 100, 0],
+    [50, 0],
+    [100, 0],
+    [50, 100, 150, 0],
+    [100, 0],
+    [0, 150, 300, 450],
+    [0, 100, 200, 300],
+    [100, 200, 0],
+    [50, 50, 100, 0],
+    [100, 150, 0],
+    [200, 200, 400, 0],
+    [1500, 500, 2000, 0],
+    [300, 200, 100, 0],
+    [100, 100, 200, 0]
 ];
 
 function getLocalDateString(date) {
@@ -768,7 +871,34 @@ app.get('/api/aradhana/status', async (req, res) => {
         const user = await User.findById(decoded.id);
         if (!user) return res.status(401).json({ error: 'User not found' });
         
-        const submissions = await AradhanaSubmission.find({ userId: decoded.id }).sort({ dateString: 1 });
+        // Check Event 2 (Navpad) Registration & Payment Verification
+        const navpadReg = await NavpadRegistration.findOne({ userId: decoded.id });
+        if (!navpadReg) {
+            return res.status(200).json({
+                isRegistered: false,
+                isPaymentVerified: false,
+                totalPoints: 0,
+                todaysPoints: 0,
+                yesterdaysPoints: 0,
+                calendar: [],
+                hasSubmittedToday: false
+            });
+        }
+        
+        if (!navpadReg.isPaymentVerified) {
+            return res.status(200).json({
+                isRegistered: true,
+                isPaymentVerified: false,
+                totalPoints: 0,
+                todaysPoints: 0,
+                yesterdaysPoints: 0,
+                calendar: [],
+                hasSubmittedToday: false
+            });
+        }
+        
+        // Fetch Event 2 submissions
+        const submissions = await NavpadSubmission.find({ userId: decoded.id }).sort({ dateString: 1 });
         
         let totalPoints = 0;
         let todaysPoints = 0;
@@ -788,18 +918,12 @@ app.get('/api/aradhana/status', async (req, res) => {
             if (sub.dateString === yesterdayStr) yesterdaysPoints = sub.points;
         });
         
-        // Generate calendar
+        // Generate calendar for Event 2: Navpad Oli 2026 (18 Oct to 26 Oct - 9 days)
         const calendar = [];
-        let startDate = new Date('2026-07-28T00:00:00Z');
-        const endDate = new Date('2026-09-15T00:00:00Z');
-        
-        // If testing before July 28, start the calendar from today so it's visible
-        if (todayStr < '2026-07-28') {
-            startDate = new Date(todayStr + 'T00:00:00Z');
-        }
+        const startDate = new Date('2026-10-18T00:00:00Z');
+        const endDate = new Date('2026-10-26T00:00:00Z');
         
         let currentDate = new Date(startDate);
-        const now = new Date();
         
         while (currentDate <= endDate) {
             const dateStr = currentDate.toISOString().split('T')[0];
@@ -823,6 +947,8 @@ app.get('/api/aradhana/status', async (req, res) => {
         }
         
         res.status(200).json({
+            isRegistered: true,
+            isPaymentVerified: true,
             totalPoints,
             todaysPoints,
             yesterdaysPoints,
@@ -843,16 +969,20 @@ app.post('/api/aradhana/submit', async (req, res) => {
         
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
         const user = await User.findById(decoded.id);
-        
         if (!user) return res.status(401).json({ error: 'User not found' });
         
+        // Strict approval check: Only users with verified payment for Event 2 can submit
+        const reg = await NavpadRegistration.findOne({ userId: decoded.id, isPaymentVerified: true });
+        if (!reg) {
+            return res.status(403).json({ error: 'Access denied: Only users with an approved registration for चलो करें नवपदजी की आराधना can submit.' });
+        }
+        
         const { answers, forYesterday } = req.body;
-        if (!answers || answers.length !== 20) {
-            return res.status(400).json({ error: 'Invalid answers submitted' });
+        if (!answers || answers.length !== 9) {
+            return res.status(400).json({ error: 'Invalid answers: exactly 9 questions are required.' });
         }
         
         const todayStr = getLocalDateString(new Date());
-
         let targetDateStr = todayStr;
         
         const yesterdayDate = new Date();
@@ -860,16 +990,25 @@ app.post('/api/aradhana/submit', async (req, res) => {
         const ydStr = getLocalDateString(yesterdayDate);
 
         if (req.body.specificDate) {
-            // Allow filling any missed day
             targetDateStr = req.body.specificDate;
         } else if (forYesterday) {
             targetDateStr = ydStr;
         }
 
-        console.log('[SUBMIT] User:', user.email, '| Date:', targetDateStr, '| ForYesterday:', !!forYesterday, '| Answers length:', answers.length);
+        const EVENT_START = '2026-10-18';
+        const EVENT_END = '2026-10-26';
+
+        if (targetDateStr < EVENT_START || targetDateStr > EVENT_END) {
+            return res.status(400).json({ error: `Submissions are only allowed during the event dates (18 Oct to 26 Oct 2026).` });
+        }
+        if (targetDateStr > todayStr) {
+            return res.status(400).json({ error: 'Cannot submit Aradhana for a future date.' });
+        }
+
+        console.log('[NAVPAD SUBMIT] User:', user.email, '| Date:', targetDateStr, '| ForYesterday:', !!forYesterday, '| Answers length:', answers.length);
         
-        // Check if already submitted for the target date
-        const existing = await AradhanaSubmission.findOne({ userId: decoded.id, dateString: targetDateStr });
+        // Check if already submitted for the target date in NavpadSubmission
+        const existing = await NavpadSubmission.findOne({ userId: decoded.id, dateString: targetDateStr });
         if (existing) {
             let errorMsg = 'You have already submitted today\'s Aradhana';
             if (forYesterday) errorMsg = 'You have already submitted yesterday\'s Aradhana';
@@ -877,18 +1016,18 @@ app.post('/api/aradhana/submit', async (req, res) => {
             return res.status(400).json({ error: errorMsg });
         }
         
-        // Calculate exact points
+        // Calculate points according to NAVPAD_SCORING
         let totalPoints = 0;
-        for (let i = 0; i < 20; i++) {
+        for (let i = 0; i < 9; i++) {
             const optionIndex = answers[i];
-            const maxOptions = ARADHANA_SCORING[i].length;
+            const maxOptions = NAVPAD_SCORING[i].length;
             if (optionIndex < 0 || optionIndex >= maxOptions) {
                 return res.status(400).json({ error: `Invalid option for question ${i + 1}` });
             }
-            totalPoints += ARADHANA_SCORING[i][optionIndex];
+            totalPoints += NAVPAD_SCORING[i][optionIndex];
         }
         
-        const submission = new AradhanaSubmission({
+        const submission = new NavpadSubmission({
             userId: decoded.id,
             dateString: targetDateStr,
             points: totalPoints,
@@ -899,7 +1038,7 @@ app.post('/api/aradhana/submit', async (req, res) => {
         
         res.status(200).json({ message: 'Submission successful', points: totalPoints });
     } catch (error) {
-        console.error('Submit Aradhana Error:', error);
+        console.error('Submit Navpad Aradhana Error:', error);
         res.status(500).json({ error: 'Failed to submit' });
     }
 });
@@ -958,9 +1097,11 @@ app.get('/api/panchang', (req, res) => {
 });
 
 // Leaderboard API Endpoint
+// Leaderboard API Endpoint (Cleaned for Event 2: Navpad Aradhana)
 app.get('/api/leaderboard', async (req, res) => {
     try {
-        const leaderboard = await AradhanaSubmission.aggregate([
+        const SubmissionModel = req.query.event === '1' ? AradhanaSubmission : NavpadSubmission;
+        const leaderboard = await SubmissionModel.aggregate([
             {
                 $group: {
                     _id: "$userId",
@@ -1141,13 +1282,13 @@ app.get('/api/cron/aradhana-reminder', async (req, res) => {
         const dd = String(nowIST.getUTCDate()).padStart(2, '0');
         const todayStr = `${yyyy}-${mm}-${dd}`;
 
-        // Find all submissions for today
-        const todaysSubmissions = await AradhanaSubmission.find({ dateString: todayStr });
+        // Find all submissions for today in Navpad event
+        const todaysSubmissions = await NavpadSubmission.find({ dateString: todayStr });
         const submittedUserIds = todaysSubmissions.map(sub => sub.userId.toString());
 
-        // Find all course registrations and filter who hasn't submitted
-        const courseRegistrations = await CourseRegistration.find({});
-        const missingUsers = courseRegistrations.filter(reg => !submittedUserIds.includes(reg.userId.toString()));
+        // Find all verified Navpad registrations and filter who hasn't submitted
+        const registrations = await NavpadRegistration.find({ isPaymentVerified: true });
+        const missingUsers = registrations.filter(reg => !submittedUserIds.includes(reg.userId.toString()));
 
         if (missingUsers.length === 0) {
             console.log('[CRON] All users submitted their Aradhana today!');

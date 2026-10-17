@@ -172,6 +172,11 @@
                 
                 card.innerHTML = \`
                     <div class="user-info">
+                        <div style="margin-bottom: 6px;">
+                            <span style="display: inline-block; padding: 2px 8px; border-radius: 6px; font-size: 0.8rem; font-weight: 700; background: \${reg.courseName && reg.courseName.includes('नवपद') ? '#E8F5E9' : '#ECEFF1'}; color: \${reg.courseName && reg.courseName.includes('नवपद') ? '#2E7D32' : '#546E7A'};">
+                                \${reg.courseName || 'चलो करें नवपदजी की आराधना'}
+                            </span>
+                        </div>
                         <h3>\${reg.name}</h3>
                         <p><strong>Email:</strong> \${reg.email}</p>
                         <p><strong>Phone:</strong> \${reg.number}</p>
@@ -182,18 +187,18 @@
                         <span class="status-badge \${isVerified ? 'status-verified' : 'status-pending'}">
                             \${isVerified ? 'Verified' : 'Pending'}
                         </span>
-                        \${!isVerified ? \`<button class="approve-btn" onclick="approveUser('\${reg.userId ? reg.userId._id : ''}')">Approve</button>\` : ''}
+                        \${!isVerified ? \`<button class="approve-btn" onclick="approveRegistration('\${reg._id}')">Approve</button>\` : ''}
                     </div>
                 \`;
                 container.appendChild(card);
             });
         }
 
-        async function approveUser(userId) {
-            if (!userId) return alert('Invalid User ID');
+        async function approveRegistration(regId) {
+            if (!regId) return alert('Invalid Registration ID');
             
             try {
-                const response = await fetch('/api/admin/verify/' + userId, {
+                const response = await fetch('/api/admin/verify/' + regId, {
                     method: 'PUT'
                 });
                 
@@ -204,7 +209,7 @@
                 }
             } catch (err) {
                 console.error(err);
-                alert('Error approving user');
+                alert('Error approving registration');
             }
         }
 

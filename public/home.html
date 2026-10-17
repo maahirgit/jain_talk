@@ -12,112 +12,91 @@
     <!-- Authentication Verification -->
     <script>
         const ARADHANA_QUESTIONS = [
-            { q: "1) तप करना", opts: ["नवकारसी (50)", "बियासण (250)", "एकासणा (400)", "आयंबिल (500)", "उपवास (700)", "कुछ नहीं किया (0)"] },
-            { q: "2) माता-पिता / साहेबजी अथवा वडिलों के पैर छूना", opts: ["पैर छुआ (50)", "नहीं छुआ (0)"] },
-            { q: "3) देरासर में तीन प्रदक्षिणा देना / दर्शन करना", opts: ["दर्शन किया (50)", "प्रदक्षिणा दी (50)", "दोनों किया (100)", "नहीं किया (0)"] },
-            { q: "4) परमात्मा की पूजा करना", opts: ["अष्टप्रकारी पूजा की (200)", "वासक्षेप पूजा / पखाल पूजा / केसर पूजा की (100)", "पूजा नहीं की (0)"] },
-            { q: "5) गुरु महाराज / गुरु मूर्ति को वंदन करना एवं मा. सा. को गोचरी की विनंती करना (उपाश्रय में जाकर) अथवा गोचरी वोहराना", opts: ["वंदन किया (100)", "विनंती की या वोहराया (100)", "दोनों किया (200)", "दोनों नहीं किया (0)"] },
-            { q: "6) बच्चों के हाथों से अनुकंपा / जीवदया करना", opts: ["अनुकंपा (50)", "जीवदया (50)", "दोनों (100)", "नहीं किया (0)"] },
-            { q: "7) सुबह उठते समय 8 नवकार गिनना/सुनाना एवं सोने से पहले 7 नवकार गिनना/सुनाना", opts: ["सुबह गिना/सुनाया (50)", "रात को गिना/सुनाया (50)", "दोनों समय गिना/सुनाया (100)", "नहीं गिना/सुनाया (0)"] },
-            { q: "8) एक लुखी रोटी खाना", opts: ["लुखी रोटी खाई (50)", "नहीं खाई (0)"] },
-            { q: "9) गरम पानी पीना", opts: ["पिया (100)", "नहीं पिया (0)"] },
-            { q: "10) थाली धोकर पीना", opts: ["एक टाइम (50)", "दो टाइम (100)", "तीन टाइम (150)", "नहीं पिया (0)"] },
-            { q: "11) बाहर की अभक्ष्य वस्तु एवं कंदमूल का त्याग", opts: ["त्याग किया (100)", "त्याग नहीं किया (0)"] },
-            { q: "12) सामायिक करना", opts: ["0 (0)", "1 सामायिक (150)", "2 सामायिक (300)", "3 सामायिक (450)"] },
-            { q: "13) बाढ़ी / पक्की नवकार वाली गिनना (108 नवकार)", opts: ["0 (0)", "1 (100)", "2 (200)", "3 (300)"] },
-            { q: "14) रात्रि भोजन का त्याग", opts: ["तिविहार (100)", "चौविहार (200)", "त्याग नहीं किया (0)"] },
-            { q: "15) संध्या प्रभु दर्शन / आरती", opts: ["प्रभु दर्शन किया (50)", "आरती की (50)", "दोनों किया (100)", "दोनों नहीं किया (0)"] },
-            { q: "16) पाठशाला जाना / संस्कार शाला", opts: ["पाठशाला जाना (100)", "पाठशाला जाना एवं नई गाथा करना (150)", "पाठशाला नहीं गए (0)"] },
-            { q: "17) प्रतिक्रमण करना", opts: ["राई प्रतिक्रमण किया (200)", "देवसिय प्रतिक्रमण किया (200)", "दोनों प्रतिक्रमण किया (400)", "नहीं किया (0)"] },
-            { q: "18) पोषध करना", opts: ["दिवस (1500)", "रात्रि (500)", "दोनों (2000)", "नहीं किया (0)"] },
-            { q: "19) मोबाइल एवं टी.वी. का त्याग", opts: ["मोबाइल और टीवी दोनों का त्याग (300)", "सिर्फ मोबाइल का त्याग (200)", "सिर्फ टीवी का त्याग (100)", "दोनों का त्याग नहीं किया (0)"] },
-            { q: "20) आराधक के माता-पिता का रात्रि भोजन त्याग", opts: ["पिता ने त्याग किया (100)", "माता ने त्याग किया (100)", "दोनों ने त्याग किया (200)", "किसी ने त्याग नहीं किया (0)"] }
+            {
+                q: "1) तप करना",
+                opts: [
+                    "(A) आयंबिल (500)",
+                    "(B) उपवास (700)",
+                    "(C) कुछ नहीं किया (0)"
+                ]
+            },
+            {
+                q: "2) देरासर में प्रदक्षिणा एवं अष्टप्रकारी पूजा",
+                opts: [
+                    "(A) प्रदक्षिणा दी (50)",
+                    "(B) अष्टप्रकारी पूजा की (200)",
+                    "(C) दोनों किए (250)",
+                    "(D) दोनों नहीं किए (0)"
+                ]
+            },
+            {
+                q: "3) गुरु वंदन एवं गोचरी विनंती / वोहराना",
+                opts: [
+                    "(A) गुरु वंदन किया (100)",
+                    "(B) गोचरी विनंती की या गोचरी वोहराई (100)",
+                    "(C) दोनों किए (200)",
+                    "(D) दोनों नहीं किए (0)"
+                ]
+            },
+            {
+                q: "4) नवपदजी की ओली की आराधना (Compulsory)",
+                opts: [
+                    "(A) आराधना की (500)",
+                    "(B) आराधना नहीं की (0)"
+                ]
+            },
+            {
+                q: "5) सामायिक करना",
+                opts: [
+                    "(A) 1 सामायिक (150)",
+                    "(B) 2 सामायिक (300)",
+                    "(C) 3 सामायिक (450)",
+                    "(D) सामायिक नहीं किया (0)"
+                ]
+            },
+            {
+                q: "6) संध्या प्रभु दर्शन एवं आरती",
+                opts: [
+                    "(A) प्रभु दर्शन किया (50)",
+                    "(B) आरती की (50)",
+                    "(C) दोनों किए (100)",
+                    "(D) दोनों नहीं किए (0)"
+                ]
+            },
+            {
+                q: "7) प्रतिक्रमण करना",
+                opts: [
+                    "(A) राई प्रतिक्रमण किया (200)",
+                    "(B) देवसिय प्रतिक्रमण किया (200)",
+                    "(C) दोनों प्रतिक्रमण किए (400)",
+                    "(D) कोई भी नहीं किया (0)"
+                ]
+            },
+            {
+                q: "8) पोषध करना",
+                opts: [
+                    "(A) दिवस पोषध (1500)",
+                    "(B) रात्रि पोषध (500)",
+                    "(C) दोनों किए (2000)",
+                    "(D) पोषध नहीं किया (0)"
+                ]
+            },
+            {
+                q: "9) पाठशाला / संस्कारशाला जाना",
+                opts: [
+                    "(A) पाठशाला गए (100)",
+                    "(B) पाठशाला नहीं गए (0)"
+                ]
+            }
         ];
         
         function updateDependentOptions() {
-            const q0Selected = document.querySelector('input[name="aradhana-q-0"]:checked');
-            if (q0Selected) {
-                const q0Value = parseInt(q0Selected.value);
-                const q9Radios = document.querySelectorAll('input[name="aradhana-q-9"]');
-                q9Radios.forEach(radio => {
-                    const val = parseInt(radio.value);
-                    const label = radio.parentElement;
-                    let show = true;
-                    if (q0Value === 1) { // बियासण - max 2 times (hide 3 time)
-                        if (val === 2) show = false;
-                    } else if (q0Value === 2 || q0Value === 3) { // एकासणा / आयंबिल - max 1 time
-                        if (val === 1 || val === 2) show = false;
-                    } else if (q0Value === 4) { // उपवास - only D option (nahi piya)
-                        if (val !== 3) show = false;
-                    }
-                    if (show) {
-                        label.style.display = 'block';
-                    } else {
-                        label.style.display = 'none';
-                        if (radio.checked) {
-                            radio.checked = false;
-                            const defaultRadio = document.querySelector('input[name="aradhana-q-9"][value="3"]');
-                            if (defaultRadio) defaultRadio.checked = true;
-                        }
-                    }
-                });
-            }
-            
-            // --- Q17 (पोषध) restricting Q8 (गरम पानी) & Q11 (सामायिक) ---
-            const q17Selected = document.querySelector('input[name="aradhana-q-17"]:checked');
-            if (q17Selected) {
-                const q17Value = parseInt(q17Selected.value);
-                // 0 = दिवस, 1 = रात्रि, 2 = दोनों, 3 = नहीं किया
-                const isDivasiyaOrDono = (q17Value === 0 || q17Value === 2);
-
-                // Q8 (गरम पानी): index 8. Opts: 0: पिया, 1: नहीं पिया
-                const q8Radios = document.querySelectorAll('input[name="aradhana-q-8"]');
-                q8Radios.forEach(radio => {
-                    const val = parseInt(radio.value);
-                    const label = radio.parentElement;
-                    let show = true;
-                    if (isDivasiyaOrDono && val === 0) {
-                        show = false; // Cannot get points for garam pani if divasiya/dono poshad
-                    }
-                    if (show) {
-                        label.style.display = 'block';
-                    } else {
-                        label.style.display = 'none';
-                        if (radio.checked) {
-                            radio.checked = false;
-                            const defaultRadio = document.querySelector('input[name="aradhana-q-8"][value="1"]'); // "नहीं पिया (0)"
-                            if (defaultRadio) defaultRadio.checked = true;
-                        }
-                    }
-                });
-
-                // Q11 (सामायिक): index 11. Opts: 0: "0 (0)", 1: "1 सामायिक", 2: "2 सामायिक", 3: "3 सामायिक"
-                const q11Radios = document.querySelectorAll('input[name="aradhana-q-11"]');
-                q11Radios.forEach(radio => {
-                    const val = parseInt(radio.value);
-                    const label = radio.parentElement;
-                    let show = true;
-                    if (isDivasiyaOrDono && val !== 0) {
-                        show = false; // Cannot get individual samayik points if divasiya/dono poshad
-                    }
-                    if (show) {
-                        label.style.display = 'block';
-                    } else {
-                        label.style.display = 'none';
-                        if (radio.checked) {
-                            radio.checked = false;
-                            const defaultRadio = document.querySelector('input[name="aradhana-q-11"][value="0"]'); // "0 (0)"
-                            if (defaultRadio) defaultRadio.checked = true;
-                        }
-                    }
-                });
-            }
             calculateLiveScore();
         }
         
         function calculateLiveScore() {
             let total = 0;
-            for (let i = 0; i < 20; i++) {
+            for (let i = 0; i < ARADHANA_QUESTIONS.length; i++) {
                 const checked = document.querySelector(`input[name="aradhana-q-${i}"]:checked`);
                 if (checked) {
                     const oIndex = parseInt(checked.value);
@@ -255,7 +234,7 @@
                     return;
                 }
                 const data = await response.json();
-                populateUserData(data.user, data.registration);
+                populateUserData(data.user, data.registration, data.navpadRegistration, data.oldRegistration);
             } catch (error) {
                 console.error('Auth verification failed', error);
                 window.location.href = 'index.html';
@@ -267,9 +246,11 @@
 
         let currentUser = null;
         let currentRegistration = null;
-        function populateUserData(user, registration) {
+        let currentNavpadRegistration = null;
+        function populateUserData(user, registration, navpadRegistration, oldRegistration) {
             currentUser = user;
-            currentRegistration = registration;
+            currentNavpadRegistration = navpadRegistration || null;
+            currentRegistration = currentNavpadRegistration;
             document.getElementById('welcome-name').textContent = user.name;
             document.getElementById('user-sangh').textContent = user.sangh;
             
@@ -303,10 +284,14 @@
             
             const profileRegs = document.getElementById('profile-registrations');
             if (profileRegs) {
-                if (registration) {
+                if (currentNavpadRegistration) {
                     profileRegs.style.display = 'block';
-                    document.getElementById('profile-reg-status').textContent = registration.isPaymentVerified ? 'Verified & Active' : 'Pending Verification';
-                    document.getElementById('profile-reg-status').style.color = registration.isPaymentVerified ? '#4CAF50' : '#FF9800';
+                    document.getElementById('profile-reg-status').textContent = currentNavpadRegistration.isPaymentVerified ? 'Navpad Aradhana: Verified (₹51)' : 'Navpad Aradhana: Pending Approval (₹51)';
+                    document.getElementById('profile-reg-status').style.color = currentNavpadRegistration.isPaymentVerified ? '#4CAF50' : '#FF9800';
+                } else if (oldRegistration) {
+                    profileRegs.style.display = 'block';
+                    document.getElementById('profile-reg-status').textContent = 'Chaturmas Aradhana: Completed';
+                    document.getElementById('profile-reg-status').style.color = '#78909C';
                 } else {
                     profileRegs.style.display = 'none';
                 }
@@ -317,20 +302,12 @@
             const whatsappGroup = document.getElementById('whatsapp-group-container');
             const previewFormBtn = document.getElementById('preview-form-btn');
 
-            // Aradhana unlocks from 28th July 2026
-            const aradhanaStartDate = new Date('2026-07-28T00:00:00');
-            const now = new Date();
-            const aradhanaStarted = now >= aradhanaStartDate;
-
-            if (registration) {
+            if (currentNavpadRegistration) {
                 if (eventCountdown) eventCountdown.style.display = 'block';
                 if (whatsappGroup) whatsappGroup.style.display = 'block';
 
-                // ALL registered users get access — hide preview form button
-                if (previewFormBtn) previewFormBtn.style.display = 'none';
-
-                if (aradhanaStarted) {
-                    // 28th+ → Show real Aradhana Card button
+                if (currentNavpadRegistration.isPaymentVerified) {
+                    // 2. Verified → Show real Aradhana Card button
                     registerBtn.innerHTML = `
                         <svg viewBox="0 0 24 24" width="18" height="18" stroke="#34C759" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 9.9-1"></path></svg>
                         Unlocked: View Aaradhna Card
@@ -341,31 +318,44 @@
                     registerBtn.style.cursor = 'pointer';
                     registerBtn.style.opacity = '1';
                     registerBtn.style.border = 'none';
+                    registerBtn.onclick = () => openAaradhnaCard();
                 } else {
-                    // Before 28th → Show Access Granted state (non-clickable)
+                    // Pending approval
                     registerBtn.innerHTML = `
-                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#34C759" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                        Access Granted — Opens on 28th July!
+                        <svg viewBox="0 0 24 24" width="18" height="18" stroke="#FF9800" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                        ⏳ Payment Pending Approval (₹51)
                     `;
-                    registerBtn.style.color = '#1b5e20';
-                    registerBtn.style.background = '#e8f5e9';
-                    registerBtn.style.cursor = 'default';
+                    registerBtn.style.color = '#E65100';
+                    registerBtn.style.background = '#FFF3E0';
+                    registerBtn.style.cursor = 'pointer';
                     registerBtn.style.opacity = '1';
-                    registerBtn.style.border = '1.5px solid #4CAF50';
-                    registerBtn.onclick = (e) => e.preventDefault();
+                    registerBtn.style.border = '1.5px solid #FF9800';
+                    registerBtn.onclick = () => {
+                        alert('Your payment of ₹51 is under review by admin. Once verified, your Aaradhna Card will unlock automatically!');
+                    };
                 }
             } else {
-                // Not registered — Registration Open
+                // Not registered for Event 2 — Registration Open
                 registerBtn.innerHTML = `
                     <svg viewBox="0 0 24 24" width="18" height="18" stroke="#2e7d32" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
-                    Registration Open
+                    Register (₹51)
                 `;
                 registerBtn.style.color = '#2e7d32';
                 registerBtn.style.background = '#e8f5e9';
                 registerBtn.style.cursor = 'pointer';
                 registerBtn.style.opacity = '1';
                 registerBtn.style.border = '1.5px solid #81c784';
-                // We don't overwrite onclick so the default event listener continues to work
+                registerBtn.onclick = () => {
+                    if (currentUser) {
+                        document.getElementById('reg-name').value = currentUser.name || '';
+                        document.getElementById('reg-email').value = currentUser.email || '';
+                        document.getElementById('reg-number').value = currentUser.number || '';
+                        if (currentUser.city) document.getElementById('reg-city').value = currentUser.city;
+                    }
+                    document.getElementById('registration-form').style.display = 'block';
+                    document.getElementById('reg-success-msg').style.display = 'none';
+                    document.getElementById('registration-modal').classList.add('active');
+                };
             }
 
             if (user._id) fetchUserReels(user._id);
@@ -400,12 +390,16 @@
         }
         
         function openAaradhnaCard() {
-            if (!currentUser || !currentRegistration) return;
+            if (!currentUser) return;
+            if (!currentNavpadRegistration || !currentNavpadRegistration.isPaymentVerified) {
+                alert('Access to Aaradhna Card requires an approved registration for चलो करें नवपदजी की आराधना.');
+                return;
+            }
             
             document.getElementById('card-name').textContent = currentUser.name || 'Not Provided';
             document.getElementById('card-sangh').textContent = currentUser.sangh || 'Not Provided';
-            document.getElementById('card-city').textContent = currentRegistration.city || currentUser.city || 'Not Provided';
-            document.getElementById('card-age').textContent = currentRegistration.age || 'Not Provided';
+            document.getElementById('card-city').textContent = currentNavpadRegistration.city || currentUser.city || 'Not Provided';
+            document.getElementById('card-age').textContent = currentNavpadRegistration.age || 'Not Provided';
             
             fetchAradhanaStatus();
             document.getElementById('aaradhna-card-modal').classList.add('active');
@@ -447,40 +441,65 @@
             const formBtn = document.getElementById('open-aradhana-form-btn');
             const yesterdayBtn = document.getElementById('open-yesterday-aradhana-btn');
 
-            if (data.hasSubmittedToday) {
-                formBtn.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> Today's Aradhana Completed`;
-                formBtn.style.background = '#4CAF50';
-                formBtn.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.4)';
+            const todayIST = new Date(new Date().getTime() + 330 * 60000).toISOString().split('T')[0];
+            const eventStartDate = '2026-10-18';
+            const eventEndDate = '2026-10-26';
+
+            if (todayIST < eventStartDate) {
+                // Event hasn't started yet (e.g. today is 17 Oct)
+                formBtn.innerHTML = `<i class="fas fa-clock" style="margin-right: 8px;"></i> Aradhana Starts on 18 Oct`;
+                formBtn.style.background = '#78909C';
+                formBtn.style.boxShadow = 'none';
+                formBtn.style.cursor = 'pointer';
+                formBtn.onclick = () => {
+                    alert('चलो करें नवपदजी की आराधना starts on 18 Oct 2026. Daily submissions will open tomorrow on Day 1 (18 Oct)!');
+                };
+                if (yesterdayBtn) yesterdayBtn.style.display = 'none';
+            } else if (todayIST > eventEndDate) {
+                // Event is finished
+                formBtn.innerHTML = `<i class="fas fa-check-double" style="margin-right: 8px;"></i> Event Completed (18–26 Oct)`;
+                formBtn.style.background = '#546E7A';
+                formBtn.style.boxShadow = 'none';
                 formBtn.style.cursor = 'default';
                 formBtn.onclick = null;
+                if (yesterdayBtn) yesterdayBtn.style.display = 'none';
             } else {
-                formBtn.innerHTML = `<i class="fas fa-pencil-alt" style="margin-right: 8px;"></i> Fill Today's Aradhana`;
-                formBtn.style.background = 'linear-gradient(135deg, #FF9800, #F57C00)';
-                formBtn.style.boxShadow = '0 4px 15px rgba(255, 152, 0, 0.4)';
-                formBtn.style.cursor = 'pointer';
-                formBtn.onclick = () => openAradhanaForm(false);
-            }
-
-            // Show yesterday button if yesterday was missed
-            if (yesterdayBtn) {
-                const yd = new Date(new Date().getTime() + 330 * 60000);
-                yd.setDate(yd.getDate() - 1);
-                const ydStr = yd.toISOString().split('T')[0];
-                const alreadyFilledYesterday = data.calendar && data.calendar.some(c => c.date === ydStr && c.status === 'FILLED');
-                
-                if (!alreadyFilledYesterday) {
-                    yesterdayBtn.style.display = 'block';
-                    yesterdayBtn.innerHTML = `<i class="fas fa-history" style="margin-right: 8px;"></i> Fill Yesterday's Aradhana (${ydStr})`;
-                    yesterdayBtn.onclick = () => openAradhanaForm(true);
+                // During the event (18 Oct to 26 Oct)
+                if (data.hasSubmittedToday) {
+                    formBtn.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> Today's Aradhana Completed`;
+                    formBtn.style.background = '#4CAF50';
+                    formBtn.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.4)';
+                    formBtn.style.cursor = 'default';
+                    formBtn.onclick = null;
                 } else {
-                    yesterdayBtn.style.display = 'none';
+                    formBtn.innerHTML = `<i class="fas fa-pencil-alt" style="margin-right: 8px;"></i> Fill Today's Aradhana`;
+                    formBtn.style.background = 'linear-gradient(135deg, #FF9800, #F57C00)';
+                    formBtn.style.boxShadow = '0 4px 15px rgba(255, 152, 0, 0.4)';
+                    formBtn.style.cursor = 'pointer';
+                    formBtn.onclick = () => openAradhanaForm(false);
+                }
+
+                // Show yesterday button if yesterday was missed and is within event range
+                if (yesterdayBtn) {
+                    const yd = new Date(new Date().getTime() + 330 * 60000);
+                    yd.setDate(yd.getDate() - 1);
+                    const ydStr = yd.toISOString().split('T')[0];
+                    const isYdInEvent = (ydStr >= eventStartDate && ydStr <= eventEndDate);
+                    const alreadyFilledYesterday = data.calendar && data.calendar.some(c => c.date === ydStr && c.status === 'FILLED');
+                    
+                    if (isYdInEvent && !alreadyFilledYesterday) {
+                        yesterdayBtn.style.display = 'block';
+                        yesterdayBtn.innerHTML = `<i class="fas fa-history" style="margin-right: 8px;"></i> Fill Yesterday's Aradhana (${ydStr})`;
+                        yesterdayBtn.onclick = () => openAradhanaForm(true);
+                    } else {
+                        yesterdayBtn.style.display = 'none';
+                    }
                 }
             }
             window.aradhanaCalendarData = data.calendar;
-            if (!window.currentCalMonth) {
-                const now = new Date();
-                window.currentCalMonth = now.getMonth();
-                window.currentCalYear = now.getFullYear();
+            if (window.currentCalMonth === undefined || window.currentCalMonth === null) {
+                window.currentCalMonth = 9; // October (month 10)
+                window.currentCalYear = 2026;
             }
             renderCalendarMonth();          
         }
@@ -1010,15 +1029,20 @@
             <!-- Features Grid -->
             <div class="features-grid">
                 
-                <!-- 1. The Featured Course -->
+                <!-- 1. The Featured Course (Event 2 - Ongoing) -->
                 <div class="feature-card course-card">
-                    <span class="card-tag">New Course</span>
-                    <div class="card-title">चलो सब आराधना करें</div>
-                    <p class="card-desc">Start your spiritual journey today with our guided interactive sessions.</p>
+                    <div style="display: flex; flex-direction: column; align-items: flex-start; gap: 0.75rem; margin-bottom: 0.75rem;">
+                        <span style="background: #E8F5E9; color: #2E7D32; display: inline-flex; align-items: center; gap: 6px; padding: 0.35rem 0.8rem; border-radius: 20px; font-size: 0.8rem; font-weight: 700; box-shadow: 0 2px 6px rgba(0,0,0,0.08);">
+                            <span style="display: inline-block; width: 7px; height: 7px; background: #2E7D32; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+                            Ongoing Event • 18 Oct – 26 Oct
+                        </span>
+                        <div class="card-title" style="margin: 0; font-size: 1.5rem; font-weight: 700; line-height: 1.3;">चलो करें नवपदजी की आराधना</div>
+                    </div>
+                    <p class="card-desc">Join the 9-day Navpad Oli Aradhana! Track your daily tap, puja, samayik, and religious duties.</p>
                     <div style="margin-top: 1.5rem; display: flex; flex-direction: column; gap: 1rem;">
-                        <div style="display: flex; gap: 1rem;">
+                        <div style="display: flex; gap: 1rem; flex-wrap: wrap;">
                             <button id="open-register-btn" style="padding: 0.6rem 1.5rem; border-radius: 8px; border: none; background: white; color: var(--primary-dark); font-weight: 700; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
-                                Register
+                                Register (₹51)
                                 <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"></path><circle cx="8.5" cy="7" r="4"></circle><line x1="20" y1="8" x2="20" y2="14"></line><line x1="23" y1="11" x2="17" y2="11"></line></svg>
                             </button>
                             <button id="preview-form-btn" onclick="previewAaradhnaForm()" style="padding: 0.6rem 1rem; border-radius: 8px; border: none; background: rgba(255, 255, 255, 0.9); color: var(--primary-dark); font-weight: 700; font-family: 'Outfit', sans-serif; cursor: pointer; display: flex; align-items: center; gap: 0.5rem; font-size: 0.95rem; box-shadow: 0 4px 10px rgba(0,0,0,0.1);">
@@ -1026,7 +1050,7 @@
                             </button>
                         </div>
                         <div id="event-countdown-container" style="background: var(--secondary-color); padding: 1rem; border-radius: 8px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
-                            <div style="font-size: 0.85rem; color: var(--primary-dark); font-weight: 600; margin-bottom: 0.3rem;">Chaturmas Aradhna begin in</div>
+                            <div style="font-size: 0.85rem; color: var(--primary-dark); font-weight: 600; margin-bottom: 0.3rem;">Navpad Oli Aradhna begins in</div>
                             <div id="event-countdown-timer" style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">--d --h --m --s</div>
                         </div>
                         <div id="whatsapp-group-container" style="display: none; background: #e8f5e9; padding: 1rem; border-radius: 8px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
@@ -1036,19 +1060,33 @@
                     </div>
                 </div>
 
-                <!-- 2. Events -->
+                <!-- 2. Completed Event (Event 1 - Closed) -->
+                <div class="feature-card" style="background: #FAFAFA; border: 1px solid #ECEFF1;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.8rem;">
+                        <span class="card-tag" style="position: static; background: #ECEFF1; color: #546E7A; font-weight: 600;">Completed</span>
+                        <span style="font-size: 0.75rem; color: #90A4AE; font-weight: 500;">Chaturmas 2026</span>
+                    </div>
+                    <div class="card-title" style="color: #455A64;">चलो सब आराधना करें</div>
+                    <p class="card-desc" style="color: #78909C; margin-bottom: 1rem;">This 60-day spiritual event has successfully completed. Thank you to all 350+ devotees for your dedicated Aradhana.</p>
+                    <div style="display: flex; align-items: center; gap: 0.5rem; font-size: 0.85rem; color: #546E7A; font-weight: 600;">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#4CAF50" stroke-width="2.5"><polyline points="20 6 9 17 4 12"></polyline></svg>
+                        Status: Closed / Completed
+                    </div>
+                </div>
+
+                <!-- 3. Events Overview Card -->
                 <a href="#" class="feature-card" onclick="event.preventDefault(); document.getElementById('open-register-btn').click();">
                     <div class="card-icon" style="background: #E8F5E9; color: #4CAF50;">
                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
                     </div>
-                    <span class="card-tag" style="background: #FFEBEE; color: #F44336; display: flex; align-items: center; gap: 4px;">
-                        <span style="display: inline-block; width: 6px; height: 6px; background: #F44336; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
-                        Ongoing
+                    <span class="card-tag" style="background: #E8F5E9; color: #2E7D32; display: flex; align-items: center; gap: 4px;">
+                        <span style="display: inline-block; width: 6px; height: 6px; background: #2E7D32; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+                        Live
                     </span>
-                    <div class="card-title">Events</div>
-                    <p class="card-desc"><strong>Current:</strong> चलो सब आराधना करें<br>Join the ongoing spiritual gatherings and daily insights.</p>
+                    <div class="card-title">Events Hub</div>
+                    <p class="card-desc"><strong>Ongoing:</strong> चलो करें नवपदजी की आराधना (18–26 Oct)<br><strong style="color: #888;">Completed:</strong> चलो सब आराधना करें</p>
                     <div style="margin-top: 0.75rem; font-size: 0.85rem; color: var(--primary-color); font-weight: 700; display: flex; align-items: center; gap: 0.25rem;">
-                        Tap to open Aaradhna Card
+                        Tap to view / register
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18l6-6-6-6"></path></svg>
                     </div>
                 </a>
@@ -1229,11 +1267,11 @@
     <div class="modal-overlay" id="registration-modal">
         <div class="modal-content">
             <button class="modal-close" id="close-modal">&times;</button>
-            <h2 style="margin-bottom: 1rem; color: var(--text-dark);">Course Registration</h2>
-            <p style="color: var(--text-light); margin-bottom: 1.5rem; font-size: 0.9rem;">चलो सब आराधना करें</p>
+            <h2 style="margin-bottom: 1rem; color: var(--text-dark);">Event Registration</h2>
+            <p style="color: var(--text-light); margin-bottom: 1.5rem; font-size: 0.95rem; font-weight: 600;">चलो करें नवपदजी की आराधना (18 Oct – 26 Oct)</p>
             
             <form id="registration-form">
-                <input type="hidden" id="reg-course-name" name="courseName" value="चलो सब आराधना करें">
+                <input type="hidden" id="reg-course-name" name="courseName" value="चलो करें नवपदजी की आराधना">
                 
                 <div style="margin-bottom: 1rem;">
                     <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.4rem;">Full Name</label>
@@ -1261,37 +1299,31 @@
                 </div>
                 
                 <div style="background: var(--secondary-color); padding: 1.5rem; border-radius: 12px; text-align: center; margin-bottom: 1.5rem;">
-                    <h3 style="color: var(--primary-dark); margin-bottom: 0.5rem; font-size: 1.1rem;">Registration Fee: ₹99</h3>
-                    <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 1rem;">Scan the QR code below to pay.</p>
+                    <h3 style="color: var(--primary-dark); margin-bottom: 0.5rem; font-size: 1.1rem;">Registration Fee: ₹51</h3>
+                    <p style="font-size: 0.85rem; color: var(--text-light); margin-bottom: 1rem;">Scan the QR code below to pay ₹51.</p>
                     <div style="width: 200px; height: 200px; background: white; border: 2px dashed var(--primary-color); border-radius: 10px; margin: 0 auto; display: flex; align-items: center; justify-content: center; overflow: hidden; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                         <img src="payment_qr.jpg" alt="Paytm UPI QR Code" style="width: 100%; height: 100%; object-fit: contain;">
                     </div>
                 </div>
 
                 <div style="margin-bottom: 1.5rem;">
-                    <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.4rem;">Upload Payment Screenshot</label>
+                    <label style="display: block; font-size: 0.85rem; font-weight: 500; margin-bottom: 0.4rem;">Upload Payment Screenshot (₹51)</label>
                     <input type="file" id="reg-screenshot" name="screenshot" accept="image/*" required style="width: 100%; padding: 0.5rem; border: 1px dashed var(--primary-color); border-radius: 10px; background: white;">
                 </div>
 
                 <button type="submit" id="reg-submit-btn" style="width: 100%; padding: 1rem; background: var(--primary-color); color: white; border: none; border-radius: 10px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: all 0.3s ease; box-shadow: 0 4px 14px rgba(255, 140, 0, 0.3);">
-                    Submit Registration
+                    Submit Registration (₹51)
                 </button>
             </form>
             
             <div id="reg-success-msg" style="display: none; text-align: center; padding: 2rem 0;">
                 <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="#34C759" stroke-width="2" style="margin-bottom: 1rem;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
                 <h3 style="color: var(--text-dark); margin-bottom: 0.5rem;">Registration Submitted!</h3>
-                <p style="color: var(--text-light); font-size: 0.95rem;">We will review back within 24hrs.</p>
+                <p style="color: var(--text-light); font-size: 0.95rem;">Our team will verify your ₹51 payment within 24 hours. Your Aaradhna Card will unlock once verified.</p>
                 
                 <div id="countdown-container" style="margin-top: 1.5rem; background: var(--secondary-color); padding: 1.5rem; border-radius: 12px; box-shadow: 0 4px 10px rgba(0,0,0,0.05);">
                     <h2 style="color: var(--primary-dark); margin-bottom: 1rem; font-size: 1.5rem; text-align: center;">🙏 Aradhana Dashboard</h2>
-                    <div style="text-align: center; font-size: 0.8rem; color: #888; margin-bottom: 1rem;">Version 2.2 (Anti-Cache)</div>
-                    <div style="text-align: center; margin-bottom: 1.5rem;">
-                        <button onclick="window.location.href = window.location.pathname + '?clear_cache=' + new Date().getTime();" style="background: red; color: white; border: none; padding: 0.8rem 1.5rem; border-radius: 8px; font-weight: bold; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 10px rgba(255,0,0,0.3);">
-                            ⚠️ Click Here to Force Update App ⚠️
-                        </button>
-                    </div>
-                    <h4 style="color: var(--primary-dark); margin-bottom: 0.5rem; font-size: 1.1rem;">Chaturmas Aradhna begin in</h4>
+                    <h4 style="color: var(--primary-dark); margin-bottom: 0.5rem; font-size: 1.1rem;">Navpad Oli Aradhna begins in</h4>
                     <div id="countdown-timer" style="font-size: 1.5rem; font-weight: bold; color: var(--primary-color);">
                         -- days -- hours -- mins -- secs
                     </div>
@@ -1314,7 +1346,7 @@
                 <img src="logo.jpeg" alt="Logo" style="width: 80px; height: 80px; border-radius: 50%; border: 3px solid rgba(255,255,255,0.8); object-fit: cover; box-shadow: 0 4px 15px rgba(0,0,0,0.2); background: white;">
             </div>
             <h2 style="font-size: 2rem; margin-bottom: 0.5rem;">Aaradhna Card</h2>
-            <p style="color: rgba(255,255,255,0.9); margin-bottom: 2rem;">चलो सब आराधना करें</p>
+            <p style="color: rgba(255,255,255,0.9); margin-bottom: 2rem;">चलो करें नवपदजी की आराधना (18 Oct – 26 Oct)</p>
             
             <div style="background: white; color: var(--text-dark); padding: 1.5rem; border-radius: 16px; text-align: left; margin-bottom: 1.5rem; box-shadow: 0 10px 25px rgba(0,0,0,0.2);">
                 <div style="margin-bottom: 1rem;">
@@ -1438,9 +1470,9 @@
                         const answers = [];
                         let calculatedPoints = 0;
                         
-                        for (let i = 0; i < 20; i++) {
+                        for (let i = 0; i < ARADHANA_QUESTIONS.length; i++) {
                             const checked = document.querySelector(`input[name="aradhana-q-${i}"]:checked`);
-                            if (!checked) { alert('Please answer all 20 questions.'); return; }
+                            if (!checked) { alert('Please answer all ' + ARADHANA_QUESTIONS.length + ' questions.'); return; }
                             
                             const oIndex = parseInt(checked.value);
                             answers.push(oIndex);
@@ -1662,23 +1694,25 @@
             }
 
             openBtn.addEventListener('click', (e) => {
-                e.preventDefault(); // Prevent any link jumping if it was an <a>
+                e.preventDefault();
                 
-                if (currentRegistration) {
-                    const aradhanaStartDate = new Date('2026-07-28T00:00:00');
-                    if (new Date() >= aradhanaStartDate) {
+                if (currentNavpadRegistration) {
+                    if (currentNavpadRegistration.isPaymentVerified) {
                         openAaradhnaCard();
+                    } else {
+                        alert('Your payment of ₹51 is under review by admin. Once verified, your Aaradhna Card will unlock automatically!');
                     }
-                    // else: button is disabled before 28th, do nothing
                     return;
                 }
                 
+                // User has not registered for Event 2 (Navpad) -> Open Registration Modal
                 if(currentUser) {
-                    document.getElementById('reg-name').value = currentUser.name;
-                    document.getElementById('reg-email').value = currentUser.email;
-                    document.getElementById('reg-number').value = currentUser.number;
+                    document.getElementById('reg-name').value = currentUser.name || '';
+                    document.getElementById('reg-email').value = currentUser.email || '';
+                    document.getElementById('reg-number').value = currentUser.number || '';
                     if (currentUser.city) document.getElementById('reg-city').value = currentUser.city;
                 }
+                document.getElementById('reg-course').value = "चलो करें नवपदजी की आराधना";
                 form.style.display = 'block';
                 successMsg.style.display = 'none';
                 modal.classList.add('active');
@@ -1913,8 +1947,8 @@
                 }
             };
 
-            // Countdown Logic
-            const targetDate = new Date('July 28, 2026 00:00:00').getTime();
+            // Countdown Logic for Navpad Oli Aradhana (18 Oct 2026)
+            const targetDate = new Date('October 18, 2026 00:00:00').getTime();
             setInterval(() => {
                 const now = new Date().getTime();
                 const distance = targetDate - now;
@@ -1926,7 +1960,7 @@
                 
                 const timerEl = document.getElementById('countdown-timer');
                 const eventTimerEl = document.getElementById('event-countdown-timer');
-                const timeStr = distance < 0 ? "Started!" : `${days}d ${hours}h ${minutes}m ${seconds}s`;
+                const timeStr = distance < 0 ? "Ongoing / Live!" : `${days}d ${hours}h ${minutes}m ${seconds}s`;
                 if (timerEl) timerEl.innerHTML = timeStr;
                 if (eventTimerEl) eventTimerEl.innerHTML = timeStr;
             }, 1000);

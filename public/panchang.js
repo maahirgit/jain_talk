@@ -461,7 +461,8 @@ document.addEventListener('DOMContentLoaded', async () => {
 window.updateAlertsBadge = async function() {
     let count = 0;
     const today = new Date();
-    const eventEndDate = new Date('September 26, 2026 23:59:59');
+    // Navpad Oli Ongoing Event (Active till 26 Oct 2026)
+    const eventEndDate = new Date('October 26, 2026 23:59:59');
     if (today <= eventEndDate) count++;
     
     const todayTithi = calculateTithi(today);
@@ -476,7 +477,27 @@ window.updateAlertsBadge = async function() {
     // Check Timing Alerts (Navkarsi & Sunset)
     const timings = await fetchTimings(today);
     const homeAlertsContainer = document.getElementById('home-timing-alerts');
-    if (homeAlertsContainer) homeAlertsContainer.innerHTML = '';
+    if (homeAlertsContainer) {
+        homeAlertsContainer.innerHTML = '';
+        if (today <= eventEndDate) {
+            homeAlertsContainer.innerHTML += `
+                <div style="background: linear-gradient(135deg, #FF8C00, #E65100); color: white; padding: 1.1rem 1.4rem; border-radius: 16px; display: flex; align-items: center; justify-content: space-between; gap: 1rem; box-shadow: 0 4px 15px rgba(255,140,0,0.25); cursor: pointer;" onclick="document.getElementById('open-register-btn').click();">
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <span style="font-size: 2rem;">📿</span>
+                        <div>
+                            <div style="display: flex; align-items: center; gap: 6px; margin-bottom: 2px;">
+                                <span style="display: inline-block; width: 8px; height: 8px; background: #FFF; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
+                                <span style="font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.5px; font-weight: 700; background: rgba(255,255,255,0.25); padding: 1px 8px; border-radius: 10px;">Ongoing Event</span>
+                            </div>
+                            <h4 style="margin: 0; font-size: 1.05rem; font-weight: 700;">चलो करें नवपदजी की आराधना (18–26 Oct)</h4>
+                            <p style="margin: 0.2rem 0 0 0; font-size: 0.85rem; opacity: 0.95;">Join the 9-day Navpad Oli Aradhana! Click to register for ₹51.</p>
+                        </div>
+                    </div>
+                    <span style="background: white; color: #E65100; padding: 0.5rem 1rem; border-radius: 20px; font-size: 0.85rem; font-weight: 700; white-space: nowrap; box-shadow: 0 2px 6px rgba(0,0,0,0.15);">View &rarr;</span>
+                </div>
+            `;
+        }
+    }
     
     if (timings && timings.sunrise && timings.sunset) {
         const navkarsiTime = new Date(timings.sunrise.getTime() + 48 * 60000);
@@ -535,21 +556,26 @@ window.generateAlerts = async function() {
     container.innerHTML = '';
     const today = new Date();
     
-    // Add Ongoing Event Alert (Auto clears after Sept 26)
-    const eventEndDate = new Date('September 26, 2026 23:59:59');
+    // Add Ongoing Event Alert for Event 2 (Active till 26 Oct 2026)
+    const eventEndDate = new Date('October 26, 2026 23:59:59');
     if (today <= eventEndDate) {
         const eventAlert = document.createElement('div');
-        eventAlert.style.padding = '1rem';
+        eventAlert.style.padding = '1.2rem';
         eventAlert.style.background = '#FFF3E0';
-        eventAlert.style.border = '1px solid #FFCC80';
-        eventAlert.style.borderRadius = '12px';
+        eventAlert.style.border = '1.5px solid #FF9800';
+        eventAlert.style.borderRadius = '14px';
         eventAlert.style.color = '#E65100';
         eventAlert.innerHTML = `
-            <div style="font-weight: 700; margin-bottom: 0.2rem; display: flex; align-items: center; gap: 0.5rem;">
+            <div style="font-weight: 700; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem;">
                 <span style="display: inline-block; width: 8px; height: 8px; background: #E65100; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
-                Ongoing Event
+                Ongoing Event: चलो करें नवपदजी की आराधना
             </div>
-            <div style="font-size: 0.95rem;"><strong>चलो सब आराधना करें</strong> is currently active. Join the daily tracker!</div>
+            <div style="font-size: 0.9rem; color: #5D4037; line-height: 1.5; margin-bottom: 0.8rem;">
+                The 9-day Navpad Oli Aradhana (18 Oct – 26 Oct) is currently active! Register now for ₹51 to track daily tap, puja, samayik, and view your ranking on the fresh leaderboard.
+            </div>
+            <button onclick="document.getElementById('alerts-modal').classList.remove('active'); document.getElementById('open-register-btn').click();" style="background: #FF9800; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; box-shadow: 0 2px 6px rgba(255,152,0,0.3);">
+                Open Registration / View Card
+            </button>
         `;
         container.appendChild(eventAlert);
     }
