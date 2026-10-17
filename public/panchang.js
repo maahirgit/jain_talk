@@ -568,13 +568,13 @@ window.generateAlerts = async function() {
         eventAlert.innerHTML = `
             <div style="font-weight: 700; margin-bottom: 0.3rem; display: flex; align-items: center; gap: 0.5rem; font-size: 1.05rem;">
                 <span style="display: inline-block; width: 8px; height: 8px; background: #E65100; border-radius: 50%; animation: pulse 1.5s infinite;"></span>
-                Ongoing Event: चलो करें नवपदजी की आराधना
+                Ongoing Event / चालू कार्यक्रम: चलो करें नवपदजी की आराधना
             </div>
             <div style="font-size: 0.9rem; color: #5D4037; line-height: 1.5; margin-bottom: 0.8rem;">
-                The 9-day Navpad Oli Aradhana (18 Oct – 26 Oct) is currently active! Register now for ₹51 to track daily tap, puja, samayik, and view your ranking on the fresh leaderboard.
+                The 9-day Navpad Oli Aradhana (18 Oct – 26 Oct) is currently active! Register now for ₹51 to track daily tap, puja, samayik, and view your ranking. / 9-दिवसीय नवपद ओली आराधना (18 – 26 अक्टूबर) सक्रिय है! ₹51 में पंजीकरण करें और दैनिक तप, पूजा, सामायिक ट्रैक करें।
             </div>
             <button onclick="document.getElementById('alerts-modal').classList.remove('active'); document.getElementById('open-register-btn').click();" style="background: #FF9800; color: white; border: none; padding: 0.6rem 1.2rem; border-radius: 8px; font-weight: 700; cursor: pointer; font-size: 0.9rem; box-shadow: 0 2px 6px rgba(255,152,0,0.3);">
-                Open Registration / View Card
+                Open Registration / View Card • पंजीकरण / कार्ड देखें
             </button>
         `;
         container.appendChild(eventAlert);
@@ -595,8 +595,8 @@ window.generateAlerts = async function() {
             navAlert.style.borderRadius = '12px';
             navAlert.style.color = '#2E7D32';
             navAlert.innerHTML = `
-                <div style="font-weight: 700; margin-bottom: 0.2rem;">Navkarsi Approaching!</div>
-                <div style="font-size: 0.95rem;">It's just <strong>${Math.ceil(navDiff)} minutes</strong> for Navkarsi. Stay motivated, you're almost there!</div>
+                <div style="font-weight: 700; margin-bottom: 0.2rem;">Navkarsi Approaching! / नवकारसी समय निकट है!</div>
+                <div style="font-size: 0.95rem;">It's just <strong>${Math.ceil(navDiff)} minutes</strong> for Navkarsi. Stay motivated! / नवकारसी में केवल ${Math.ceil(navDiff)} मिनट शेष हैं।</div>
             `;
             container.appendChild(navAlert);
         }
@@ -610,8 +610,8 @@ window.generateAlerts = async function() {
             sunsetAlert.style.borderRadius = '12px';
             sunsetAlert.style.color = '#C62828';
             sunsetAlert.innerHTML = `
-                <div style="font-weight: 700; margin-bottom: 0.2rem;">Chouvihar Alert</div>
-                <div style="font-size: 0.95rem;">Only <strong>${Math.ceil(sunsetDiff)} minutes</strong> left until Sunset. Please finish your dinner before Chouvihar.</div>
+                <div style="font-weight: 700; margin-bottom: 0.2rem;">Chouvihar Alert / चौविहार अलर्ट</div>
+                <div style="font-size: 0.95rem;">Only <strong>${Math.ceil(sunsetDiff)} minutes</strong> left until Sunset. Please finish your dinner before Chouvihar. / सूर्यास्त में केवल ${Math.ceil(sunsetDiff)} मिनट शेष हैं। कृपया चौविहार से पहले भोजन संपन्न करें।</div>
             `;
             container.appendChild(sunsetAlert);
         }
@@ -629,8 +629,8 @@ window.generateAlerts = async function() {
         todayAlert.style.borderRadius = '12px';
         todayAlert.style.color = '#E85D04';
         todayAlert.innerHTML = `
-            <div style="font-weight: 700; margin-bottom: 0.2rem;">Parva Tithi Today!</div>
-            <div style="font-size: 0.95rem;">Today is <strong>${todayTithi.fullName}</strong>.</div>
+            <div style="font-weight: 700; margin-bottom: 0.2rem;">Parva Tithi Today! / आज पर्व तिथि!</div>
+            <div style="font-size: 0.95rem;">Today is / आज है: <strong>${todayTithi.fullName}</strong>.</div>
         `;
         container.appendChild(todayAlert);
     }
@@ -647,14 +647,14 @@ window.generateAlerts = async function() {
         tomorrowAlert.style.borderRadius = '12px';
         tomorrowAlert.style.color = '#1565C0';
         tomorrowAlert.innerHTML = `
-            <div style="font-weight: 700; margin-bottom: 0.2rem;">Upcoming Parva Tithi</div>
-            <div style="font-size: 0.95rem;">Tomorrow is <strong>${tomorrowTithi.fullName}</strong>. Make your spiritual plans in advance!</div>
+            <div style="font-weight: 700; margin-bottom: 0.2rem;">Upcoming Parva Tithi / आगामी पर्व तिथि</div>
+            <div style="font-size: 0.95rem;">Tomorrow is / कल है: <strong>${tomorrowTithi.fullName}</strong>. Make your spiritual plans in advance!</div>
         `;
         container.appendChild(tomorrowAlert);
     }
     
     if (container.children.length === 0) {
-        container.innerHTML = '<div style="color: var(--text-light); text-align: center; padding: 2rem;">No new alerts at this time.</div>';
+        container.innerHTML = '<div style="color: var(--text-light); text-align: center; padding: 2rem;">No new alerts at this time / इस समय कोई नई सूचना नहीं है।</div>';
     }
 };
 

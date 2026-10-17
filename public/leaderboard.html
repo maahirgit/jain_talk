@@ -103,14 +103,14 @@
     <div class="header">
         <a href="/home.html" class="back-btn">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 4px;"><path d="M19 12H5"></path><path d="M12 19l-7-7 7-7"></path></svg>
-            Back
+            Back / वापस
         </a>
-        <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700;">Leaderboard</h1>
+        <h1 style="margin: 0; font-size: 1.5rem; font-weight: 700;">Leaderboard / लीडरबोर्ड</h1>
         <p style="margin: 0.3rem 0 0 0; font-size: 0.9rem; opacity: 0.95;">चलो करें नवपदजी की आराधना</p>
     </div>
 
     <div class="list-container" id="leaderboard-list">
-        <div class="loading">Loading leaderboard data...</div>
+        <div class="loading">Loading leaderboard data... / डेटा लोड हो रहा है...</div>
     </div>
 
     <script>
@@ -128,7 +128,7 @@
                 listContainer.innerHTML = '';
                 
                 if (data.length === 0) {
-                    listContainer.innerHTML = '<div class="loading">No submissions yet for Navpad Aradhana!</div>';
+                    listContainer.innerHTML = '<div class="loading">No submissions yet for Navpad Aradhana! / नवपद आराधना के लिए अभी कोई सबमिशन नहीं है!</div>';
                     return;
                 }
 
@@ -143,14 +143,14 @@
                         <div class="user-info">
                             <div class="user-name">${displayUsername}</div>
                         </div>
-                        <div class="score-badge">${user.totalPoints} pts</div>
+                        <div class="score-badge">${user.totalPoints} pts / अंक</div>
                     `;
                     listContainer.appendChild(itemDiv);
                 });
                 
             } catch (err) {
                 console.error(err);
-                document.getElementById('leaderboard-list').innerHTML = '<div class="loading" style="color: #F44336;">Error loading leaderboard. Please try again.</div>';
+                document.getElementById('leaderboard-list').innerHTML = '<div class="loading" style="color: #F44336;">Error loading leaderboard. Please try again. / त्रुटि! पुनः प्रयास करें।</div>';
             }
         }
         
