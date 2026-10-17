@@ -302,9 +302,10 @@
             const whatsappGroup = document.getElementById('whatsapp-group-container');
             const previewFormBtn = document.getElementById('preview-form-btn');
 
+            if (eventCountdown) eventCountdown.style.display = 'block';
+            if (whatsappGroup) whatsappGroup.style.display = 'flex';
+
             if (currentNavpadRegistration) {
-                if (eventCountdown) eventCountdown.style.display = 'block';
-                if (whatsappGroup) whatsappGroup.style.display = 'block';
 
                 if (currentNavpadRegistration.isPaymentVerified) {
                     // 2. Verified → Show real Aradhana Card button
@@ -1053,9 +1054,17 @@
                             <div style="font-size: 0.85rem; color: var(--primary-dark); font-weight: 600; margin-bottom: 0.3rem;">Navpad Oli Aradhna begins in</div>
                             <div id="event-countdown-timer" style="font-size: 1.1rem; font-weight: bold; color: var(--primary-color);">--d --h --m --s</div>
                         </div>
-                        <div id="whatsapp-group-container" style="display: none; background: #e8f5e9; padding: 1rem; border-radius: 8px; text-align: center; box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);">
-                            <div style="font-size: 0.85rem; color: #2e7d32; font-weight: 600; margin-bottom: 0.5rem;">Join WhatsApp group for more updates</div>
-                            <a href="https://chat.whatsapp.com/E4bLHGR82wh5hGfHIe1vte" target="_blank" style="display: inline-block; background: #25D366; color: white; padding: 0.5rem 1rem; border-radius: 20px; text-decoration: none; font-weight: bold; font-size: 0.9rem; box-shadow: 0 2px 5px rgba(37, 211, 102, 0.4);">Join Group</a>
+                        <div id="whatsapp-group-container" style="background: #e8f5e9; padding: 0.9rem 1.1rem; border-radius: 12px; border: 1px solid #c8e6c9; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                            <div style="display: flex; align-items: center; gap: 0.6rem; text-align: left;">
+                                <span style="font-size: 1.5rem;">💬</span>
+                                <div>
+                                    <div style="font-size: 0.9rem; color: #1b5e20; font-weight: 700;">Join WhatsApp Group</div>
+                                    <div style="font-size: 0.75rem; color: #2e7d32;">Stay updated with daily Aradhana announcements</div>
+                                </div>
+                            </div>
+                            <a href="https://chat.whatsapp.com/E4bLHGR82wh5hGfHIe1vte" target="_blank" style="display: inline-flex; align-items: center; gap: 0.4rem; background: #25D366; color: white; padding: 0.5rem 1.2rem; border-radius: 20px; text-decoration: none; font-weight: 700; font-size: 0.85rem; box-shadow: 0 2px 6px rgba(37, 211, 102, 0.35);">
+                                Join Group
+                            </a>
                         </div>
                     </div>
                 </div>
@@ -1416,6 +1425,17 @@
                 <div id="aaradhna-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; justify-items: center;">
                     <!-- Calendar grid items injected by JS -->
                 </div>
+            </div>
+
+            <!-- WhatsApp Group in Card Modal -->
+            <div style="margin-bottom: 1.5rem; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); padding: 0.85rem 1.2rem; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                <div style="text-align: left;">
+                    <div style="font-weight: 700; font-size: 0.95rem; color: white;">Official WhatsApp Group</div>
+                    <div style="font-size: 0.78rem; color: rgba(255, 255, 255, 0.9);">Join the community for daily inspirations</div>
+                </div>
+                <a href="https://chat.whatsapp.com/E4bLHGR82wh5hGfHIe1vte" target="_blank" style="background: #25D366; color: white; padding: 0.5rem 1.2rem; border-radius: 20px; text-decoration: none; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
+                    Join Group
+                </a>
             </div>
             
             <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">
