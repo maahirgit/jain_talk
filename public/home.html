@@ -448,9 +448,12 @@
 
             if (todayIST < eventStartDate) {
                 // Event hasn't started yet (e.g. today is 17 Oct)
-                formBtn.innerHTML = `<i class="fas fa-clock" style="margin-right: 8px;"></i> Aradhana Starts on 18 Oct`;
-                formBtn.style.background = '#78909C';
-                formBtn.style.boxShadow = 'none';
+                formBtn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><circle cx="12" cy="12" r="10"></circle><polyline points="12 6 12 12 16 14"></polyline></svg>
+                    <span>Aradhana Starts on 18 Oct</span>
+                `;
+                formBtn.style.background = 'linear-gradient(135deg, #607D8B, #455A64)';
+                formBtn.style.boxShadow = '0 4px 14px rgba(69, 90, 100, 0.25)';
                 formBtn.style.cursor = 'pointer';
                 formBtn.onclick = () => {
                     alert('चलो करें नवपदजी की आराधना starts on 18 Oct 2026. Daily submissions will open tomorrow on Day 1 (18 Oct)!');
@@ -458,7 +461,10 @@
                 if (yesterdayBtn) yesterdayBtn.style.display = 'none';
             } else if (todayIST > eventEndDate) {
                 // Event is finished
-                formBtn.innerHTML = `<i class="fas fa-check-double" style="margin-right: 8px;"></i> Event Completed (18–26 Oct)`;
+                formBtn.innerHTML = `
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                    <span>Event Completed (18–26 Oct)</span>
+                `;
                 formBtn.style.background = '#546E7A';
                 formBtn.style.boxShadow = 'none';
                 formBtn.style.cursor = 'default';
@@ -467,13 +473,19 @@
             } else {
                 // During the event (18 Oct to 26 Oct)
                 if (data.hasSubmittedToday) {
-                    formBtn.innerHTML = `<i class="fas fa-check-circle" style="margin-right: 8px;"></i> Today's Aradhana Completed`;
-                    formBtn.style.background = '#4CAF50';
-                    formBtn.style.boxShadow = '0 4px 15px rgba(76, 175, 80, 0.4)';
+                    formBtn.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline></svg>
+                        <span>Today's Aradhana Completed</span>
+                    `;
+                    formBtn.style.background = 'linear-gradient(135deg, #43A047, #2E7D32)';
+                    formBtn.style.boxShadow = '0 4px 15px rgba(46, 125, 50, 0.35)';
                     formBtn.style.cursor = 'default';
                     formBtn.onclick = null;
                 } else {
-                    formBtn.innerHTML = `<i class="fas fa-pencil-alt" style="margin-right: 8px;"></i> Fill Today's Aradhana`;
+                    formBtn.innerHTML = `
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                        <span>Fill Today's Aradhana</span>
+                    `;
                     formBtn.style.background = 'linear-gradient(135deg, #FF9800, #F57C00)';
                     formBtn.style.boxShadow = '0 4px 15px rgba(255, 152, 0, 0.4)';
                     formBtn.style.cursor = 'pointer';
@@ -489,8 +501,11 @@
                     const alreadyFilledYesterday = data.calendar && data.calendar.some(c => c.date === ydStr && c.status === 'FILLED');
                     
                     if (isYdInEvent && !alreadyFilledYesterday) {
-                        yesterdayBtn.style.display = 'block';
-                        yesterdayBtn.innerHTML = `<i class="fas fa-history" style="margin-right: 8px;"></i> Fill Yesterday's Aradhana (${ydStr})`;
+                        yesterdayBtn.style.display = 'inline-flex';
+                        yesterdayBtn.innerHTML = `
+                            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="margin-right: 8px;"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                            <span>Fill Yesterday's Aradhana (${ydStr})</span>
+                        `;
                         yesterdayBtn.onclick = () => openAradhanaForm(true);
                     } else {
                         yesterdayBtn.style.display = 'none';
@@ -1399,12 +1414,14 @@
                     <!-- Motivational message goes here -->
                 </div>
 
-                <button id="open-aradhana-form-btn" style="width: 100%; background: linear-gradient(135deg, #FF9800, #F57C00); color: white; border: none; padding: 1rem; border-radius: 12px; font-weight: 700; font-size: 1.1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4); margin-bottom: 0.75rem; transition: all 0.3s ease;">
-                    <i class="fas fa-pencil-alt" style="margin-right: 8px;"></i> Fill Today's Aradhana
+                <button id="open-aradhana-form-btn" style="width: 100%; background: linear-gradient(135deg, #FF9800, #F57C00); color: white; border: none; padding: 0.95rem 1.25rem; border-radius: 12px; font-weight: 700; font-size: 1.05rem; cursor: pointer; box-shadow: 0 4px 15px rgba(255, 152, 0, 0.4); margin-bottom: 0.75rem; transition: all 0.25s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Outfit', sans-serif;">
+                    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"></path><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"></path></svg>
+                    <span>Fill Today's Aradhana</span>
                 </button>
 
-                <button id="open-yesterday-aradhana-btn" style="display:none; width: 100%; background: linear-gradient(135deg, #7B5EA7, #5C3D8F); color: white; border: none; padding: 0.85rem; border-radius: 12px; font-weight: 700; font-size: 1rem; cursor: pointer; box-shadow: 0 4px 15px rgba(123, 94, 167, 0.35); margin-bottom: 1.5rem; transition: all 0.3s ease;">
-                    <i class="fas fa-history" style="margin-right: 8px;"></i> Fill Yesterday's Aradhana
+                <button id="open-yesterday-aradhana-btn" style="display:none; width: 100%; background: linear-gradient(135deg, #7B5EA7, #5C3D8F); color: white; border: none; padding: 0.85rem 1.25rem; border-radius: 12px; font-weight: 700; font-size: 0.95rem; cursor: pointer; box-shadow: 0 4px 14px rgba(123, 94, 167, 0.35); margin-bottom: 1.25rem; transition: all 0.25s ease; display: inline-flex; align-items: center; justify-content: center; gap: 8px; font-family: 'Outfit', sans-serif;">
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><polyline points="1 4 1 10 7 10"></polyline><path d="M3.51 15a9 9 0 1 0 2.13-9.36L1 10"></path></svg>
+                    <span>Fill Yesterday's Aradhana</span>
                 </button>
                 
                 <h3 style="font-size: 1.1rem; margin-bottom: 1rem; color: var(--primary-dark); display: flex; align-items: center; gap: 0.5rem;">
@@ -1425,17 +1442,22 @@
                 <div id="aaradhna-grid" style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 0.4rem; justify-items: center;">
                     <!-- Calendar grid items injected by JS -->
                 </div>
-            </div>
 
-            <!-- WhatsApp Group in Card Modal -->
-            <div style="margin-bottom: 1.5rem; background: rgba(255, 255, 255, 0.15); border: 1px solid rgba(255, 255, 255, 0.3); padding: 0.85rem 1.2rem; border-radius: 14px; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
-                <div style="text-align: left;">
-                    <div style="font-weight: 700; font-size: 0.95rem; color: white;">Official WhatsApp Group</div>
-                    <div style="font-size: 0.78rem; color: rgba(255, 255, 255, 0.9);">Join the community for daily inspirations</div>
+                <!-- Integrated WhatsApp Section inside Card -->
+                <div style="margin-top: 1.5rem; padding-top: 1.25rem; border-top: 1px solid #ECEFF1; display: flex; align-items: center; justify-content: space-between; gap: 0.75rem; flex-wrap: wrap;">
+                    <div style="display: flex; align-items: center; gap: 0.6rem; text-align: left;">
+                        <div style="width: 38px; height: 38px; background: #E8F5E9; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0;">
+                            <svg width="22" height="22" viewBox="0 0 24 24" fill="#25D366"><path d="M12.04 2c-5.46 0-9.91 4.45-9.91 9.91 0 1.75.46 3.45 1.32 4.95L2.05 22l5.25-1.38c1.45.79 3.08 1.21 4.74 1.21 5.46 0 9.91-4.45 9.91-9.91 0-2.65-1.03-5.14-2.9-7.01A9.816 9.816 0 0 0 12.04 2z"></path></svg>
+                        </div>
+                        <div>
+                            <div style="font-weight: 700; font-size: 0.92rem; color: #1B5E20;">Official WhatsApp Group</div>
+                            <div style="font-size: 0.75rem; color: #388E3C;">Daily Aradhana reminders & updates</div>
+                        </div>
+                    </div>
+                    <a href="https://chat.whatsapp.com/E4bLHGR82wh5hGfHIe1vte" target="_blank" style="display: inline-flex; align-items: center; gap: 0.4rem; background: #25D366; color: white; padding: 0.55rem 1.25rem; border-radius: 20px; text-decoration: none; font-weight: 700; font-size: 0.88rem; box-shadow: 0 3px 8px rgba(37, 211, 102, 0.4); transition: transform 0.2s;">
+                        Join Group
+                    </a>
                 </div>
-                <a href="https://chat.whatsapp.com/E4bLHGR82wh5hGfHIe1vte" target="_blank" style="background: #25D366; color: white; padding: 0.5rem 1.2rem; border-radius: 20px; text-decoration: none; font-weight: 700; font-size: 0.85rem; box-shadow: 0 4px 10px rgba(0,0,0,0.2);">
-                    Join Group
-                </a>
             </div>
             
             <div style="font-size: 0.85rem; color: rgba(255,255,255,0.8);">
