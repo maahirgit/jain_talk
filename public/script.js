@@ -5,19 +5,44 @@ document.addEventListener('DOMContentLoaded', () => {
     const loginForm = document.getElementById('login-form');
     const signupForm = document.getElementById('signup-form');
 
-    loginToggle.addEventListener('click', () => {
-        loginToggle.classList.add('active');
-        signupToggle.classList.remove('active');
-        loginForm.classList.add('active-form');
-        signupForm.classList.remove('active-form');
-    });
-
-    signupToggle.addEventListener('click', () => {
+    function showSignup() {
         signupToggle.classList.add('active');
         loginToggle.classList.remove('active');
         signupForm.classList.add('active-form');
         loginForm.classList.remove('active-form');
-    });
+    }
+
+    function showLogin() {
+        loginToggle.classList.add('active');
+        signupToggle.classList.remove('active');
+        loginForm.classList.add('active-form');
+        signupForm.classList.remove('active-form');
+    }
+
+    loginToggle.addEventListener('click', showLogin);
+    signupToggle.addEventListener('click', showSignup);
+
+    // First time visitor on this browser -> Show Sign Up page
+    // Every time after that -> Show Log In page
+    const HAS_VISITED_KEY = 'jain_talk_has_visited';
+    const urlParams = new URLSearchParams(window.location.search);
+    const tabParam = urlParams.get('tab') || window.location.hash.replace('#', '');
+
+    if (tabParam === 'signup') {
+        showSignup();
+    } else if (tabParam === 'login') {
+        showLogin();
+    } else {
+        const hasVisited = localStorage.getItem(HAS_VISITED_KEY);
+        if (!hasVisited) {
+            // First time opening the URL
+            showSignup();
+            localStorage.setItem(HAS_VISITED_KEY, 'true');
+        } else {
+            // Every time after the first visit
+            showLogin();
+        }
+    }
 
     // --- Toggle Password Visibility ---
     const togglePasswordBtns = document.querySelectorAll('.toggle-password');

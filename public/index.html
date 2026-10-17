@@ -113,6 +113,23 @@
                     <button type="submit" class="submit-btn" id="signup-submit" disabled>Create Account / खाता बनाएं</button>
                 </form>
             </div>
+            <script>
+                // Immediate pre-render: returning visitors see Log In immediately without flash
+                try {
+                    if (localStorage.getItem('jain_talk_has_visited') && !window.location.search.includes('tab=signup') && window.location.hash !== '#signup') {
+                        var st = document.getElementById('signup-toggle');
+                        var lt = document.getElementById('login-toggle');
+                        var sf = document.getElementById('signup-form');
+                        var lf = document.getElementById('login-form');
+                        if (st && lt && sf && lf) {
+                            st.classList.remove('active');
+                            lt.classList.add('active');
+                            sf.classList.remove('active-form');
+                            lf.classList.add('active-form');
+                        }
+                    }
+                } catch (e) {}
+            </script>
         </div>
     </div>
 
