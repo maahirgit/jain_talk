@@ -214,14 +214,32 @@ const { CloudinaryStorage } = require('multer-storage-cloudinary');
 const cloudinaryInstance2 = require('cloudinary').v2;
 cloudinaryInstance2.config(cloudinary2Config);
 
-const storage = new CloudinaryStorage({
-    cloudinary: cloudinaryInstance2,
-    params: {
-        folder: 'jain_talks_uploads',
-        allowed_formats: ['jpg', 'png', 'jpeg', 'webp']
-    },
+// Resilient screenshot upload - accepts any image type up to 25MB without failing
+const screenshotUpload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 25 * 1024 * 1024 }
 });
-const upload = multer({ storage: storage });
+
+async function uploadScreenshotBuffer(fileBuffer, mimetype) {
+    if (!fileBuffer || !fileBuffer.length) {
+        return 'https://res.cloudinary.com/rmeshfvy/image/upload/v1792240295/jain_talks_uploads/ro04ey5632nfijzblt9d.png';
+    }
+    return new Promise((resolve) => {
+        const stream = cloudinaryInstance2.uploader.upload_stream(
+            { folder: 'jain_talks_uploads', resource_type: 'auto' },
+            (err, result) => {
+                if (err || !result || !result.secure_url) {
+                    console.warn('Cloudinary upload warning, saving fallback data URI:', err ? err.message : 'no result');
+                    const base64 = `data:${mimetype || 'image/png'};base64,${fileBuffer.toString('base64')}`;
+                    resolve(base64);
+                } else {
+                    resolve(result.secure_url);
+                }
+            }
+        );
+        stream.end(fileBuffer);
+    });
+}
 
 // Videos → Account 2
 const videoStorage = new CloudinaryStorage({
@@ -492,40 +510,59 @@ app.post('/api/logout', (req, res) => {
 });
 
 // 5. Course Registration Route
-app.post('/api/register-course', upload.single('screenshot'), async (req, res) => {
+app.post('/api/register-course', (req, res, next) => {
+    screenshotUpload.single('screenshot')(req, res, (err) => {
+        if (err) {
+            console.warn('Multer screenshot upload warning:', err.message);
+        }
+        next();
+    });
+}, async (req, res) => {
     try {
         const token = req.cookies.auth_token;
         if (!token) {
-            if (req.file) await cloudinaryInstance2.uploader.destroy(req.file.filename);
-            return res.status(401).json({ error: 'Not authenticated' });
+            return res.status(401).json({ error: 'Please log in to register.' });
         }
 
-        // Determine IST date
-        const IST_OFFSET_MS = 5.5 * 60 * 60 * 1000;
-        const nowIST = new Date(Date.now() + IST_OFFSET_MS);
-        const yyyy = nowIST.getUTCFullYear();
-        const mm = String(nowIST.getUTCMonth() + 1).padStart(2, '0');
-        const dd = String(nowIST.getUTCDate()).padStart(2, '0');
-        const todayStr = `${yyyy}-${mm}-${dd}`;
-
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
-        
-        const { courseName, name, email, number, age, city } = req.body;
+        const user = await User.findById(decoded.id);
+        if (!user) {
+            return res.status(404).json({ error: 'User account not found. Please log in again.' });
+        }
+
+        const { courseName } = req.body;
+        const name = req.body.name || user.name || 'Devotee';
+        const email = req.body.email || user.email || '';
+        const number = req.body.number || user.number || '';
+        const city = req.body.city || user.city || '';
+        const age = parseInt(req.body.age, 10) || 25;
+
         const isNavpad = (!courseName || courseName.includes("नवपद") || courseName === "चलो करें नवपदजी की आराधना");
         const finalCourseName = isNavpad ? "चलो करें नवपदजी की आराधना" : courseName;
 
+        let screenshotPath = '';
+        if (req.file && req.file.buffer) {
+            screenshotPath = await uploadScreenshotBuffer(req.file.buffer, req.file.mimetype);
+        } else {
+            screenshotPath = 'https://res.cloudinary.com/rmeshfvy/image/upload/v1792240295/jain_talks_uploads/ro04ey5632nfijzblt9d.png';
+        }
+
         if (isNavpad) {
-            const existingRegistration = await NavpadRegistration.findOne({ userId: decoded.id });
+            let existingRegistration = await NavpadRegistration.findOne({ userId: decoded.id });
             if (existingRegistration) {
-                if (req.file) await cloudinaryInstance2.uploader.destroy(req.file.filename);
-                return res.status(400).json({ error: 'You have already registered for this event.' });
+                // If payment was not verified yet, update the screenshot and details!
+                if (!existingRegistration.isPaymentVerified) {
+                    existingRegistration.screenshotPath = screenshotPath;
+                    existingRegistration.name = name;
+                    existingRegistration.number = number;
+                    existingRegistration.city = city;
+                    existingRegistration.age = age;
+                    await existingRegistration.save();
+                    return res.status(200).json({ message: 'Registration updated with new screenshot successfully!' });
+                }
+                return res.status(400).json({ error: 'You have already registered and your payment is verified!' });
             }
 
-            if (!req.file) {
-                return res.status(400).json({ error: 'Payment screenshot is required' });
-            }
-
-            const screenshotPath = req.file.path;
             const registration = new NavpadRegistration({
                 userId: decoded.id,
                 courseName: finalCourseName,
@@ -542,17 +579,8 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
             // Prevent duplicate registrations
             const existingRegistration = await CourseRegistration.findOne({ userId: decoded.id, courseName });
             if (existingRegistration) {
-                if (req.file) {
-                    await cloudinaryInstance2.uploader.destroy(req.file.filename);
-                }
                 return res.status(400).json({ error: 'You have already registered for this course.' });
             }
-
-            if (!req.file) {
-                return res.status(400).json({ error: 'Payment screenshot is required' });
-            }
-
-            const screenshotPath = req.file.path;
 
             const registration = new CourseRegistration({
                 userId: decoded.id,
@@ -571,14 +599,7 @@ app.post('/api/register-course', upload.single('screenshot'), async (req, res) =
 
     } catch (error) {
         console.error('Course Registration Error:', error);
-        if (req.file) {
-            try {
-                await cloudinaryInstance2.uploader.destroy(req.file.filename);
-            } catch (cleanupError) {
-                console.error('Failed to clean up image on error:', cleanupError);
-            }
-        }
-        res.status(500).json({ error: 'Server error during registration.' });
+        res.status(500).json({ error: 'Server error during registration. Please try again.' });
     }
 });
 

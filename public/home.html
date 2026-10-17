@@ -1754,7 +1754,8 @@
                     document.getElementById('reg-number').value = currentUser.number || '';
                     if (currentUser.city) document.getElementById('reg-city').value = currentUser.city;
                 }
-                document.getElementById('reg-course').value = "चलो करें नवपदजी की आराधना";
+                const courseInput = document.getElementById('reg-course-name') || document.getElementById('reg-course');
+                if (courseInput) courseInput.value = "चलो करें नवपदजी की आराधना";
                 form.style.display = 'block';
                 successMsg.style.display = 'none';
                 modal.classList.add('active');
@@ -2010,7 +2011,7 @@
             form.addEventListener('submit', async (e) => {
                 e.preventDefault();
                 const submitBtn = document.getElementById('reg-submit-btn');
-                submitBtn.textContent = 'Submitting...';
+                submitBtn.textContent = 'Submitting... / जमा हो रहा है...';
                 submitBtn.disabled = true;
 
                 const formData = new FormData(form);
@@ -2021,19 +2022,25 @@
                         body: formData
                     });
 
+                    let data = {};
+                    try {
+                        data = await response.json();
+                    } catch (pErr) {
+                        data = {};
+                    }
+
                     if (response.ok) {
                         form.style.display = 'none';
                         successMsg.style.display = 'block';
-                        verifyAuth(); // Update background button state immediately
+                        if (typeof verifyAuth === 'function') verifyAuth();
                     } else {
-                        const data = await response.json();
-                        alert(data.error || 'Registration failed');
+                        alert(data.error || 'Registration failed. Please try again. / पंजीकरण असफल रहा। कृपया पुनः प्रयास करें।');
                     }
                 } catch (err) {
-                    console.error(err);
-                    alert('Error submitting registration.');
+                    console.error('Registration submit error:', err);
+                    alert('Network error while submitting. Please try again. / सबमिट करते समय नेटवर्क त्रुटि हुई। कृपया पुनः प्रयास करें।');
                 } finally {
-                    submitBtn.textContent = 'Submit Registration';
+                    submitBtn.textContent = 'Submit Registration (₹51) / पंजीकरण जमा करें (₹51)';
                     submitBtn.disabled = false;
                 }
             });
